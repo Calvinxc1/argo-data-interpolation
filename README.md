@@ -129,6 +129,11 @@ src/argo_interp/cycle/
 Released under the terms of the GNU Affero General Public License v3.0.
 See `LICENSE`.
 
+## AI Assistance
+
+This repository uses AI-assisted development workflows, including Claude and
+Codex. All AI-assisted work is reviewed by a human before publication.
+
 ## Acknowledgments
 
 This work was inspired by participation in the 2025 MATE Floats workshop and

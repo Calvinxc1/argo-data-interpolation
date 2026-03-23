@@ -10,9 +10,17 @@ temperature and salinity at arbitrary pressure values, with uncertainty terms.
 
 This project is in exploratory/research mode.
 
-- Core cycle interpolation pipeline is implemented under `src/argo_interp/cycle`.
-- Notebook-driven experimentation is in `playground.ipynb`.
+- Core cycle interpolation pipeline is implemented under
+  [`src/argo_interp/cycle`](src/argo_interp/cycle/).
+- Notebook-driven experimentation is in
+  [`vertical-interp.ipynb`](vertical-interp.ipynb).
 - CI/CD and formal test suites are intentionally not set up yet.
+
+### Documentation State Caveat
+
+Until changes are pushed/merged to `main`, all documentation in this repository
+should be treated as **draft state** and may contain errors, omissions, or
+outdated statements.
 
 ## Roadmap
 
@@ -21,16 +29,23 @@ The current scope is vertical interpolation within individual float cycles
 **spatiotemporal interpolation across floats/buoys**, so predictions can use
 both depth structure and cross-buoy spatial/temporal context.
 
+Additional planned work includes examining temperature-salinity correlation
+structure within cycles to evaluate whether joint modeling can improve
+interpolation accuracy.
+
 ## Current Pipeline (Cycle-Level)
 
 For each cycle, the code follows this structure:
 
-1. Resample observations onto a uniform pressure grid (`uniformed_pressure`).
+1. Resample observations onto a uniform pressure grid
+   ([`uniformed_pressure.py`](src/argo_interp/cycle/uniformed_pressure.py)).
 2. Smooth readings and estimate curvature with Savitzky-Golay filtering.
-3. Detect knot candidates from curvature peaks (`knot_identifier`).
+3. Detect knot candidates from curvature peaks
+   ([`knot_identifier.py`](src/argo_interp/cycle/knot_identifier.py)).
 4. Fit least-squares splines (`make_lsq_spline` / `LSQUnivariateSpline`).
 5. Compute model error terms (training RMSE and/or fold-based error).
-6. Query interpolated values and pressure-propagated uncertainty via `CycleModel`.
+6. Query interpolated values and pressure-propagated uncertainty via
+   [`CycleModel.py`](src/argo_interp/cycle/CycleModel.py).
 
 ## Installation
 
@@ -118,6 +133,19 @@ src/argo_interp/cycle/
   calc_rmse.py          # RMSE helper
 ```
 
+## Notebook and Research Documentation
+
+- [`vertical-interp.ipynb`](vertical-interp.ipynb): narrative walkthrough of the current vertical
+  interpolation pipeline, uncertainty modeling, and diagnostics.
+- [`research/vertical/LIT-REVIEW-VERTICAL.md`](research/vertical/LIT-REVIEW-VERTICAL.md): literature review focused on
+  vertical profile interpolation/representation methods and sensor error context.
+- [`research/vertical/NOTES-VERTICAL.md`](research/vertical/NOTES-VERTICAL.md): implementation-facing notes connecting
+  vertical literature to this pipeline and planned experiments.
+- [`research/spatio-temporal/LIT-REVIEW-SPATIOTEMPORAL.md`](research/spatio-temporal/LIT-REVIEW-SPATIOTEMPORAL.md): literature review
+  focused on spatio-temporal Argo modeling approaches.
+- [`research/spatio-temporal/NOTES-SPATIOTEMPORAL.md`](research/spatio-temporal/NOTES-SPATIOTEMPORAL.md): working notes on
+  spatio-temporal methods, positioning, and integration planning.
+
 ## Data Notes
 
 - Typical expected columns for cycle interpolation: `PRES`, `TEMP`, `PSAL`
@@ -127,7 +155,7 @@ src/argo_interp/cycle/
 ## License
 
 Released under the terms of the GNU Affero General Public License v3.0.
-See `LICENSE`.
+See [`LICENSE`](LICENSE).
 
 ## AI Assistance
 

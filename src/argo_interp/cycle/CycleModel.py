@@ -43,8 +43,11 @@ class CycleModel:
         array_errors = np.abs(array_interpolation) * self.error.sensor.pressure
         frame_index = pd.Series(pressure_values, name='pressure')
         frame_errors = pd.DataFrame(array_errors, index=frame_index, columns=['temp_error', 'sal_error'])
-        frame_errors['temp_error'] += self.error.sensor.temperature + self.error.model.temperature
-        frame_errors['sal_error'] += self.error.sensor.salinity + self.error.model.salinity
+
+        frame_errors = frame_errors ** 2
+        frame_errors['temp_error'] += (self.error.sensor.temperature ** 2) + (self.error.model.temperature ** 2)
+        frame_errors['sal_error'] += (self.error.sensor.salinity ** 2) + (self.error.model.salinity ** 2)
+        frame_errors = np.sqrt(frame_errors)
         return frame_errors
 
     def _validate_domain(self, pressure_values: NDArray[np.float64]) -> None:

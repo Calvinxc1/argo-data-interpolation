@@ -181,6 +181,8 @@ Understanding this in detail matters for two reasons. First, it determines exact
 
 Recommended reading: Wong et al. (2020) for the delayed-mode QC pipeline, Roemmich and Gilson (2009) for how interpolation enters the standard-level gridded product, Argo data management documentation at https://argo.ucsd.edu/data/data-management/, and Yarger et al. (2022) Section 2.1 and 2.2 for a concise processing context overview from a statistical user's perspective.
 
+Follow-up item for a future version: account for measurement-time lag within Argo profiles. In the current pipeline design, a profile is treated as effectively static over the interval between subsurface measurement and later surface/report time. This is a simplifying implementation assumption. A future version should evaluate whether the within-cycle temporal offset is large enough to affect interpolation quality or uncertainty, especially when combining the vertical artifact with downstream spatiotemporal modeling.
+
 ---
 
 ## Sensor error: Wong et al. and Barker et al.

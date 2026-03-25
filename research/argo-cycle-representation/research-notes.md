@@ -1,4 +1,4 @@
-# Pipeline Notes: Vertical Profile Representation
+# Pipeline Notes: Argo Cycle Representation
 
 Working notes on how the published vertical interpolation literature relates to this pipeline, including comparisons, competitive advantages, implementation details, and planned experiments.
 
@@ -18,46 +18,46 @@ These are related but distinct problems. MRST-PCHIP cannot be used for compressi
 
 Barker and McDougall motivate their work partly by demonstrating that cubic splines produce Gibbs ringing at sharp features like thermocline boundaries and mixed-layer bases. The overshoot is a mathematical consequence of the interpolating constraint: because the spline is forced to pass exactly through every observation, it must bend sharply to accommodate transitions, and that bending propagates into adjacent intervals as oscillation.
 
-This is a fundamental property of interpolating splines, not a tuning problem. No amount of knot refinement fixes it in the interpolating case because the knots are already at every observation.
+For exact cubic interpolants, this is not simply a tuning issue. Barker and McDougall (2020) document the overshoot problem empirically in oceanographic interpolation, and Zhang and Martin (1997) show for discontinuous functions on uniform meshes that maximum cubic-spline overshoot does not decrease with mesh refinement.
 
-The LSQ spline in this pipeline does not share this problem. It minimizes squared error across all observations without being constrained to pass through any of them. At a sharp thermocline transition, the spline finds the best-fit smooth curve through the neighborhood of points rather than being forced through each one individually. Adding more knots in regions of high curvature, which curvature-based detection does automatically, provides additional local flexibility to represent sharp features without oscillation.
+The LSQ spline in this pipeline should be less prone to this problem. It minimizes squared error across all observations without being constrained to pass through any of them. At a sharp thermocline transition, the spline should tend to find the best-fit smooth curve through the neighborhood of points rather than being forced through each one individually. Adding more knots in regions of high curvature, which curvature-based detection does automatically, should provide additional local flexibility to represent sharp features without oscillation.
 
 ### Noise sensitivity
 
 Because MRST-PCHIP interpolates exactly, every observation is treated as ground truth. A sensor noise spike, an internal wave heave artifact, or a fine-scale salinity intrusion that happens to fall at a sampling depth is honored by the interpolant as real ocean structure. The effect propagates into adjacent intervals and cannot be removed without re-running the interpolation on cleaned data.
 
-This pipeline insulates against noise at two separate stages.
+This pipeline is designed to reduce noise sensitivity at two separate stages.
 
-First, the Savitzky-Golay smoothing pass before knot detection separates the noise signal from the structural signal before any fitting occurs. Noise spikes do not generate curvature peaks on the smoothed profile, so knots are not placed at noise artifacts.
+First, the Savitzky-Golay smoothing pass before knot detection separates the noise signal from the structural signal before any fitting occurs. Noise spikes should be much less likely to generate curvature peaks on the smoothed profile, so knots should be less likely to be placed at noise artifacts.
 
-Second, the LSQ solve minimizes squared error across all observations simultaneously. A single noisy point is averaged down by its neighbors in the fit rather than pinned through. The resulting spline represents the statistical center of the observation cloud around each pressure level rather than the exact value at any one of them.
+Second, the LSQ solve minimizes squared error across all observations simultaneously. A single noisy point tends to be averaged down by its neighbors in the fit rather than pinned through. The resulting spline should represent the statistical center of the observation cloud around each pressure level rather than the exact value at any one of them.
 
-The practical consequence is that this pipeline correctly represents the large-scale gradient through a noisy thermocline, where MRST-PCHIP might produce density inversions or SA-CT diagram loops from honoring individual noisy samples. This is notable given that avoiding such artifacts is one of MRST-PCHIP's primary design goals relative to earlier methods.
+The practical consequence is that this pipeline represents the large-scale gradient through a noisy thermocline by averaging across neighboring observations rather than honoring each sample exactly. Because MRST-PCHIP is still an exact interpolant, it may remain more sensitive to noisy samples than a least-squares representation, even though Barker and McDougall (2020) designed it to reduce overshoot and anomalous water-mass artifacts relative to earlier methods. This noise-sensitivity comparison is currently a hypothesis and should be tested directly rather than assumed.
 
 ### The knot placement distinction
 
 MRST-PCHIP has no equivalent to knot placement. Every observation is a breakpoint and contributes equally to the interpolant structure regardless of whether it falls in a physically informative region.
 
-This pipeline places knots where the profile is genuinely bending, using the second derivative of the smoothed profile as a physically motivated signal. The thermocline, where curvature is highest, receives the most knots. The flat deep ocean, where curvature is near zero, receives few or none. This means the model's degrees of freedom are concentrated where they earn the most representation fidelity, which is both more efficient and more physically honest than uniform breakpoint placement.
+This pipeline places knots where the profile is genuinely bending, using the second derivative of the smoothed profile as a physically motivated signal. The thermocline, where curvature is highest, receives the most knots. The flat deep ocean, where curvature is near zero, receives few or none. This means the model's degrees of freedom are concentrated where they earn the most representation fidelity, which is more efficient and more targeted to regions of high profile curvature than uniform breakpoint placement.
 
 ### Summary of comparative advantages
 
 | Property | MRST-PCHIP | This pipeline |
 |---|---|---|
 | Passes through every observation | Yes (by design) | No |
-| Noise sensitivity | High | Low |
-| Gibbs ringing at sharp features | Present, mitigated by rotation averaging | Absent by construction |
+| Noise sensitivity | Expected higher | Designed to be lower |
+| Gibbs ringing at sharp features | Greatly reduced relative to cubic splines | Not imposed by exact interpolation |
 | Compresses profile | No | Yes, ~9 knots on average |
 | Queryable at arbitrary pressure | Yes, requires full profile in memory | Yes, from stored spline only |
 | Physically motivated structure | SA-CT diagram preservation | Curvature-based knot placement |
-| Uncertainty quantification | Not provided | Depth-varying, from pressure error propagation |
+| Interpolation-method uncertainty quantification | Not provided in the method paper | Pipeline-specific depth-varying estimate from pressure error propagation |
 | Per-profile RMSE benchmark | Not reported in literature | 0.175°C (temp), 0.0295 PSU (sal), cross-validated |
 
 ### Citation note on Gibbs ringing
 
-Barker and McDougall treat Gibbs ringing in cubic splines as established fact requiring no citation. The mathematical proof that cubic spline overshoot does not diminish with mesh refinement is in Xu et al. (1998, Journal of Computational and Applied Mathematics). The claim that cubic splines are no longer used in physical oceanography is Barker and McDougall's own statement based on community knowledge, not a reference to an external source.
+Barker and McDougall treat Gibbs ringing in cubic splines as established fact requiring no citation. For discontinuous functions, Zhang and Martin (1997, Journal of Computational and Applied Mathematics) show that complete cubic spline interpolation on uniform meshes exhibits Gibbs-type oscillation near the discontinuity and that the maximum overshoot does not decrease with mesh refinement. That is not a proof for ocean thermoclines specifically, but it is the closest clean mathematical result supporting the general warning about spline ringing near sharp transitions. The claim that cubic splines are no longer used in physical oceanography is Barker and McDougall's own statement based on community knowledge, not a reference to an external source.
 
-For any presentation or manuscript, Barker and McDougall (2020) is the appropriate reference for both the interpolating spline problem and the current operational standard.
+For any presentation or manuscript, Barker and McDougall (2020) would be the appropriate reference for both the interpolating spline problem and the current operational standard.
 
 ### Important caveat for honest presentation
 
@@ -67,9 +67,11 @@ MRST-PCHIP optimizes explicitly for SA-CT diagram fidelity, preserving water-mas
 
 ## Li et al. (2005): cross-domain validation of the core technique
 
+Note: the Li et al. (2005) citation metadata is verified, but some interpretive details in this section remain provisional pending full-text confirmation.
+
 ### Critical clarification
 
-Li et al. (2005) is a computer-aided design paper with no oceanographic intent or application. The authors (Weishi Li, Shuhong Xu, Gang Zhao, Li Ping Goh) were engineers at the Institute of High Performance Computing in Singapore and Beijing University of Aeronautics and Astronautics, working on reverse engineering of physical objects. This is important framing: they are not prior art in oceanography. They are independent prior art for the mathematical technique, which is a stronger claim.
+Li et al. (2005) is a computer-aided design paper with no oceanographic intent or application. The authors (Weishi Li, Shuhong Xu, Gang Zhao, Li Ping Goh) were engineers at the Institute of High Performance Computing in Singapore and Beijing University of Aeronautics and Astronautics, working on reverse engineering of physical objects. This is important framing: they are not prior art in oceanography. If the interpretation holds, they may amount to independent prior art for the mathematical technique, which would be a stronger claim.
 
 ### What problem they were actually solving
 
@@ -101,15 +103,17 @@ Smooth the discrete curvature with a lowpass digital filter first, separating st
 | LSQ spline fitting | make_lsq_spline on uniform resampled grid |
 | Compact parametric curve representation | Compact queryable spline model per cycle |
 
-Two independent research groups, working in entirely different domains with different motivations and data types, arrived at essentially the same algorithmic solution. This reflects the fact that the underlying mathematical problem is the same: noisy data sampled from an unknown smooth function with mixed flat and sharp-gradient structure, where the goal is a compact representation faithful to the large-scale structure without contamination by noise.
+Two independent research groups, working in entirely different domains with different motivations and data types, appear to have arrived at essentially the same algorithmic solution. This suggests that the underlying mathematical problem may be the same: noisy data sampled from an unknown smooth function with mixed flat and sharp-gradient structure, where the goal is a compact representation faithful to the large-scale structure without contamination by noise.
 
-Li et al. (2005) provides independent validation that curvature-adaptive LSQ spline fitting is the natural and principled answer to this class of problem. The four failure modes they identified in prior CAD methods map directly onto the failure modes of Reiniger-Ross, cubic splines, and MRST-PCHIP in oceanographic interpolation.
+If the full-text interpretation holds, Li et al. (2005) would provide independent validation that curvature-adaptive LSQ spline fitting is a natural and principled answer to this class of problem. The four failure modes they identified in prior CAD methods appear to map closely onto the failure modes of Reiniger-Ross, cubic splines, and exact-interpolation methods in oceanographic interpolation.
 
 ---
 
 ## Reiniger-Ross and Akima: method notes
 
 ### Reiniger-Ross (1968)
+
+Note: Reiniger and Ross (1968) remains provisional pending full-text confirmation, so the discussion below should be treated as subject to revision if direct review of the original paper changes the interpretation.
 
 The operational standard for the World Ocean Database and World Ocean Atlas for decades. At each interpolation point it uses the four nearest observations, two above and two below, to construct a local reference curve. It computes two parabolas, one through the three upper points and one through the three lower points, then takes a weighted average. The weights are determined by how well each parabola fits the observation it does not include.
 
@@ -121,11 +125,11 @@ A piecewise cubic method whose distinctive feature is how it computes slopes at 
 
 The practical effect is much greater resistance to overshoot than natural cubic splines. A large gradient change at one location does not propagate its influence far into neighboring intervals. Akima is also shape-preserving in tendency, meaning it rarely introduces oscillations between observations. Its weakness relative to PCHIP is that it is not strictly monotonicity-preserving: in genuinely monotonic regions it can still introduce small overshoots at individual points, whereas PCHIP guarantees no new extrema.
 
-Owens and Wong (2003) used Akima for delayed-mode salinity calibration at WHOI because it handles smooth but occasionally sharp transitions better than natural cubic splines while being simpler to implement than Reiniger-Ross.
+Wong, Johnson, and Owens (2003) used Akima interpolation to vertically interpolate historical bottle salinity data onto standard potential-temperature surfaces when constructing the θ-S climatology used for delayed-mode calibration.
 
 ### Relationship to this pipeline
 
-Both Reiniger-Ross and Akima are exact interpolants with the same fundamental noise sensitivity as PCHIP. None of them escape the exact-interpolation constraint that makes noise sensitivity unavoidable.
+Both Reiniger-Ross and Akima are exact interpolants and can be expected to share the same fundamental noise-sensitivity risk as PCHIP. None of them escape the exact-interpolation constraint that makes this risk difficult to avoid.
 
 Akima has a philosophical similarity to this pipeline in that both use local reasoning rather than global constraints. But the distinction is fundamental. Akima asks: given that I must pass through every point, what is the smoothest local way to do so? This pipeline asks: given all these points, what is the best compact model of the underlying structure? These are different questions with different answers.
 
@@ -133,7 +137,7 @@ Akima has a philosophical similarity to this pipeline in that both use local rea
 
 ## Yarger et al. (2022): vertical representation step only
 
-The spatiotemporal context and benchmarks for Yarger et al. are documented in NOTES-SPATIOTEMPORAL.md. This section covers only the vertical representation component of their work, which overlaps with this pipeline's current phase.
+This section covers only the vertical representation component of Yarger et al. (2022). Broader spatiotemporal prediction issues are outside the scope of these notes.
 
 ### What their vertical step actually does (confirmed from full paper review)
 
@@ -143,19 +147,19 @@ This is an equispaced, globally tuned design. There is no per-profile knot adapt
 
 ### Where this pipeline improves on their vertical step
 
-Their 200 equispaced knots over 2000 dbar equals one knot every 10 dbar, regardless of what the water column is doing. This pipeline places 9 to 16 knots total (modal approximately 9) with curvature-guided placement, concentrating degrees of freedom where d²T/dP² is large.
+Their 200 equispaced knots over 2000 dbar equals one knot every 10 dbar, regardless of what the water column is doing. This pipeline, by contrast, places 9 to 16 knots total (modal approximately 9) with curvature-guided placement, concentrating degrees of freedom where d²T/dP² is large.
 
-Their smoothing parameter selection collapses all components into a single 1D GCV search with fixed ratios. This pipeline selects independently per-profile and per-variable based on the actual curvature signal of that cycle, making it adaptive to individual float behavior and ocean regime.
+Their smoothing parameter selection collapses all components into a single 1D GCV search with fixed ratios. This pipeline instead selects independently per-profile and per-variable based on the actual curvature signal of that cycle, which should make it more adaptive to individual float behavior and ocean regime.
 
-Their representation is not a standalone artifact. Querying their model at an arbitrary pressure requires the surrounding spatial model, the locally estimated FPC basis, and the score predictions. This pipeline stores only (t, c, k) plus scalar cycle_rmse, approximately 280 bytes, queryable with no surrounding context.
+Their representation is not a standalone artifact. Querying their model at an arbitrary pressure requires the surrounding spatial model, the locally estimated FPC basis, and the score predictions. This pipeline instead stores only (t, c, k) plus scalar cycle_rmse, approximately 280 bytes, queryable with no surrounding context.
 
-Their uncertainty is spatiotemporal, derived from the kriging covariance at the spatial modeling stage. Their framework achieves good aggregate coverage but is notably weaker at 20 to 200 dbar, precisely the thermocline region where this pipeline's pressure-propagated error term (|dT/dP| × 2.4) is largest and most physically meaningful.
+Their uncertainty is spatiotemporal, derived from the kriging covariance at the spatial modeling stage. Their framework achieves good aggregate coverage but is reported to be weaker at 20 to 200 dbar, precisely the thermocline region where this pipeline's pressure-propagated error term (|dT/dP| × 2.4) is largest and may be most physically meaningful.
 
-Their Section 6 explicitly lists adaptive bandwidth selection and allowing scale parameters to change as a function of depth as future work. This pipeline implements both of those things at the vertical level.
+Their Section 6 explicitly lists adaptive bandwidth selection and allowing scale parameters to change as a function of depth as future work. This pipeline can be read as implementing analogues of both ideas at the vertical level.
 
 ### Framing
 
-Yarger et al. (2022) recognized the same fundamental insight: profiles should be treated as continuous functions of depth rather than fixed-level vectors. Their framework built this insight into a spatiotemporal kriging system. This pipeline is the engineering completion of that insight at the vertical level, making the single-profile spline representation step adaptive, compressed, and physically grounded in its uncertainty decomposition. The two approaches are complementary.
+Yarger et al. (2022) recognized the same fundamental insight: profiles should be treated as continuous functions of depth rather than fixed-level vectors. Their framework built this insight into a spatiotemporal kriging system. My reading is that this pipeline is an engineering completion of that insight at the vertical level, making the single-profile spline representation step adaptive, compressed, and physically grounded in its uncertainty decomposition. The two approaches are complementary.
 
 ### RMSE comparability: vertical fitting vs. spatiotemporal prediction
 
@@ -165,7 +169,7 @@ Yarger et al.'s spatiotemporal prediction RMSE (~0.50°C at 300 dbar) measures h
 
 This pipeline's RMSE (0.175°C TEMP, 0.0295 PSU PSAL) is a within-profile vertical fitting residual. It measures how well the stored spline artifact reconstructs the original observations from a single cycle. It does not include spatiotemporal variability at all.
 
-A direct RMSE comparison between the two would be methodologically invalid. The correct framing: Yarger et al.'s ~0.50°C at 300 dbar establishes the magnitude of real oceanographic signal present in the data. This pipeline's 0.175°C represents the noise floor introduced by the vertical representation step alone, well below the spatiotemporal variability that any downstream prediction scheme must still account for. A well-designed vertical representation should have a fitting error substantially smaller than the spatiotemporal prediction error.
+A direct RMSE comparison between the two would be methodologically invalid. A defensible framing is: Yarger et al.'s ~0.50°C at 300 dbar establishes the magnitude of real oceanographic signal present in the data. This pipeline's 0.175°C represents the noise floor introduced by the vertical representation step alone, well below the spatiotemporal variability that any downstream prediction scheme must still account for. A well-designed vertical representation should have a fitting error substantially smaller than the spatiotemporal prediction error.
 
 ---
 
@@ -181,7 +185,7 @@ Recommended reading: Wong et al. (2020) for the delayed-mode QC pipeline, Roemmi
 
 ## Sensor error: Wong et al. and Barker et al.
 
-Every interpolating method (Reiniger-Ross, Akima, PCHIP, MRST-PCHIP) shares a structural property: the full profile must be retained in memory at query time because the interpolant is defined by the positions of the observations. This pipeline does not share this requirement. Once the spline is fit, the raw data can be discarded entirely.
+Every interpolating method (Reiniger-Ross, Akima, PCHIP, MRST-PCHIP) shares a structural property: the full profile must be retained in memory at query time because the interpolant is defined by the positions of the observations. This pipeline does not share this requirement. In this pipeline design, once the spline is fit, the raw data can be discarded entirely.
 
 **Reiniger-Ross:** Fit cost: none. Direct interpolation with no fitting step. Memory at query time: full profile retained, roughly 10 to 30 KB per cycle as floating point arrays.
 

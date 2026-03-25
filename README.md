@@ -1,26 +1,33 @@
 # Argo Data Interpolation
 
-Interpolation tools for Argo float CTD profiles (pressure, temperature, salinity).
+Research code and working materials for interpolation and representation of Argo float CTD data across both vertical-profile and broader spatio-temporal settings.
 
-This repository currently focuses on **cycle-level vertical interpolation**:
-given observations from a single Argo cycle, fit spline models that can return
-temperature and salinity at arbitrary pressure values, with uncertainty terms.
+The current implemented work centers on cycle-level vertical representation: fitting compact spline-based artifacts to individual Argo cycles so temperature and salinity can be queried at arbitrary pressures with uncertainty terms. The broader project direction extends beyond single-profile reconstruction toward spatio-temporal modeling across floats, where those cycle-level representations become inputs to larger interpolation and prediction workflows.
+
+The long-term goal is to turn irregular Argo float measurements into compact, reusable representations that support larger-scale ocean reconstruction and climate analysis.
+
+## At a Glance
+
+- Implemented now: prototype cycle-level vertical representation code for individual Argo profiles under [`src/argo_interp/cycle`](src/argo_interp/cycle/).
+- Documented now: literature reviews, research notes, and notebook-based diagnostics indexed in [`research/README.md`](research/README.md).
+- Planned next: broader spatio-temporal interpolation and prediction workflows across floats, with current research materials in [`research/spatio-temporal/README.md`](research/spatio-temporal/README.md).
+
+## Research Entry Point
+
+- [`research/README.md`](research/README.md): index of the project's research materials, methodology, and current research topics.
 
 ## Project Status
 
 This project is in exploratory/research mode.
 
-- Core cycle interpolation pipeline is implemented under
-  [`src/argo_interp/cycle`](src/argo_interp/cycle/).
-- Notebook-driven experimentation is in
-  [`vertical-interp.ipynb`](vertical-interp.ipynb).
-- CI/CD and formal test suites are intentionally not set up yet.
-
-### Documentation State Caveat
-
-Until changes are pushed/merged to `main`, all documentation in this repository
-should be treated as **draft state** and may contain errors, omissions, or
-outdated statements.
+- Vertical cycle-representation pipeline:
+  implemented in code under [`src/argo_interp/cycle`](src/argo_interp/cycle/) and actively explored through the research notebook and supporting research documents.
+- Spatio-temporal work:
+  currently in research/planning mode, with literature review and working notes in place but no production-quality implementation yet.
+- Validation and benchmarking:
+  partial and prototype-level only. The current notebook demonstrates proof-of-concept diagnostics, but broad comparative benchmarking, regional validation, and failure-mode analysis remain unfinished.
+- Packaging, CI, and productionization:
+  not yet a project focus. Formal test suites, CI/CD workflows, and deployment-oriented setup are intentionally minimal at this stage.
 
 ## Roadmap
 
@@ -33,136 +40,26 @@ Additional planned work includes examining temperature-salinity correlation
 structure within cycles to evaluate whether joint modeling can improve
 interpolation accuracy.
 
-## Current Pipeline (Cycle-Level)
-
-For each cycle, the code follows this structure:
-
-1. Resample observations onto a uniform pressure grid
-   ([`uniformed_pressure.py`](src/argo_interp/cycle/uniformed_pressure.py)).
-2. Smooth readings and estimate curvature with Savitzky-Golay filtering.
-3. Detect knot candidates from curvature peaks
-   ([`knot_identifier.py`](src/argo_interp/cycle/knot_identifier.py)).
-4. Fit least-squares splines (`make_lsq_spline` / `LSQUnivariateSpline`).
-5. Compute model error terms (training RMSE and/or fold-based error).
-6. Query interpolated values and pressure-propagated uncertainty via
-   [`CycleModel.py`](src/argo_interp/cycle/CycleModel.py).
-
-## Installation
-
-### Option A: uv (recommended)
-
-```bash
-uv sync
-```
-
-### Option B: pip editable install
-
-```bash
-python -m pip install -e .
-```
-
-## Quick Start
-
-```python
-from argopy import DataFetcher as ArgoDataFetcher
-from argo_interp.cycle import (
-    CycleError,
-    CycleModel,
-    CycleSettings,
-    ModelError,
-    build_model,
-    calc_fold_error,
-)
-
-# 1) Pull Argo data for a region/time box
-box = [-75, -45, 20, 30, 0, 3000, "2011-01", "2011-06"]
-argo_df = ArgoDataFetcher().region(box).load().data.to_dataframe()
-
-# 2) Build per-cycle readings table
-group_fields = ["PLATFORM_NUMBER", "CYCLE_NUMBER"]
-readings = (
-    argo_df[group_fields + ["PRES", "PSAL", "TEMP"]]
-    .drop_duplicates()
-    .sort_values([*group_fields, "PRES"])
-    .reset_index(drop=True)
-)
-readings.insert(
-    0,
-    "PLATFORM_CYCLE",
-    readings[group_fields[0]].astype(str) + "-" + readings[group_fields[1]].astype(str),
-)
-readings = readings.drop(columns=group_fields)
-
-# 3) Fit cycle models
-settings = CycleSettings(prominence=0.25, window=10, spacing=5.0, peak_dist=20, folds=5)
-cycle_models: dict[str, CycleModel] = {}
-
-for cycle_id, cycle_data in readings.groupby("PLATFORM_CYCLE"):
-    cycle_data = cycle_data.sort_values("PRES")
-    rmse_temp, rmse_sal = calc_fold_error(cycle_data, settings)
-
-    cycle_model = CycleModel(
-        temperature=build_model(cycle_data["PRES"], cycle_data["TEMP"], settings),
-        salinity=build_model(cycle_data["PRES"], cycle_data["PSAL"], settings),
-        error=CycleError(model=ModelError(temperature=rmse_temp, salinity=rmse_sal)),
-        settings=settings,
-        pressure_bounds=(float(cycle_data["PRES"].min()), float(cycle_data["PRES"].max())),
-    )
-    cycle_models[cycle_id] = cycle_model
-
-# 4) Interpolate one cycle
-example_cycle_id, example_model = next(iter(cycle_models.items()))
-example_cycle_data = readings.loc[readings["PLATFORM_CYCLE"] == example_cycle_id]
-results = example_model.interpolate(example_cycle_data["PRES"])
-print(example_cycle_id)
-print(results.head())
-```
-
-## Repository Layout
-
-```text
-src/argo_interp/cycle/
-  CycleSettings.py      # Pydantic settings for smoothing, knot finding, CV folds
-  CycleError.py         # Frozen dataclasses for model/sensor error components
-  CycleModel.py         # Query interface for interpolation + propagated errors
-  build_model.py        # End-to-end single-variable spline model construction
-  build_spline_model.py # LSQ spline fitting
-  knot_identifier.py    # Curvature-peak knot selection
-  uniformed_pressure.py # Uniform pressure grid generator
-  calc_fold_error.py    # Interleaved fold error estimation
-  calc_rmse.py          # RMSE helper
-```
-
-## Notebook and Research Documentation
-
-- [`vertical-interp.ipynb`](vertical-interp.ipynb): narrative walkthrough of the current vertical
-  interpolation pipeline, uncertainty modeling, and diagnostics.
-- [`research/vertical/LIT-REVIEW-VERTICAL.md`](research/vertical/LIT-REVIEW-VERTICAL.md): literature review focused on
-  vertical profile interpolation/representation methods and sensor error context.
-- [`research/vertical/NOTES-VERTICAL.md`](research/vertical/NOTES-VERTICAL.md): implementation-facing notes connecting
-  vertical literature to this pipeline and planned experiments.
-- [`research/spatio-temporal/LIT-REVIEW-SPATIOTEMPORAL.md`](research/spatio-temporal/LIT-REVIEW-SPATIOTEMPORAL.md): literature review
-  focused on spatio-temporal Argo modeling approaches.
-- [`research/spatio-temporal/NOTES-SPATIOTEMPORAL.md`](research/spatio-temporal/NOTES-SPATIOTEMPORAL.md): working notes on
-  spatio-temporal methods, positioning, and integration planning.
-
-## Data Notes
-
-- Typical expected columns for cycle interpolation: `PRES`, `TEMP`, `PSAL`
-- In current notebook usage, cycles are keyed by `PLATFORM_CYCLE`
-- Pressure units are expected to be consistent across fitting/query steps
-
-## License
-
-Released under the terms of the GNU Affero General Public License v3.0.
-See [`LICENSE`](LICENSE).
-
 ## AI Assistance
 
 This repository uses AI-assisted development workflows, including Claude and
-Codex. All AI-assisted work is reviewed by a human before publication.
+Codex. In code work, AI may use the repository's research materials to support
+code analysis, design comparison, implementation review, and alignment between
+the implemented pipeline and its documented research basis. The way AI is used
+within the research documents themselves is described in
+[`research/research-methodology.md`](research/research-methodology.md). All
+AI-assisted work is reviewed by a human before publication. In general, core
+implementation code is not delegated to AI, though AI may still be used to
+brainstorm approaches, compare design options, and support surrounding analysis
+and documentation work. Repository-specific AI agent policies are documented in
+[`AGENTS.md`](AGENTS.md).
 
 ## Acknowledgments
 
 This work was inspired by participation in the 2025 MATE Floats workshop and
 by the work of University of Washington Oceanography student Alnis Smidchens.
+
+## License
+
+Released under the terms of the GNU Affero General Public License v3.0.
+See [`LICENSE`](LICENSE).

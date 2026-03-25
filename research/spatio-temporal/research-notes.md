@@ -1,4 +1,4 @@
-# Pipeline Notes: Spatiotemporal Phase
+# Pipeline Notes: Spatio-Temporal Argo Modeling
 
 Working notes on the spatiotemporal analysis literature and how it relates to the next phase of this project, including benchmark targets, methodological context, and flagged items to revisit.
 
@@ -12,7 +12,7 @@ Source: Ann. Appl. Stat. 16(1): 216-246, DOI: 10.1214/21-AOAS1477. Full paper re
 
 Yarger et al. (2022) is primarily a spatiotemporal statistics paper whose goal was end-to-end temperature and salinity prediction across the global ocean, including mean estimation, covariance modeling, functional kriging, ocean heat content estimation, mixed layer depth mapping, and density inversion analysis. It is the first comprehensive functional-data analysis of the Argo data.
 
-Their vertical representation step (B-spline smoothing splines, 200 equispaced knots) is a component of this larger system, not its primary contribution. Notes on that vertical step in isolation are in NOTES-VERTICAL.md. This document covers the spatiotemporal system and its published benchmarks.
+Their vertical representation step (B-spline smoothing splines, 200 equispaced knots) is a component of this larger system, not its primary contribution. Notes on that vertical step in isolation are in [research-notes.md](/home/jcherry/Documents/storage/git/argo-data-interpolation/research/argo-cycle-representation/research-notes.md). This document covers the spatiotemporal system and its published benchmarks.
 
 ### Benchmark metrics (Table 2): spatiotemporal prediction RMSE, temperature
 

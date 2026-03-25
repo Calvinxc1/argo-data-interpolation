@@ -163,3 +163,6 @@ cython_debug/
 
 # Local lockfile (not tracked in this repo)
 uv.lock
+
+# Local research source copies
+**/sources/

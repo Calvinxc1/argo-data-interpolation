@@ -6,6 +6,13 @@ rules:
   - Use pull requests for all merges; draft by default unless intentionally opened otherwise.
   - Keep branches and commits scoped to one purpose; avoid unrelated mixed changes unless atomic.
   - Use conventional commits such as feat, fix, refactor, chore, or ci.
+  - CHANGELOG.md at repo root is the single changelog source of truth.
+  - CHANGELOG.md uses a top-level Staged section for changes already in dev and versioned sections below it in descending release order.
+  - Update CHANGELOG.md for user-visible, operator-visible, or otherwise release-relevant changes intended for dev unless explicitly deferred.
+  - Internal-only changes need no changelog entry unless they materially affect contributors, operators, workflows, or documented behavior.
+  - When preparing a release branch, promote Staged into a new versioned release section and reset Staged.
+  - CHANGELOG.md records staged and released changes but does not define the authoritative current version.
+  - Flag missing changelog updates in review when a pull request changes release-relevant behavior.
   - Run CI only on pull requests to dev or main, not feature-branch pushes.
   - Run release dry-run checks on pull requests to main from release or hotfix branches.
   - Run publish only after merged pull requests to main from release or hotfix branches.

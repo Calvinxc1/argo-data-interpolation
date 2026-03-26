@@ -44,6 +44,18 @@ These instructions apply to the entire repo tree.
 - Do not change version numbers arbitrarily; bump only when release scope warrants it.
 - If release impact is unclear, ask the user which SemVer level should be applied.
 
+## 1.1.1) Changelog Workflow (Mandatory)
+
+- `CHANGELOG.md` at the repository root is the single changelog source of truth.
+- `CHANGELOG.md` must contain:
+  - a top-level `Staged` section for changes present in `dev` and staged for a future release,
+  - followed by versioned release sections in descending release order.
+- Update `CHANGELOG.md` when a branch introduces user-visible, operator-visible, or otherwise release-relevant changes intended for `dev`, unless the user explicitly defers that update.
+- Internal-only changes do not require a changelog entry unless they materially affect contributors, operators, workflows, or documented behavior.
+- When creating or preparing a `release/*` branch, convert the current `Staged` entries into a new versioned release section and reset `Staged`.
+- `CHANGELOG.md` records staged and released changes, but it does not determine the authoritative current version; version metadata elsewhere remains authoritative.
+- If a pull request changes release-relevant behavior and omits a corresponding changelog update, flag that omission during review.
+
 ## 1.2) Enforcement vs Discretion
 
 - Policies enforced by branch protection and required status checks are mandatory controls.

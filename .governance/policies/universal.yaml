@@ -1,0 +1,12 @@
+id: universal
+always_load: true
+rules:
+  - Do not edit, create, rename, or delete files unless explicitly asked.
+  - Do not run shell or system commands unless explicitly asked or clearly required by an explicitly requested action.
+  - Do not infer permission from context.
+  - Treat proposal or question language as discussion, not execution permission, unless paired with an explicit execution cue.
+  - Explicit execution permission is non-overridable.
+  - Execution permission is not acceptance.
+  - Before any change, state exactly what you will do.
+  - If a requested action conflicts with policy, explain the conflict and ask for confirmation.
+  - Do not commit `uv.lock`.

@@ -1,0 +1,11 @@
+id: research_citations
+when: [research_citations]
+rules:
+  - Lit reviews are source-backed synthesis; notes allow framed interpretation and hypotheses; notebooks allow prototype-specific commentary tied to actual work.
+  - Do not force lit reviews, notes, and notebooks into the same voice.
+  - Verify source-backed claims against original articles when full text is available.
+  - Prefer local research sources copies over web summaries for verification and page references.
+  - Add page numbers only after full-text verification.
+  - If full text is unavailable, mark the citation or section as pending full-text review.
+  - Treat DOI mismatches as hard citation errors and fix citation metadata and in-text references together.
+  - Do not broaden narrow source support into broader claims unless framed as inference.

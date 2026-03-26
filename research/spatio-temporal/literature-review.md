@@ -1,4 +1,4 @@
-# Spatiotemporal Analysis of Argo Data: A Literature Review
+# Spatio-Temporal Argo Modeling: A Literature Review
 
 This review covers methods and findings relevant to spatiotemporal interpolation, reconstruction, and analysis of Argo oceanographic data, including objective mapping products, Gaussian process methods, functional data analysis, machine learning approaches, and reduced-order profile representations.
 

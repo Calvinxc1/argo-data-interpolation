@@ -1,0 +1,9 @@
+id: research_framing
+when: [research_framing]
+rules:
+  - In notes, label source-backed summary, inference, hypothesis, implementation assumption, recommendation, and future validation work distinctly.
+  - Use modality markers when needed to preserve uncertainty provenance.
+  - In notebooks, do not claim downstream validity from local diagnostics unless the notebook evaluates the downstream task.
+  - Distinguish published QC or error specs, dataset uncertainty fields, implementation-specific approximations, and empirically validated calibration behavior.
+  - Do not present a custom uncertainty model as directly source-specified unless it actually is.
+  - When uncertainty language mixes source-derived convention and local choice, name both.

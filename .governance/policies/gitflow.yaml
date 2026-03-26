@@ -1,0 +1,14 @@
+id: gitflow
+when: [gitflow]
+rules:
+  - Follow GitFlow roles: main production-only, dev integration, feature from dev to dev, release from dev to main, hotfix from main to main.
+  - Never commit directly to main or dev.
+  - Use pull requests for all merges; draft by default unless intentionally opened otherwise.
+  - Keep branches and commits scoped to one purpose; avoid unrelated mixed changes unless atomic.
+  - Use conventional commits such as feat, fix, refactor, chore, or ci.
+  - Run CI only on pull requests to dev or main, not feature-branch pushes.
+  - Run release dry-run checks on pull requests to main from release or hotfix branches.
+  - Run publish only after merged pull requests to main from release or hotfix branches.
+  - Run release recovery by manual dispatch only.
+  - Use semantic versioning: MAJOR for breaking changes, MINOR for backward-compatible features, PATCH for backward-compatible fixes.
+  - If release impact is unclear, ask which semantic-versioning level applies.

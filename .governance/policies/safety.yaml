@@ -1,0 +1,8 @@
+id: safety
+when: [edit, command, remediation]
+rules:
+  - For remediation work, explain the proposed fix and get explicit confirmation before editing.
+  - When changing GitHub Actions or workflow behavior, keep policy text aligned in the same change.
+  - Bypasses require explicit user verification in a separate interaction.
+  - Bypass confirmation must summarize the guardrails being bypassed.
+  - After any change, summarize what changed and where.

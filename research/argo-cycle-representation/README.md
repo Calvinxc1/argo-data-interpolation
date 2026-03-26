@@ -6,4 +6,5 @@ This folder contains research materials on compact vertical representation of in
 
 - [literature-review.md](literature-review.md): source-backed review of interpolation methods, adaptive splines, and Argo QC/error context.
 - [research-notes.md](research-notes.md): working notes on pipeline implications, hypotheses, and next experiments.
+- [operationalization-notes.md](operationalization-notes.md): product-facing and audience-facing framing notes for operational use cases and acoustics-oriented positioning.
 - [research-notebook.ipynb](research-notebook.ipynb): prototype notebook for the current spline workflow, uncertainty, and diagnostics.

@@ -9,7 +9,7 @@ The long-term goal is to turn irregular Argo float measurements into compact, re
 ## At a Glance
 
 - Implemented now: prototype cycle-level vertical representation code for individual Argo profiles under [`src/argo_interp/cycle`](src/argo_interp/cycle/).
-- Documented now: literature reviews, research notes, and notebook-based diagnostics indexed in [`research/README.md`](research/README.md).
+- Documented now: literature reviews, topic notes, and notebook-based diagnostics indexed in [`research/README.md`](research/README.md).
 - Planned next: broader spatio-temporal interpolation and prediction workflows across floats, with current research materials in [`research/spatio-temporal/README.md`](research/spatio-temporal/README.md).
 
 ## Research Entry Point

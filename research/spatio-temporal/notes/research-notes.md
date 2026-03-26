@@ -12,7 +12,7 @@ Source: Ann. Appl. Stat. 16(1): 216-246, DOI: 10.1214/21-AOAS1477. Full paper re
 
 Yarger et al. (2022) is primarily a spatiotemporal statistics paper whose goal was end-to-end temperature and salinity prediction across the global ocean, including mean estimation, covariance modeling, functional kriging, ocean heat content estimation, mixed layer depth mapping, and density inversion analysis. It is the first comprehensive functional-data analysis of the Argo data.
 
-Their vertical representation step (B-spline smoothing splines, 200 equispaced knots) is a component of this larger system, not its primary contribution. Notes on that vertical step in isolation are in [research-notes.md](/home/jcherry/Documents/storage/git/argo-data-interpolation/research/argo-cycle-representation/research-notes.md). This document covers the spatiotemporal system and its published benchmarks.
+Their vertical representation step (B-spline smoothing splines, 200 equispaced knots) is a component of this larger system, not its primary contribution. Notes on that vertical step in isolation are in [../../argo-cycle-representation/notes/method-comparison-notes.md](../../argo-cycle-representation/notes/method-comparison-notes.md). This document covers the spatiotemporal system and its published benchmarks.
 
 ### Benchmark metrics (Table 2): spatiotemporal prediction RMSE, temperature
 
@@ -177,3 +177,88 @@ Any spatiotemporal phase evaluation should assess whether propagating the per-pr
 Li et al. (2022) showed that using linear interpolation rather than MRST-PCHIP yielded ocean heat content warming trends approximately 14% lower over the 1956-2020 historical record, corresponding to approximately 40 Zeta Joules and a thermosteric sea level rise underestimate of 0.55 mm/yr.
 
 Ocean heat content estimation is a primary stated application of Yarger et al. (2022) and Park et al. (2023). The spatiotemporal phase of this project ultimately aims to produce ocean state estimates that feed into exactly these downstream climate diagnostics. Li et al. (2022) establishes that the quality of vertical representation entering those estimates has a quantified, climate-scale effect. Getting the vertical step right before building the spatiotemporal layer is therefore not just a preprocessing choice but a scientifically motivated priority with demonstrable downstream consequences.
+
+---
+
+## Queryable priors and local refinement
+
+One useful systems framing for the spatiotemporal phase is to treat Argo-derived estimates as a broad prior on water-column structure rather than as a standalone tactical truth source. In this framing, the spatiotemporal model provides a regional background estimate, and local in-situ observations refine or update that estimate where they exist.
+
+This is partly a product framing choice and partly a modeling constraint. It helps separate what the Argo-based layer can plausibly provide from what should remain the responsibility of local sensing.
+
+Two proposal-level use cases currently look most defensible:
+
+- cold-start initialization before enough local data are available
+- broad prior plus local refinement once onboard observations arrive
+
+Both remain hypotheses about system design, not validated operational claims.
+
+## Near-real-time versus delayed-mode role split
+
+For the spatiotemporal layer, delayed-mode and near-real-time Argo likely serve different purposes.
+
+- delayed-mode data are the cleaner benchmark substrate for scientific validation
+- near-real-time data are the more relevant substrate for operational usefulness claims
+
+This suggests a deliberate split: benchmark and calibration work on delayed-mode data, and robustness plus usefulness studies on near-real-time data where provisional QC and unresolved sensor issues are part of the real operating context.
+
+## Support uncertainty as a separate uncertainty class
+
+The future spatiotemporal layer needs an uncertainty class that is not reducible to measurement error or vertical reconstruction error. The missing category is support uncertainty: uncertainty induced by weak, sparse, stale, unevenly distributed, or otherwise poor nearby float support around a query point.
+
+Examples include:
+
+- nearest cycles are far away
+- relevant observations are temporally stale
+- support is strongly one-sided or clustered
+- support is weak at the depths that matter for the query
+
+This should remain separate from generic model uncertainty so that poor regional support is not hidden inside a catch-all residual term.
+
+## Source-data uncertainty for provisional upstream inputs
+
+When the spatiotemporal layer uses near-real-time rather than delayed-mode data, an additional uncertainty component may be needed to reflect unresolved upstream issues such as provisional QC status, uncorrected drift, or immature adjusted values. This is distinct from local support geometry and distinct from the vertical reconstruction method itself.
+
+A useful provisional naming scheme is:
+
+- measurement uncertainty
+- reconstruction uncertainty
+- support uncertainty
+- source-data uncertainty
+
+That naming remains a project proposal rather than a published standard.
+
+## Support model concept
+
+One promising way to operationalize support uncertainty is to treat each float cycle as contributing influence in space, time, and depth with influence decaying away from the cycle. A query point would then aggregate nearby cycles into an effective local support score rather than relying on raw float density alone.
+
+This would allow the model to distinguish between superficially similar but substantively different cases, such as:
+
+- one nearby high-value cycle versus many distant cycles
+- recent support versus stale support
+- balanced surrounding support versus strongly one-sided support
+- many shallow constraints versus little support at the queried depth
+
+### Calibration route
+
+The most defensible way to quantify this is by holdout-based calibration rather than by heuristic confidence scores alone:
+
+1. hold out cycles or local neighborhoods
+2. predict the held-out values from surrounding support
+3. measure error as a function of support geometry
+4. learn how uncertainty should inflate as support weakens or becomes poorly distributed
+
+If this works, support uncertainty becomes empirically calibrated rather than purely hand-tuned.
+
+### Possible query outputs
+
+A later spatiotemporal service built on this idea could return more than a point estimate:
+
+- estimate
+- uncertainty
+- effective support score
+- effective number of contributors
+- top contributing cycles and relative weights
+- decomposition of uncertainty sources
+
+That remains a forward-looking system concept and should not yet be treated as validated architecture.

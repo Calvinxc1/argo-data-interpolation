@@ -1,0 +1,11 @@
+id: research_review
+when: [research_review]
+rules:
+  - Default to findings-first read-only review unless edits are explicitly requested.
+  - In multi-step review chains, do not edit later artifacts without explicit instruction.
+  - For citation audits, verify metadata, then full text if available, then page numbers, then classify unsupported wording, then propose or implement edits.
+  - Check cross-document consistency across lit reviews, notes, notebooks, and bibliographies while respecting each artifact's purpose.
+  - Use review-status notes for provisional literature-review references.
+  - If a source is provisional in a literature review, related notes and notebooks should generally carry that provisional status too.
+  - If research review process changes materially, update research/research-methodology.md in the same change.
+  - Prioritize citation accuracy, claim calibration, source alignment, and cross-document consistency.

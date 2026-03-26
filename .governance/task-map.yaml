@@ -1,0 +1,36 @@
+id: task_map
+default_load:
+  - AGENTS.md
+  - .governance/policies/universal.yaml
+routes:
+  file_or_command_work:
+    - .governance/policies/execution.yaml
+    - .governance/policies/safety.yaml
+  gitflow_work:
+    - .governance/policies/gitflow.yaml
+  research_writing_work:
+    - .governance/policies/research-citations.yaml
+    - .governance/policies/research-structure.yaml
+    - .governance/policies/research-framing.yaml
+  research_citation_work:
+    - .governance/policies/research-citations.yaml
+  research_structure_work:
+    - .governance/policies/research-structure.yaml
+  research_framing_work:
+    - .governance/policies/research-framing.yaml
+  code_review:
+    - .governance/policies/code-review.yaml
+  research_review:
+    - .governance/policies/research-review.yaml
+  enforcement_or_override_discussion:
+    - .governance/policies/enforcement.yaml
+  acceptance_discussion:
+    - .governance/policies/ai-acceptance.yaml
+  risk_validation_discussion:
+    - .governance/policies/risk-validation.yaml
+  epistemic_discipline_discussion:
+    - .governance/policies/epistemic-discipline.yaml
+  override_execution:
+    - .governance/processes/override-governance.yaml
+    - .governance/overrides/policy-overrides-spec.yaml
+    - .governance/overrides/policy-overrides.yaml

@@ -1,0 +1,13 @@
+id: research_structure
+when: [research_structure]
+rules:
+  - Keep shared research-process documents at research root; keep topic materials inside topic folders.
+  - Use lowercase hyphenated names by default.
+  - Standard topic structure is README.md, literature-review.md, research-notes.md, optional research-notebook.ipynb, optional sources.
+  - Use sources for local reference material and do not commit contents unless explicitly directed.
+  - Include notebooks only when there is an actual prototype, experiment trail, or diagnostic artifact.
+  - Treat topic notebooks as prototype artifacts, not canonical summaries.
+  - Keep topic README files as orientation indexes, not mini literature reviews.
+  - Keep research/README.md as the shared research index linking to topic README files.
+  - Use relative documentation links where practical.
+  - When restructuring research folders, update affected README references and preserve cross-link consistency in the same change.

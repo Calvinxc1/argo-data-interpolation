@@ -1,6 +1,6 @@
 # Research
 
-This directory contains the project's working research materials: literature reviews, research notes, notebooks, and shared methodology documents. The research process combines AI-assisted source discovery and organization with manual verification against original sources, with the goal of keeping the written research record aligned with both the cited literature and the implemented methods in the code.
+This directory contains the project's working research materials: literature reviews, topic notes, notebooks, and shared methodology documents. The research process combines AI-assisted source discovery and organization with manual verification against original sources, with the goal of keeping the written research record aligned with both the cited literature and the implemented methods in the code.
 
 The shared review and verification approach for these documents is described in [research-methodology.md](research-methodology.md).
 
@@ -13,8 +13,11 @@ The shared review and verification approach for these documents is described in 
 
 Each topic-specific research folder is intended to use the same core structure:
 
-- `literature-review.md`: source-backed synthesis of the relevant literature for that topic.
-- `research-notes.md`: working notes connecting the literature to the current implementation, hypotheses, and planned follow-up work.
-- `research-notebook.ipynb`: exploratory or prototype notebook documenting concrete experiments, diagnostics, and method behavior for that topic when applicable.
+- `literature-review.md`: the canonical source-backed synthesis for that topic.
+- `notes/`: optional folder for working notes, framing notes, implementation notes, operationalization notes, and other topic-specific working documents.
+- `notebooks/`: optional folder for exploratory or prototype notebooks documenting concrete experiments, diagnostics, and method behavior.
+- `sources/`: optional folder for local copies of papers, reports, manuals, and other reference materials.
 
-Not every research topic will necessarily use all three artifacts, but this is the intended baseline structure.
+When `notes/` exists, it should include a `README.md` that indexes the notes in that folder. When `notebooks/` exists, it should include a `README.md` that indexes the notebooks in that folder.
+
+Source-backed claims in topic notes and notebooks should trace to sources already covered in that topic's `literature-review.md`. If a note or notebook needs a new source-backed claim, update the literature review first or in the same change.

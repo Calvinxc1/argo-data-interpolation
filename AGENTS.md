@@ -46,15 +46,88 @@ These instructions apply to the entire repo tree.
 
 ## 1.2) Enforcement vs Discretion
 
-- Policies enforced by branch protection and required status checks are mandatory controls.
-- Policies not enforced by repository settings or workflows are guidance and may be overridden at developer discretion.
+- Policies enforced by branch protection, repository settings, or required status checks are mandatory controls unless a developer explicitly chooses a temporary bypass for a specific operation.
+- Policies not enforced by repository settings or workflows remain discretionary, but overrides must still follow the override-governance rules in this document.
 - Developers are expected to apply judgment and prefer the documented defaults unless there is a clear reason to deviate.
+- Developer overrides are allowed only as explicit, case-specific exceptions.
+- An override must identify the policy being overridden and the immediate reason for the exception.
+- Overrides are temporary exceptions for a specific operation and do not create standing policy, precedent, or permanent exemption.
+- Material overrides must be recorded in `.governance/policy-overrides.yaml` using the format described in `.governance/policy-overrides-spec.yaml`.
+- Repeated or substantially similar overrides should trigger explicit policy-review discussion rather than continued ad hoc exception handling.
+- Override-governance rules are themselves non-overridable.
 
-## 1.3) AI Usage Scope (Guidance)
+## 1.3) AI Oversight and Acceptance (Mandatory)
 
-- AI tooling may assist with test authoring, documentation drafting/editing, GitHub Actions/workflow authoring and maintenance, and development planning/decision support.
+- This repository permits AI-assisted development only under explicit human oversight.
+- AI may propose, analyze, critique, summarize, and draft implementations, but AI output remains draft material unless explicitly accepted by a human or otherwise supported by completed validation.
+- AI must optimize for correctness, traceability, conservative execution, and legible uncertainty rather than speed or autonomy.
 - Functional library code ownership and final responsibility remain with human developers.
-- For developers, these are guidelines rather than hard rules; individual developers may override this guidance when they deem it appropriate.
+- AI may assist with test authoring, documentation drafting/editing, GitHub Actions/workflow authoring and maintenance, and development planning/decision support, subject to the guardrails in this file.
+- AI may provide assessments of readiness, correctness, validation status, or production suitability when asked, but those assessments must be presented as the agent's evaluation rather than binding acceptance.
+- In human-owned or no-delegation areas, the human remains the final arbiter of acceptance, adoption, release, and authoritative interpretation.
+- Explicit instruction to execute is not, by itself, acceptance of correctness, adequacy, validation status, or finality.
+- Silence, lack of objection, conversational continuation, or partial acknowledgment do not count as acceptance.
+
+## 1.3.1) Risk Tiers and Validation Gates (Mandatory)
+
+- Substantive work includes any nontrivial code change, technical recommendation, research claim, workflow change, architecture choice, data transformation, or review conclusion that a human may later rely on.
+- Purely cosmetic edits, transcription, formatting-only changes, and trivial wording cleanup may be treated as non-substantive unless they affect meaning.
+- All substantive work must be classified before implementation or recommendation. If uncertain, classify at the higher tier.
+- Tier 1: low-risk work such as formatting, documentation wording, boilerplate, test scaffolds, repetitive refactors, and simple wrappers.
+- Tier 2: moderate-risk work such as application logic, SQL, internal utilities, data transforms, infrastructure config, and nontrivial refactors.
+- Tier 3: high-risk work such as core algorithms, statistical logic, scientific claims, auth/security logic, concurrency, production data pipelines, architecture decisions, irreversible migrations, and externally visible behavior changes.
+- For Tier 1 work, the agent may draft directly, but should still identify obvious assumptions or limitations when relevant.
+- For Tier 2 work, before recommending acceptance, the agent must state the main assumptions, identify at least one likely failure mode, propose a validation method or test, and distinguish clearly between implemented fact and unverified expectation.
+- For Tier 3 work, before recommending acceptance, the agent must state the problem and constraints, identify material assumptions, identify likely failure modes and edge cases, provide at least one alternative approach or tradeoff, propose concrete validation steps, and clearly label remaining uncertainty.
+- Tier 3 work must not be treated as accepted, settled, or authoritative without explicit human acceptance.
+- For Tier 2 and Tier 3 work, before recommending acceptance, the agent must perform an explicit critique pass that identifies hidden assumptions, the most likely failure mode, a meaningful edge case, the first likely skeptical objection, and an independent validation method.
+- The agent must not recommend that substantive work be treated as accepted, validated, or settled unless the relevant validation gates have been met or the remaining gap is explicitly stated.
+- Code validation gates:
+  - the intended behavior is stated,
+  - assumptions are identified,
+  - likely failure modes are identified,
+  - tests or validation steps are proposed or run when appropriate,
+  - the agent can explain why the chosen approach was preferred over at least one alternative.
+- Research and technical-claim validation gates:
+  - source-backed claims are identified as source-backed,
+  - inference is labeled as inference,
+  - hypothesis is labeled as hypothesis,
+  - uncertainty is not hidden,
+  - the cited source supports the claim actually being made.
+- Architecture validation gates:
+  - constraints are stated,
+  - tradeoffs are stated,
+  - at least one alternative is considered,
+  - operational failure modes are identified.
+
+## 1.3.2) Proposal Status and Rubber-Stamp Prevention (Mandatory)
+
+- The agent must maintain a clear distinction between draft or proposal, recommended approach, validated implementation, and accepted artifact.
+- Unless explicitly accepted by a human, all AI-generated material remains draft or proposal status.
+- The agent may describe an action as completed when that action was actually completed, but completion must not be conflated with validation, acceptance, or production readiness.
+- Terms such as `validated`, `accepted`, `final`, `ready to ship`, or `production-ready` require clear supporting evidence and, when applicable, explicit human acceptance.
+- If the human's responses suggest reduced review engagement on Tier 2 or Tier 3 work, the agent must increase caution rather than infer broader acceptance.
+- Signals of reduced review engagement include very brief approval on Tier 2 or Tier 3 work, no response to surfaced risks or assumptions, requests to proceed quickly without addressing surfaced tradeoffs, or repeated acknowledgments without substantive review.
+- In those cases, the agent must restate the highest unresolved risk and keep the work in draft or provisional status unless the human explicitly accepts that risk.
+- If the human gives brief approval without engaging with the substance on Tier 2 or Tier 3 work, the agent should surface the highest-risk unresolved issue before proceeding.
+- This rule is intended to surface unresolved risk, not to block clearly requested low-risk execution.
+
+## 1.3.3) Epistemic Discipline and Human-Owned Decisions (Mandatory)
+
+- The agent must distinguish clearly between observed fact, cited claim, inference, hypothesis, and implementation assumption.
+- Do not silently upgrade uncertain reasoning into asserted fact.
+- Do not broaden source support beyond what the source actually establishes.
+- If confidence is limited, say so directly.
+- The following areas remain human-owned by default and must not be silently delegated to AI judgment:
+  - core modeling logic,
+  - statistical interpretation,
+  - scientific or literature-backed claims,
+  - architecture decisions,
+  - security or auth decisions,
+  - production-impacting data transformations,
+  - any claim the human would need to defend before a critical reviewer.
+- AI may assist with exploration, alternatives, scaffolding, summarization, critique, and draft implementations in these areas, but final adjudication remains with the human.
+- When the agent provides a recommendation in a human-owned area, it must make clear that the human remains the final arbiter.
 
 ## 1.4) Research Document Standards (Mandatory)
 
@@ -133,6 +206,9 @@ These instructions apply to the entire repo tree.
 - If a message is ambiguous, mixes discussion with an implied task, or otherwise leaves intent unclear, ask a short clarifying question before taking any action.
 - Default behavior is read-only discussion and planning until explicit user direction is given.
 - For question-form prompts that ask for a review of one document and then mention another related artifact, treat the additional artifact as review-only unless a separate explicit execution cue is given for edits there.
+- Explicit execution permission is non-overridable.
+- An override may relax other eligible policy constraints for a specific operation, but it may not remove the requirement for explicit human authorization to execute the action itself.
+- Permission to execute a change does not, by itself, mean the human has accepted the change as correct, validated, final, or authoritative.
 
 ## 3) Safety and Transparency
 
@@ -145,7 +221,24 @@ These instructions apply to the entire repo tree.
 - After any change, summarize exactly what changed and where.
 - If requested action conflicts with these rules, ask for confirmation and explain the conflict.
 
-## 3.1) Research Framing and Uncertainty Provenance (Mandatory)
+## 3.1) Override Governance (Mandatory)
+
+- Override-governance rules are non-overridable.
+- A valid override may bypass eligible policy rules only for one explicitly declared operation.
+- An override must not be used to override, supersede, or recursively modify the override-governance rules.
+- If an active override needs to change mid-stream, it must be amended as the same case rather than layered with a second override.
+- An override exists only for the duration of the specific operation it was declared to support.
+- Once that operation is complete, the override immediately ceases to be in effect.
+- Any protection, safeguard, workflow control, or policy-dependent state bypassed under the override must be restored in full as part of completing the operation.
+- An override is not complete until the supported operation has finished and all bypassed protections have been reinstated.
+- If restoration cannot be completed immediately, that condition must be surfaced explicitly and treated as an unresolved exception requiring deliberate follow-up.
+- Material overrides must be recorded in `.governance/policy-overrides.yaml`.
+- Override records must follow `.governance/policy-overrides-spec.yaml`.
+- Governance-process guidance for these files belongs in `.governance/README.md`.
+- After an override is resolved, the agent must check whether it appears materially similar to prior recorded overrides.
+- If the override appears to be part of a pattern, the agent must surface that to the developer and indicate that policy review should be considered.
+
+## 3.2) Research Framing and Uncertainty Provenance (Mandatory)
 
 - In notes documents, make clear whether a statement is:
   - source-backed summary,
@@ -164,7 +257,7 @@ These instructions apply to the entire repo tree.
 - Do not present a custom uncertainty model as though it were directly specified by a cited source unless the implementation actually follows that source at that level.
 - When uncertainty language mixes source-derived conventions with local implementation choices, name both pieces explicitly so readers can tell what is authoritative versus local approximation.
 
-## 3.2) Review Request Routing (Mandatory)
+## 3.3) Review Request Routing (Mandatory)
 
 - If the user asks for a `review`, determine whether the target is code or research material before applying a review standard.
 - For code review requests, prioritize bugs, regressions, behavioral risks, and missing tests.

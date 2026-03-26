@@ -2,6 +2,8 @@
 
 This folder contains research materials on broader spatio-temporal interpolation, reconstruction, and prediction for Argo data. The focus is on methods that operate across profiles, floats, and time, including objective mapping, Gaussian-process-style approaches, and functional-data frameworks that build on vertical profile representations.
 
+For this topic, [literature-review.md](literature-review.md) is the canonical source-backed document. Source-backed claims in the notes for this folder should trace to sources already covered there.
+
 This research area is still at an earlier stage than the cycle-representation work and has not yet completed the same full review and refinement pass.
 
 The current notes for this topic also include proposal-level systems framing for queryable priors, support uncertainty, and local-refinement concepts that have not yet been validated in implementation.
@@ -9,4 +11,4 @@ The current notes for this topic also include proposal-level systems framing for
 ## Research Files
 
 - [literature-review.md](literature-review.md): source-backed review of spatio-temporal Argo modeling methods, benchmarks, and methodological context.
-- [research-notes.md](research-notes.md): working notes on benchmark interpretation, project positioning, and next-phase integration questions.
+- [notes/README.md](notes/README.md): index of working notes on benchmark interpretation, project positioning, and next-phase integration questions.

@@ -1,6 +1,6 @@
 # Research Methodology
 
-This document describes the source-review and verification approach used in the project's research documents, including literature reviews, technical notes, and source-backed notebook commentary.
+This document describes the source-review and verification approach used in the project's research documents, including literature reviews, topic notes, and source-backed notebook commentary.
 
 ## Overview
 
@@ -10,9 +10,17 @@ For this project, the first discovery pass used Anthropic Claude Research to ide
 
 Claims included in the final research documents were then checked manually against available full-text articles and supporting source documents where possible. In formal literature reviews and other source-backed commentary, page numbers were added to in-text citations only after direct verification from those full-text sources.
 
+## Topic Source of Truth
+
+Within each topic folder, `literature-review.md` is the canonical source-backed document for that topic. Topic notes and notebooks may interpret, synthesize, hypothesize, and plan, but any source-backed claim they make should trace to a source already covered in that topic literature review.
+
+In practice, that means notes and notebooks should not become parallel literature reviews. If a note or notebook requires a new source-backed claim not yet covered in the literature review, the literature review should be updated first or in the same change. Candidate future sources may still be mentioned in notes as acquisition targets or pending-review items, but they should not be presented there as established support until the topic literature review has been updated accordingly.
+
 ## Verification Approach
 
 Source-backed claims were included only when they could be supported by the cited material. When full-text access was available, those claims were checked directly against the original source. Page-specific citations were added after direct verification from the full text.
+
+For topic notes and notebooks, this verification requirement is not weaker than it is for literature reviews. The difference is document purpose, not citation discipline. Notes may contain inference, hypothesis, implementation assumptions, and research-planning commentary, but when they make source-backed claims those claims should use the same verified source base represented in the topic literature review.
 
 Not all sources were equally available at the same time. When full-text access was delayed or unavailable, citation metadata could still be retained in provisional form, but interpretive claims tied to those references were treated as subject to revision after full-text review.
 

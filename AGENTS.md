@@ -73,6 +73,10 @@ These instructions apply to the entire repo tree.
 - If full text is not yet available, do not present the claim as fully verified. Mark the citation or section as pending full-text review.
 - If a DOI resolves to a different article than the written citation, treat that as a hard citation error and correct the bibliography and in-text references together.
 - Do not silently broaden narrow source support into broad system-level claims. If a broader statement is an inference, frame it explicitly as synthesis or interpretation.
+- Within a topic folder, treat `literature-review.md` as the canonical source-backed artifact for that topic.
+- Source-backed claims in topic `notes/` documents and topic `notebooks/` artifacts must trace to sources already covered in that topic's `literature-review.md`.
+- If a note or notebook needs a new source-backed claim not yet represented in the topic literature review, update the literature review first or in the same change.
+- Candidate future sources may be noted in notes or notebooks only when clearly framed as pending source acquisition or pending literature-review inclusion rather than as established support.
 
 ## 1.6) Research Review Workflow (Mandatory)
 
@@ -97,17 +101,24 @@ These instructions apply to the entire repo tree.
 - The standard topic-folder structure is:
   - `README.md`
   - `literature-review.md`
-  - `research-notes.md`
-  - optional `research-notebook.ipynb`
+  - optional `notes/`
+  - optional `notebooks/`
   - optional `sources/`
+- `literature-review.md` is the canonical source-backed document for a topic and should remain at the top of the topic folder.
+- General working notes belong under `notes/`, not at the topic root.
+- If `notes/` exists, it must contain a `README.md` that briefly describes the notes in that folder and should be the index entry point for note files.
+- Topic note files may include `research-notes.md`, `operationalization-notes.md`, implementation notes, experiment-design notes, or other purpose-specific working documents.
+- Prefer multiple purpose-specific note files over one omnibus notes file when the content spans distinct themes.
+- If `notebooks/` exists, it must contain a `README.md` that briefly describes the notebooks in that folder and should be the index entry point for notebook artifacts.
+- Notebook filenames should be descriptive of the experiment or diagnostic they contain rather than relying on a single canonical notebook filename.
 - Topic-document titles should align with the topic/folder name closely enough to read consistently as a set while still being understandable as standalone documents.
 - Use `sources/` for local copies of research papers, manuals, reports, and other reference materials associated with a topic.
 - Contents of topic-level `sources/` directories are local reference material and should not be committed unless the user explicitly directs otherwise.
-- Not every topic folder must contain a notebook; include `research-notebook.ipynb` only when there is an actual prototype, experiment trail, or diagnostic artifact to document.
-- Topic notebooks should be treated as prototype/experiment artifacts, not as canonical research summaries. Topic `README.md`, `literature-review.md`, and `research-notes.md` remain the primary orientation documents.
+- Not every topic folder must contain a `notebooks/` directory; include one only when there is an actual prototype, experiment trail, or diagnostic artifact to document.
+- Topic notebooks should be treated as prototype or experiment artifacts, not as canonical research summaries. Topic `README.md`, `literature-review.md`, and folder-level `README.md` indexes remain the primary orientation documents.
 - `README.md` in each topic folder should provide:
   - a short topic overview,
-  - links to the topic's main research files,
+  - links to the topic's main research files and folder indexes,
   - brief file descriptions,
   - and a short maturity note if that topic is still early-stage or has not yet undergone the same full review/refinement pass as other topics.
 - Topic `README.md` files should remain orientation/index documents and should not expand into mini literature reviews.

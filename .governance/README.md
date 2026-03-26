@@ -1,15 +1,22 @@
 # .governance
 
-This directory holds repository governance artifacts that are not part of the project deliverables themselves.
+This directory contains the repository's governance corpus.
 
-Current files:
+## Layout
 
-- `policy-overrides.yaml`: case log for material, temporary policy overrides.
-- `policy-overrides-spec.yaml`: field definitions and operating conventions for the override log.
+- `policies/`: standing repository policies grouped by domain, stored as YAML.
+- `task-map.yaml`: task-to-policy routing map for selective loading.
+- `processes/`: governance-process rules such as override handling and policy maintenance, stored as YAML.
+- `overrides/`: structured override records and the schema governing those records.
 
-Usage guidance:
+## Authoritative Files
 
-- Keep structured fields concise and specific.
-- Use `notes` only for deviations, restoration complications, or context that does not fit the standard fields.
-- Prefer amending an existing override record for the same case over creating stacked or nested overrides.
-- If unusual cases become common, update `policy-overrides-spec.yaml` and the relevant policy text instead of stretching ad hoc notes indefinitely.
+The repository policy entrypoint is [../AGENTS.md](../AGENTS.md). The files under this directory are the machine-readable policy body that `AGENTS.md` points to.
+
+## Guidance
+
+- Keep standing policy in `policies/`.
+- Keep task routing in `task-map.yaml`.
+- Keep meta-governance and maintenance rules in `processes/`.
+- Keep temporary exception records and their data definitions in `overrides/`.
+- When policy structure changes, update `AGENTS.md` and this directory together.

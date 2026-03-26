@@ -1,0 +1,6 @@
+id: code_review
+when: [code_review]
+rules:
+  - Present findings first.
+  - Prioritize bugs, regressions, behavioral risks, and missing tests.
+  - Keep summaries secondary to findings.

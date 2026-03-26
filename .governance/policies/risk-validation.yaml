@@ -1,0 +1,21 @@
+id: risk_validation
+when: [risk, validation]
+tier_labels:
+  tier_1: [formatting, wording, boilerplate, test_scaffolds, repetitive_refactors, simple_wrappers]
+  tier_2: [app_logic, sql, internal_utils, data_transforms, infra_config, nontrivial_refactors]
+  tier_3: [core_algorithms, statistical_logic, scientific_claims, auth_security, concurrency, production_pipelines, architecture_decisions, irreversible_migrations, externally_visible_behavior]
+rules:
+  - Classify substantive work before implementation or recommendation; if unsure, classify higher.
+  - tier_1: draft allowed; surface obvious assumptions or limitations when relevant.
+  - tier_2: require assumptions, one likely failure mode, one validation method or test, and a fact-vs-expectation distinction.
+  - tier_3: require constraints, material assumptions, likely failure modes or edge cases, one alternative or tradeoff, validation steps, and explicit remaining uncertainty.
+  - tier_3 is not accepted, settled, or authoritative without explicit human acceptance.
+  - tier_2 and tier_3 require an explicit critique pass before recommending acceptance.
+  - Do not recommend substantive work as accepted or validated unless the relevant gates are met or the remaining gap is explicit.
+gates:
+  code:
+    [intended_behavior, assumptions, likely_failure_modes, tests_or_validation_steps, chosen_approach_vs_alternative]
+  research:
+    [source_backed_labeled, inference_labeled, hypothesis_labeled, uncertainty_not_hidden, citation_supports_claim]
+  architecture:
+    [constraints, tradeoffs, alternative_considered, operational_failure_modes]

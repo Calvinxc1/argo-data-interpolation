@@ -8,11 +8,11 @@ Changes merged to `dev` and staged for a future release belong in this section u
 
 ### Added
 
-- None yet.
+- Added `scipy-stubs` to the development dependency set to improve local type-checking support for SciPy usage during development.
 
 ### Changed
 
-- None yet.
+- Added a changelog workflow policy and established this file as the single source of truth for staged and released change history.
 
 ### Fixed
 
@@ -25,11 +25,3 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Security
 
 - None yet.
-
-## 0.0.0 - YYYY-MM-DD
-
-Initial changelog template entry. Replace this section with the first actual release entry when a release is cut.
-
-### Added
-
-- Initial release entry template.

@@ -18,6 +18,8 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Refactored topic-level research organization to support indexed `notes/` and `notebooks/` directories while keeping `literature-review.md` as the canonical source-backed artifact for each topic.
 - Reorganized the Argo cycle-representation research materials into focused note files, moved notebook artifacts under an indexed notebooks folder, and aligned the spatio-temporal topic with the same notes-based layout.
 - Added research-policy rules requiring topic notes and notebooks to trace source-backed claims back through the topic literature review and to keep working-note structure consistent with the new folder model.
+- Reduced `CycleModel` memory and serialization overhead substantially by replacing heavy metadata models with slotted dataclasses and using compact custom pickle state.
+- Split notebook and research dependencies into a dedicated `research` dependency group while keeping the core runtime dependency surface limited to `numpy`, `pandas`, and `scipy`.
 
 ### Fixed
 
@@ -25,7 +27,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 
 ### Removed
 
-- None yet.
+- Removed unused runtime dependencies `pydantic` and `ruptures`.
 
 ### Security
 

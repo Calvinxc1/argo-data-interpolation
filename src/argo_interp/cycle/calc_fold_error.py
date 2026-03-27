@@ -1,9 +1,9 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from .CycleSettings import CycleSettings
 from .build_model import build_model
 from .calc_rmse import calc_rmse
+from .CycleSettings import CycleSettings
 
 
 def calc_fold_error(cycle_data: pd.DataFrame, settings: CycleSettings) -> tuple[float, float]:

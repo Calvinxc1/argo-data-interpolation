@@ -9,6 +9,8 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Added
 
 - Added `scipy-stubs` to the development dependency set to improve local type-checking support for SciPy usage during development.
+- Added a first pytest-based unit-test harness, PR-only test workflow, coverage reporting, and PR-visible test summaries for pull requests to `dev` and `main`.
+- Added automatic Ruff linting with PR-only reporting and PR-visible lint summaries alongside the test workflow.
 
 ### Changed
 

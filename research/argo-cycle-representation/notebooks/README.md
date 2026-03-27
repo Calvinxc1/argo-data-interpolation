@@ -5,3 +5,4 @@ This folder contains prototype and experiment notebooks for the `argo-cycle-repr
 ## Files
 
 - [cycle-representation-baseline.ipynb](cycle-representation-baseline.ipynb): baseline prototype notebook for the current spline workflow, uncertainty construction, reconstruction diagnostics, and next-step experiment framing.
+- [cycle-representation-validation.ipynb](cycle-representation-validation.ipynb): comparative validation notebook for omitted-point RMSE, artifact memory footprint, serialized size, and footprint stability against Akima and PCHIP baselines.

@@ -63,3 +63,27 @@ def test_cycle_model_pickle_round_trip_preserves_results() -> None:
         cycle_model.interpolate(query).to_numpy(),
         restored.interpolate(query).to_numpy(),
     )
+
+
+def test_cycle_model_state_round_trip_preserves_results() -> None:
+    cycle_model = _example_cycle_model()
+    query = np.array([1.0, 5.0, 9.0])
+
+    restored = CycleModel.from_state(cycle_model.to_state())
+
+    assert restored.settings == cycle_model.settings
+    assert restored.error == cycle_model.error
+    assert restored.pressure_bounds == cycle_model.pressure_bounds
+    np.testing.assert_allclose(
+        cycle_model.interpolate(query).to_numpy(),
+        restored.interpolate(query).to_numpy(),
+    )
+
+
+def test_cycle_model_from_state_rejects_unknown_version() -> None:
+    cycle_model = _example_cycle_model()
+    state = cycle_model.to_state()
+    invalid_state = (999, *state[1:])
+
+    with pytest.raises(ValueError, match="Unsupported CycleModel state version"):
+        CycleModel.from_state(invalid_state)

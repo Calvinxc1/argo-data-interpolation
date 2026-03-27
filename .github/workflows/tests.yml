@@ -75,39 +75,6 @@ jobs:
           name: lint-results
           path: lint-results/
 
-      - name: Comment lint summary on PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const path = 'lint-results/pr-summary.md';
-            const marker = '<!-- lint-summary -->';
-            const body = `${marker}\n${fs.readFileSync(path, 'utf8')}`;
-            const { owner, repo } = context.repo;
-            const issue_number = context.payload.pull_request.number;
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number,
-            });
-            const existing = comments.find(comment => comment.body && comment.body.includes(marker));
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body,
-              });
-            }
-
   pytest:
     runs-on: ubuntu-latest
 
@@ -197,14 +164,59 @@ jobs:
           name: pytest-results
           path: test-results/
 
-      - name: Comment test summary on PR
-        if: always()
+  quality-summary:
+    if: always()
+    needs:
+      - lint
+      - pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download lint artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lint-results
+          path: lint-results/
+
+      - name: Download pytest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pytest-results
+          path: test-results/
+
+      - name: Build combined PR summary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          lint_summary = Path("lint-results/pr-summary.md")
+          test_summary = Path("test-results/pr-summary.md")
+          summary_path = Path("quality-summary.md")
+
+          sections = ["## Quality Checks", ""]
+
+          if test_summary.exists():
+              sections.append(test_summary.read_text().strip())
+              sections.append("")
+
+          if lint_summary.exists():
+              sections.append(lint_summary.read_text().strip())
+              sections.append("")
+
+          summary = "\n".join(sections).strip() + "\n"
+          summary_path.write_text(summary)
+          github_summary = Path(__import__("os").environ["GITHUB_STEP_SUMMARY"])
+          with github_summary.open("a") as f:
+              f.write(summary)
+          PY
+
+      - name: Comment combined summary on PR
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const path = 'test-results/pr-summary.md';
-            const marker = '<!-- pytest-summary -->';
+            const path = 'quality-summary.md';
+            const marker = '<!-- quality-summary -->';
             const body = `${marker}\n${fs.readFileSync(path, 'utf8')}`;
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;

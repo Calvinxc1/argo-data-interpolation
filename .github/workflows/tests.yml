@@ -1,0 +1,372 @@
+name: Quality Checks
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: |
+          uv sync --group dev
+
+      - name: Run ruff
+        run: |
+          mkdir -p lint-results
+          if uv run ruff check src tests | tee lint-results/ruff.txt; then
+            echo pass > lint-results/status.txt
+          else
+            echo fail > lint-results/status.txt
+            exit 1
+          fi
+
+      - name: Build lint summary
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          ruff_output = Path("lint-results/ruff.txt")
+          status_file = Path("lint-results/status.txt")
+          summary_path = Path("lint-results/pr-summary.md")
+          summary_lines = ["## Ruff Results", ""]
+
+          status = status_file.read_text().strip() if status_file.exists() else "unknown"
+          if status == "pass":
+              summary_lines.extend(
+                  [
+                      "- Status: clean",
+                      "",
+                  ]
+              )
+          elif ruff_output.exists():
+              output = ruff_output.read_text().strip()
+              if output:
+                  summary_lines.extend(
+                      [
+                          "- Status: issues found",
+                          "",
+                          "<details>",
+                          "<summary>Diagnostics</summary>",
+                          "",
+                          "```text",
+                          output,
+                          "```",
+                          "",
+                          "</details>",
+                          "",
+                      ]
+                  )
+              else:
+                  summary_lines.append("- Status: issues found\n")
+          else:
+              summary_lines.append("- Status: unknown\n")
+
+          summary = "\n".join(summary_lines).strip() + "\n"
+          summary_path.write_text(summary)
+          github_summary = Path(__import__("os").environ["GITHUB_STEP_SUMMARY"])
+          with github_summary.open("a") as f:
+              f.write(summary)
+          PY
+
+      - name: Upload lint artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results
+          path: lint-results/
+
+  pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: |
+          uv sync --group dev
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p test-results
+          uv run pytest \
+            --junitxml=test-results/pytest.xml \
+            --cov=argo_interp \
+            --cov-report=term-missing:skip-covered \
+            --cov-report=xml:test-results/coverage.xml \
+            | tee test-results/pytest-output.txt
+
+      - name: Build PR summary
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import xml.etree.ElementTree as ET
+
+          pytest_xml = Path("test-results/pytest.xml")
+          coverage_xml = Path("test-results/coverage.xml")
+          pytest_output = Path("test-results/pytest-output.txt")
+          summary_path = Path("test-results/pr-summary.md")
+
+          summary_lines = ["## Pytest Results", ""]
+
+          if pytest_xml.exists():
+              suite = ET.parse(pytest_xml).getroot()
+              if suite.tag == "testsuites":
+                  suite = suite.find("testsuite")
+              tests = int(suite.attrib.get("tests", 0))
+              failures = int(suite.attrib.get("failures", 0))
+              errors = int(suite.attrib.get("errors", 0))
+              skipped = int(suite.attrib.get("skipped", 0))
+              time = float(suite.attrib.get("time", 0.0))
+              passed = tests - failures - errors - skipped
+
+              passed_tests: list[str] = []
+              failed_tests: list[str] = []
+              skipped_tests: list[str] = []
+              for case in suite.findall("testcase"):
+                  name = case.attrib.get("classname", "").replace(".", "::")
+                  if name:
+                      name = f"{name}::{case.attrib.get('name', '')}"
+                  else:
+                      name = case.attrib.get("name", "")
+
+                  if case.find("failure") is not None or case.find("error") is not None:
+                      failed_tests.append(name)
+                  elif case.find("skipped") is not None:
+                      skipped_tests.append(name)
+                  else:
+                      passed_tests.append(name)
+
+              summary_lines.extend(
+                  [
+                      "| Metric | Value |",
+                      "| --- | ---: |",
+                      f"| Passed | {passed} |",
+                      f"| Failed | {failures} |",
+                      f"| Errors | {errors} |",
+                      f"| Skipped | {skipped} |",
+                      f"| Total | {tests} |",
+                      f"| Runtime | {time:.2f}s |",
+                      "",
+                  ]
+              )
+
+              if passed_tests:
+                  summary_lines.extend(
+                      [
+                          "<details>",
+                          "<summary>Passing tests</summary>",
+                          "",
+                          *[f"- `{test_name}`" for test_name in passed_tests],
+                          "",
+                          "</details>",
+                          "",
+                      ]
+                  )
+
+              if failed_tests:
+                  summary_lines.extend(
+                      [
+                          "<details>",
+                          "<summary>Failed tests</summary>",
+                          "",
+                          *[f"- `{test_name}`" for test_name in failed_tests],
+                          "",
+                          "</details>",
+                          "",
+                      ]
+                  )
+
+              if skipped_tests:
+                  summary_lines.extend(
+                      [
+                          "<details>",
+                          "<summary>Skipped tests</summary>",
+                          "",
+                          *[f"- `{test_name}`" for test_name in skipped_tests],
+                          "",
+                          "</details>",
+                          "",
+                      ]
+                  )
+
+          if coverage_xml.exists():
+              coverage_root = ET.parse(coverage_xml).getroot()
+              line_rate = float(coverage_root.attrib.get("line-rate", 0.0)) * 100.0
+              summary_lines.extend(
+                  [
+                      "## Coverage",
+                      "",
+                      f"- Line coverage: {line_rate:.2f}%",
+                      "",
+                  ]
+              )
+
+          if pytest_output.exists():
+              output_lines = pytest_output.read_text().splitlines()
+              coverage_rows: list[str] = []
+              in_table = False
+
+              for line in output_lines:
+                  if line.startswith("Name") and "Missing" in line:
+                      in_table = True
+                      continue
+                  if in_table and set(line.strip()) == {"-"}:
+                      continue
+                  if in_table and line.startswith("TOTAL"):
+                      break
+                  if in_table and line.strip():
+                      coverage_rows.append(line.rstrip())
+
+              parsed_rows: list[tuple[str, str, str]] = []
+              for row in coverage_rows:
+                  match = re.match(r"^(?P<name>\S+)\s+\d+\s+\d+\s+\d+%\s+(?P<missing>.+)$", row)
+                  if match:
+                      parsed_rows.append(
+                          (
+                              match.group("name"),
+                              match.group("missing"),
+                              row,
+                          )
+                      )
+
+              if parsed_rows:
+                  summary_lines.extend(
+                      [
+                          "<details>",
+                          "<summary>Missing coverage by file</summary>",
+                          "",
+                      ]
+                  )
+                  for file_name, missing, _ in parsed_rows:
+                      summary_lines.append(f"- `{file_name}`: `{missing}`")
+                  summary_lines.extend(
+                      [
+                          "",
+                          "</details>",
+                          "",
+                      ]
+                  )
+
+          summary = "\n".join(summary_lines).strip() + "\n"
+          summary_path.write_text(summary)
+          github_summary = Path(__import__("os").environ["GITHUB_STEP_SUMMARY"])
+          with github_summary.open("a") as f:
+              f.write(summary)
+          PY
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results
+          path: test-results/
+
+  quality-summary:
+    if: always()
+    needs:
+      - lint
+      - pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download lint artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lint-results
+          path: lint-results/
+
+      - name: Download pytest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pytest-results
+          path: test-results/
+
+      - name: Build combined PR summary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          lint_summary = Path("lint-results/pr-summary.md")
+          test_summary = Path("test-results/pr-summary.md")
+          summary_path = Path("quality-summary.md")
+
+          sections = ["## Quality Checks", ""]
+
+          if test_summary.exists():
+              sections.append(test_summary.read_text().strip())
+              sections.append("")
+
+          if lint_summary.exists():
+              sections.append(lint_summary.read_text().strip())
+              sections.append("")
+
+          summary = "\n".join(sections).strip() + "\n"
+          summary_path.write_text(summary)
+          github_summary = Path(__import__("os").environ["GITHUB_STEP_SUMMARY"])
+          with github_summary.open("a") as f:
+              f.write(summary)
+          PY
+
+      - name: Comment combined summary on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'quality-summary.md';
+            const marker = '<!-- quality-summary -->';
+            const body = `${marker}\n${fs.readFileSync(path, 'utf8')}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+            });
+            const existing = comments.find(comment => comment.body && comment.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }

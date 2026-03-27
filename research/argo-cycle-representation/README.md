@@ -8,4 +8,4 @@ For this topic, [literature-review.md](literature-review.md) is the canonical so
 
 - [literature-review.md](literature-review.md): source-backed review of interpolation methods, adaptive splines, and Argo QC/error context.
 - [notes/README.md](notes/README.md): index of topic working notes, including framing, method comparison, uncertainty, experiments, and operationalization.
-- [notebooks/README.md](notebooks/README.md): index of prototype notebook artifacts for the current spline workflow, uncertainty, and diagnostics.
+- [notebooks/README.md](notebooks/README.md): index of prototype notebook artifacts for the current spline workflow, comparative validation against exact interpolants, uncertainty, and diagnostics.

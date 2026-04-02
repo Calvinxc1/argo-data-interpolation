@@ -11,3 +11,6 @@ Always load:
 
 Load additional policy only via:
 - `.governance/task-map.yaml`
+
+Repo-specific environment note:
+- This repository uses `uv` for its development environment.

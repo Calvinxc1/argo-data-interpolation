@@ -8,6 +8,7 @@ The shared review and verification approach for these documents is described in 
 
 - [argo-cycle-representation](argo-cycle-representation/README.md): research on cycle-level vertical profile representation, interpolation, uncertainty modeling, and compression for individual Argo float profiles.
 - [spatio-temporal](spatio-temporal/README.md): research on broader spatio-temporal Argo modeling, including functional-data and kriging-based approaches built on vertical profile representations.
+- [underwater-acoustics](underwater-acoustics/README.md): research on downstream underwater-acoustics use cases, including sound-speed-profile workflows, the Jana et al. replication target, and operational framing for uncertainty-aware Argo interpolation.
 
 ## Standard Folder Structure
 

@@ -11,8 +11,7 @@ class BaseAdapter(ABC):
     @abstractmethod
     def fit(cls, pressure_data: NDArray[np.float64],
             measure_data: NDArray[np.float64],
-            model_kwargs: dict[str, Any] = None,
-            ) -> Self:
+            model_kwargs: dict[str, Any]) -> Self:
         pass
 
     @abstractmethod

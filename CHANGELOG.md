@@ -20,6 +20,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Added research-policy rules requiring topic notes and notebooks to trace source-backed claims back through the topic literature review and to keep working-note structure consistent with the new folder model.
 - Reduced `CycleModel` memory and serialization overhead substantially by replacing heavy metadata models with slotted dataclasses and using compact custom pickle state.
 - Split notebook and research dependencies into a dedicated `research` dependency group while keeping the core runtime dependency surface limited to `numpy`, `pandas`, and `scipy`.
+- Reworked cycle-model settings so validation and interpolation can use distinct temperature and salinity kwargs through a dedicated settings package and shared sensor-accuracy configuration.
 
 ### Fixed
 

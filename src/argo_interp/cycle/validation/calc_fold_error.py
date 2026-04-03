@@ -1,21 +1,21 @@
 import numpy as np
-from typing import Any
 
 from .InterleavedKFolds import InterleavedKFolds
 from .calc_measure_error import calc_measure_error
 from ..adapter import BaseAdapter
 from ..model import ModelData
+from ..model.settings import ModelSettings
 
 
-def calc_fold_error(model_data: ModelData, n_folds: int, adapter: BaseAdapter,
-                    model_kwargs: dict[str, Any] = None) -> tuple[float, float]:
+def calc_fold_error(model_data: ModelData, adapter: BaseAdapter,
+                    settings: ModelSettings) -> tuple[float, float]:
     n_obs = len(model_data.pressure)
-    k_folds = InterleavedKFolds(n_obs, n_folds)
+    k_folds = InterleavedKFolds(n_obs, settings.n_folds)
 
     temp_sse = 0
     sal_sse = 0
     valid_obs = 0
-    for fold in range(n_folds):
+    for fold in range(settings.n_folds):
         train_mask, valid_mask = k_folds.fold_mask(fold)
         train_pressure, valid_pressure = model_data.pressure[train_mask], model_data.pressure[valid_mask]
         train_temperature, valid_temperature = model_data.temperature[train_mask], model_data.temperature[valid_mask]
@@ -23,7 +23,7 @@ def calc_fold_error(model_data: ModelData, n_folds: int, adapter: BaseAdapter,
 
         temp_model = adapter.fit(pressure_data=train_pressure,
                                  measure_data=train_temperature,
-                                 model_kwargs=model_kwargs)
+                                 model_kwargs=settings.model_kwargs.temperature)
         temp_sse += calc_measure_error(
             adapter=temp_model,
             pressure_data=valid_pressure,
@@ -32,7 +32,7 @@ def calc_fold_error(model_data: ModelData, n_folds: int, adapter: BaseAdapter,
 
         sal_model = adapter.fit(pressure_data=train_pressure,
                                 measure_data=train_salinity,
-                                model_kwargs=model_kwargs)
+                                model_kwargs=settings.model_kwargs.salinity)
         sal_sse += calc_measure_error(
             adapter=sal_model,
             pressure_data=valid_pressure,

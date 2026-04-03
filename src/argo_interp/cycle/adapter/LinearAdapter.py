@@ -2,13 +2,13 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike
 from typing import Any, Self
 from dataclasses import dataclass
-from scipy.interpolate import BSpline, make_splrep
+from scipy.interpolate import BSpline, make_interp_spline
 
 from .BaseAdapter import BaseAdapter
 
 
 @dataclass
-class SplineAdapter(BaseAdapter):
+class LinearAdapter(BaseAdapter):
     model: BSpline
 
     @classmethod
@@ -17,9 +17,11 @@ class SplineAdapter(BaseAdapter):
             model_kwargs: dict[str, Any] = None,
             ) -> Self:
         if model_kwargs is None:
-            model_kwargs = {}
+            model_kwargs = {'k': 1}
+        else:
+            model_kwargs = {**model_kwargs, 'k': 1}
 
-        model = make_splrep(pressure_data, measure_data, **model_kwargs)
+        model = make_interp_spline(pressure_data, measure_data, **model_kwargs)
         return cls(model=model)
 
     def interpolate(self, pressure_data: ArrayLike) -> NDArray[np.float64]:

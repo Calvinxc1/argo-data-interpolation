@@ -7,13 +7,11 @@ from dataclasses import dataclass
 
 @dataclass
 class BaseAdapter(ABC):
-    model: Any
-
     @classmethod
     @abstractmethod
     def fit(cls, pressure_data: NDArray[np.float64],
             measure_data: NDArray[np.float64],
-            model_kwargs: dict[str, Any] = None
+            model_kwargs: dict[str, Any] = None,
             ) -> Self:
         pass
 

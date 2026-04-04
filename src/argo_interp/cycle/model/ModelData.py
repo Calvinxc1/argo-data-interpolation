@@ -18,13 +18,6 @@ class ModelData:
         if len(self.temperature) != self.n_obs or len(self.salinity) != self.n_obs:
             raise ValueError("pressure, temperature, and salinity must have the same length")
 
-        if not np.isfinite(self.pressure).all():
-            raise ValueError("pressure contains non-finite values")
-        if not np.isfinite(self.temperature).all():
-            raise ValueError("temperature contains non-finite values")
-        if not np.isfinite(self.salinity).all():
-            raise ValueError("salinity contains non-finite values")
-
     @property
     def n_obs(self) -> int:
         return len(self.pressure)

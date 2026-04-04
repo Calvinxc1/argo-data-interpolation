@@ -11,6 +11,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
     "argopy>=1.4.0",
+    "gsw>=3.6.21",
     "numpy>=2.4.3",
     "pandas>=3.0.1",
     "scipy>=1.17.1",

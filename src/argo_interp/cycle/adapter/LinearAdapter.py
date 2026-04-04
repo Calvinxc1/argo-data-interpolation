@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike
 from typing import Any, Self
 from dataclasses import dataclass
-from scipy.interpolate import BSpline, make_interp_spline
+from scipy.interpolate import BSpline
 
 from .BaseAdapter import BaseAdapter
 
@@ -15,8 +15,9 @@ class LinearAdapter(BaseAdapter):
     def fit(cls, pressure_data: NDArray[np.float64],
             measure_data: NDArray[np.float64],
             model_kwargs: dict[str, Any]) -> Self:
-        model_kwargs = {**model_kwargs, 'k': 1}
-        model = make_interp_spline(pressure_data, measure_data, **model_kwargs)
+        model_kwargs = {'extrapolate': False, **model_kwargs, 'k': 1}
+        knots = np.concatenate([[pressure_data[0]], pressure_data, [pressure_data[-1]]])
+        model = BSpline(knots, measure_data, **model_kwargs)
         return cls(model=model)
 
     def interpolate(self, pressure_data: ArrayLike) -> NDArray[np.float64]:

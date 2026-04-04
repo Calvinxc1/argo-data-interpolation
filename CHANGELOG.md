@@ -11,6 +11,8 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Added `scipy-stubs` to the development dependency set to improve local type-checking support for SciPy usage during development.
 - Added a first pytest-based unit-test harness, PR-only test workflow, coverage reporting, and PR-visible test summaries for pull requests to `dev` and `main`.
 - Added automatic Ruff linting with PR-only reporting and PR-visible lint summaries alongside the test workflow.
+- Added a Bay of Bengal Jana et al. replication notebook under the underwater-acoustics research topic, along with companion notes documenting the settled replication pipeline, validation outputs, and subdomain figure workflow.
+- Added `cartopy` and `seawater` as runtime dependencies to support the research notebook mapping and UNESCO sound-speed replication workflow.
 
 ### Changed
 
@@ -21,6 +23,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Reduced `CycleModel` memory and serialization overhead substantially by replacing heavy metadata models with slotted dataclasses and using compact custom pickle state.
 - Split notebook and research dependencies into a dedicated `research` dependency group while keeping the core runtime dependency surface limited to `numpy`, `pandas`, and `scipy`.
 - Reworked cycle-model settings so validation and interpolation can use distinct temperature and salinity kwargs through a dedicated settings package and shared sensor-accuracy configuration.
+- Replaced the Argo QC helper with a more general `data_filter` utility, exposed that helper from `argo_interp.data`, and updated the research fetch path to accept an explicit `mode` plus larger default time chunks.
 
 ### Fixed
 
@@ -29,6 +32,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Removed
 
 - Removed unused runtime dependencies `pydantic` and `ruptures`.
+- Removed the older root-level Jana replication notebook copy and the now-obsolete `data_qc_pass` helper in favor of the reorganized research notebook and generalized filter utility.
 
 ### Security
 

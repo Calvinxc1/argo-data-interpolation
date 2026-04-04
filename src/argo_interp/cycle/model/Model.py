@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from .CycleError import CycleError, MeasureError
 from .ModelAdapters import ModelAdapters
 from .ModelData import ModelData
+from .ModelMeta import ModelMeta
 from .settings.ModelSettings import ModelSettings
 from ..adapter import BaseAdapter
 from ..validation import calc_fold_error
@@ -13,12 +14,13 @@ from ..validation import calc_fold_error
 
 @dataclass
 class Model:
+    meta: ModelMeta
     adapters: ModelAdapters = field(repr=False)
     error: CycleError
     settings: ModelSettings
 
     @classmethod
-    def build(cls, model_data: ModelData, adapter: BaseAdapter, settings: ModelSettings) -> Self:
+    def build(cls, model_meta: ModelMeta, model_data: ModelData, adapter: BaseAdapter, settings: ModelSettings) -> Self:
         temp_error, sal_error = calc_fold_error(model_data, adapter, settings)
 
         temp_adapter = adapter.fit(model_data.pressure, model_data.temperature, settings.model_kwargs.temperature)
@@ -31,7 +33,7 @@ class Model:
             salinity=MeasureError(model=sal_error, sensor=settings.sensor_accuracy.salinity),
         )
 
-        model = cls(adapters=adapters, error=error, settings=settings)
+        model = cls(meta=model_meta, adapters=adapters, error=error, settings=settings)
         return model
 
     def interpolate(self, pressure_data: ArrayLike) -> ModelData:

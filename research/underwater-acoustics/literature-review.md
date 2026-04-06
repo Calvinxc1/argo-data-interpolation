@@ -4,7 +4,7 @@
 
 This file is the canonical literature review for the `underwater-acoustics` topic.
 
-The present draft was constructed from the research compilation that had been accumulated in [README.md](README.md). Only Jana et al. (2022) currently has a local full-text copy in [sources/](sources/). The remaining citations and the synthesis built on them are therefore **pending full-text review and bibliography normalization**. No page numbers are included yet. Until the source copies are collected and checked, treat this document as a structured literature map with preserved inline references, not as a fully verified final review.
+The present draft was constructed from the research compilation that had been accumulated in [README.md](README.md). Local copies now exist in [sources/](sources/) for a materially larger subset of the citation set, including core interpolation, Argo QC, TEOS-10, SSP machine-learning, Deep Argo, mapped-product, operational-oceanography, and biogeochemical-uncertainty references linked in the bibliography below, but much of the broader citation set remains **pending full-text review and bibliography normalization**. The earlier GOM-NNpH / Osborne bibliography entry was also a citation mismatch and has now been corrected to the actual 2024 Frontiers paper. Some official full-text copies are stored locally as `.html` article pages where publisher PDF endpoints are blocked but the full article text is openly available. No page numbers are included yet. Until the remaining source copies are collected and checked, treat this document as a structured literature map with preserved inline references, not as a fully verified final review.
 
 ## Overview
 
@@ -36,9 +36,9 @@ The draft source set suggests that Argo-enabled sound-speed studies now span glo
 
 At the global scale, Chu and Fan (2024, DOI: `10.1038/s41597-024-04074-6`) appear to provide a global climatological dataset of acoustic parameters derived from WOA 2023. Affatati, Scaini, and Salon (2022, DOI: `10.1029/2021EF002099`) and Possenti et al. (2023, DOI: `10.7717/peerj.16208`) extend the topic into climate-change impact assessment, linking warming and circulation change to projected sound-speed change and ducting structure.
 
-At the regional scale, the current citation set is especially rich. Jana et al. (2022, DOI: `10.1109/OCEANSChennai45887.2022.9775509`) anchor the Bay of Bengal workflow that this repository is already replicating. The Arabian Sea literature in the draft list includes Udaya Bhaskar, Swain, and Ravichandran (2008, DOI: `10.1007/BF03020695`), Udaya Bhaskar et al. (2012), Udaya Bhaskar and Swain (2016), and Srinivasu et al. (2024, DOI: `10.1029/2023EA003497`), all of which point to strong links among mixed-layer structure, barrier layers, seasonal forcing, and sonic-layer depth. Additional regional studies in the source set include Zhang et al. (2023, DOI: `10.1007/s10872-023-00701-9`) and Chen et al. (2020, DOI: `10.1016/j.apacoust.2020.107478`) for the Northwest Pacific and Kuroshio Extension, Salon et al. (2003) for the Mediterranean, Armansyah, Sukoco, and Pranowo (2018) for the Banda Sea, and a 2024 *Remote Sensing* paper on South China Sea eddy effects.
+At the regional scale, the current citation set is especially rich. Jana et al. (2022, DOI: `10.1109/OCEANSChennai45887.2022.9775509`) anchor the Bay of Bengal workflow that this repository is already replicating. The Arabian Sea literature in the draft list includes Udaya Bhaskar, Swain, and Ravichandran (2008, DOI: `10.1007/BF03020695`), Udaya Bhaskar et al. (2012), Udaya Bhaskar and Swain (2016), and Srinivasu et al. (2024, DOI: `10.1029/2023EA003497`), all of which point to strong links among mixed-layer structure, barrier layers, seasonal forcing, and sonic-layer depth. Additional regional studies in the source set include Zhang et al. (2023, DOI: `10.1007/s10872-023-00701-9`) and Chen et al. (2020, DOI: `10.1016/j.apacoust.2020.107478`) for the Northwest Pacific and Kuroshio Extension, Salon et al. (2003) for the Mediterranean, Armansyah, Sukoco, and Pranowo (2018) for the Banda Sea, and Liu et al. (2024, DOI: `10.3390/rs16152845`) on South China Sea eddy effects.
 
-The citation inventory also indicates a sub-literature on SOFAR and deep sound channels, including Swaminathan and Bhaskaran (2009) plus earlier Indian Ocean work by Prasanna Kumar and Somayajulu. Separate classification-oriented studies appear in He et al. (2024), Hjelmervik, Jensen, and Østenstad (2012, DOI: `10.1007/s10236-011-0499-z`), Hjelmervik and Hjelmervik (2013, DOI: `10.1007/s10236-013-0623-3`), Xu et al. (2009), Mandelberg and Frizzell-Makowski (2000), and a 2023 *Frontiers in Marine Science* paper (DOI: `10.3389/fmars.2023.1130061`). Penupothu (2025, DOI: `10.21227/61qc-z803`) appears to offer an ML-ready Indian Ocean SSP time series dataset.
+The citation inventory also indicates a sub-literature on SOFAR and deep sound channels, including Swaminathan and Prasad Kumar (2009) plus earlier Indian Ocean work by Prasanna Kumar et al. (1993). Separate classification-oriented studies appear in He et al. (2024), Hjelmervik, Jensen, and Østenstad (2012, DOI: `10.1007/s10236-011-0499-z`), Hjelmervik and Hjelmervik (2013, DOI: `10.1007/s10236-013-0623-3`), Zhang et al. (2009, DOI: `10.11978/j.issn.1009-5470.2009.06.023`), Mandelberg and Frizzell-Makowski (2000), and a 2023 *Frontiers in Marine Science* paper (DOI: `10.3389/fmars.2023.1130061`). Penupothu (2025, DOI: `10.21227/61qc-z803`) appears to offer an ML-ready Indian Ocean SSP time series dataset.
 
 For this repository, the main value of this body of work is that it shows Jana et al. is not an isolated case. It sits inside a broader Argo-enabled acoustics literature where regional structure, sound-channel metrics, and downstream propagation relevance are already established.
 
@@ -46,11 +46,11 @@ For this repository, the main value of this body of work is that it shows Jana e
 
 The most important process gap in the current citation set is vertical interpolation. The literature draft indicates that many Argo-to-sound-speed studies report gridding to standard depth levels but **do not specify the interpolation algorithm used**.
 
-The classical reference in the source list is Reiniger and Ross (1968, DOI: `10.1016/0011-7471(68)90040-5`), whose weighted parabolic method appears repeatedly in ocean heat content and gridded-product workflows. Cheng and Zhu (2014, DOI: `10.1175/JTECH-D-13-00220.1`) provide a particularly important comparison, suggesting that linear interpolation and spline interpolation can each introduce systematic temperature biases relative to Reiniger-Ross in heat-content calculations. Barker and McDougall (2020, DOI: `10.1175/JTECH-D-19-0211.1`) appear to establish the current state of the art through MR-PCHIP and MRST-PCHIP, with direct relevance to Argo T/S profile interpolation and with implementations carried into GSW. The draft source set also includes Fritsch and Carlson (1980) for the original PCHIP algorithm, Akima (1970) for Akima splines, Katsura (2021, DOI: `10.1029/2020JC016591`), Li et al. (2022, DOI: `10.1029/2022GL101079`), North and Livingstone (2013), and Yu et al. (2022, DOI: `10.3389/fmars.2022.1030980`).
+The classical reference in the source list is Reiniger and Ross (1968, DOI: `10.1016/0011-7471(68)90040-5`), whose weighted parabolic method appears repeatedly in ocean heat content and gridded-product workflows. Cheng and Zhu (2014, DOI: `10.1175/JTECH-D-13-00220.1`) provide a particularly important comparison, suggesting that linear interpolation and spline interpolation can each introduce systematic temperature biases relative to Reiniger-Ross in heat-content calculations. Barker and McDougall (2020, DOI: `10.1175/JTECH-D-19-0211.1`) appear to establish the current state of the art through MR-PCHIP and MRST-PCHIP, with direct relevance to Argo T/S profile interpolation and with implementations carried into GSW. The draft source set also includes Fritsch and Carlson (1980) for the original PCHIP algorithm, Akima (1970) for Akima splines, Katsura (2021, DOI: `10.1029/2020JC016591`), Li et al. (2022, DOI: `10.1029/2022GL101079`), North and Livingstone (2013, DOI: `10.4319/lom.2013.11.213`), and Yu et al. (2022, DOI: `10.3389/fmars.2022.1030980`).
 
 Li et al. (2022) are especially consequential in this draft literature map because they suggest that **linear interpolation can bias a major derived climate metric by roughly 14%** relative to more advanced schemes. That finding is not about sound speed directly, but it strongly motivates asking the analogous question for derived acoustic structure from Argo profiles.
 
-The gridded-product references in the draft set reinforce the point that interpolation choices are heterogeneous: Roemmich and Gilson (2009, DOI: `10.1016/j.pocean.2009.03.004`), Gaillard et al. (2016, DOI: `10.1175/JCLI-D-15-0028.1`), Li et al. (2017, DOI: `10.1002/2016JC012285`), Good, Martin, and Rayner (2013, DOI: `10.1002/2013JC009067`), Schmidtko, Johnson, and Lyman (2013, DOI: `10.1002/jgrc.20122`), Ridgway, Dunn, and Wilkin (2002), Dunn and Ridgway (2002), Gouretski (2018, DOI: `10.5194/os-14-1127-2018`), the 2022 GDCSM-Argo product, Cheng et al. (2024, DOI: `10.5194/essd-16-3517-2024`), and Zhou et al. (2023, DOI: `10.1029/2022JC019386`) all imply different depth-level or surface frameworks. Wong et al. (2020, DOI: `10.3389/fmars.2020.00700`) are the key programmatic reference in this context because Argo itself distributes native-level profiles without prescribing the interpolation method.
+The gridded-product references in the draft set reinforce the point that interpolation choices are heterogeneous: Roemmich and Gilson (2009, DOI: `10.1016/j.pocean.2009.03.004`), Gaillard et al. (2016, DOI: `10.1175/JCLI-D-15-0028.1`), Li et al. (2017, DOI: `10.1002/2016JC012285`), Good, Martin, and Rayner (2013, DOI: `10.1002/2013JC009067`), Schmidtko, Johnson, and Lyman (2013, DOI: `10.1002/jgrc.20122`), Ridgway, Dunn, and Wilkin (2002), Dunn and Ridgway (2002), Gouretski (2018, DOI: `10.5194/os-14-1127-2018`), Zhang et al. (2022, DOI: `10.3390/jmse10050650`), Cheng et al. (2024, DOI: `10.5194/essd-16-3517-2024`), and Zhou et al. (2023, DOI: `10.1029/2022JC019386`) all imply different depth-level or surface frameworks. Wong et al. (2020, DOI: `10.3389/fmars.2020.00700`) are the key programmatic reference in this context because Argo itself distributes native-level profiles without prescribing the interpolation method.
 
 This is the clearest literature-backed opening for the current project: a per-profile interpolation study for derived sound speed is justified by adjacent evidence, but appears not to have been done explicitly in the draft source set.
 
@@ -58,7 +58,7 @@ This is the clearest literature-backed opening for the current project: a per-pr
 
 The uncertainty story in the current citation set separates cleanly into sensor-level precision, delayed-mode correction and QC, equation uncertainty, and mapped-product discrepancy.
 
-Wong et al. (2020, DOI: `10.3389/fmars.2020.00700`) and Kobayashi et al. (2019, DOI: `10.1186/s40645-019-0310-1`) anchor the sensor side of the draft review. They suggest temperature precision around ±0.002°C, conductivity or salinity precision on the order of 10^-3, and field pressure uncertainty of a few dbar for standard Argo CTDs. Wong, Gilson, and Cabanes (2023, DOI: `10.5194/essd-15-383-2023`) and Fujii et al. (2024, DOI: `10.3389/fmars.2024.1496409`) extend that picture into delayed-mode salinity drift, gray-listing, and system-level impacts of sensor bias. The delayed-mode QC method references in the citation set are Wong, Johnson, and Owens (2003), Owens and Wong (2009), and Cabanes, Thierry, and Lagadec (2016).
+Wong et al. (2020, DOI: `10.3389/fmars.2020.00700`) anchor the quantitative sensor-performance side of the draft review, while Hosoda et al. (2019, DOI: `10.1186/s40645-019-0310-1`) document predeployment screening targets for SBE41 Argo CTDs. Taken together, these sources support temperature accuracy in the roughly 0.002-0.005°C range, salinity accuracy from a few 10^-3 up to about 0.01 PSS-78 depending on whether manufacturer specifications or achieved program-level accuracy is meant, and pressure uncertainty of roughly 2-5 dbar for standard Argo CTDs. Wong, Gilson, and Cabanes (2023, DOI: `10.5194/essd-15-383-2023`) and Ishikawa et al. (2024, DOI: `10.3389/fmars.2024.1496409`) extend that picture into delayed-mode salinity drift, gray-listing, and system-level impacts of sensor bias. The delayed-mode QC method references in the citation set are Wong, Johnson, and Owens (2003), Owens and Wong (2009), and Cabanes, Thierry, and Lagadec (2016).
 
 The draft source inventory also points to a relatively mature sound-speed error-propagation basis. Allen et al. (2017, 2025) provide equation-side uncertainty context, while Grekov, Grekov, and Sychov (2021, DOI: `10.1016/j.measurement.2021.109073`) appear to offer the most rigorous propagation treatment under the GUM framework. The sensitivity picture in the draft notes is familiar: temperature dominates, salinity is secondary, and pressure contributes more strongly at depth. The resulting Argo sensor-level sound-speed uncertainty is summarized in the draft as being on the order of **0.04 m/s**.
 
@@ -70,13 +70,13 @@ The project-level implication is important: the literature already provides the 
 
 The citation set indicates that Argo-derived sound-speed information is now tightly coupled to both research and operational acoustics.
 
-Operational forecasting and naval acoustics appear throughout the draft references: HYCOM/NCODA via Chassignet et al. (2009), Cummings (2005), and Cummings and Smedstad (2013); GDEM via Carnes (2009) and Teague, Carron, and Hogan (1990); acoustic modeling links such as Chu, Haeger, et al. (2002); broader coordinated prediction systems through Le Traon et al. (2019), Lellouche et al. (2018), Jean-Michel et al. (2021), Bell et al. (2009), Tonani et al. (2015), and Chassignet et al. (2020). The draft source set also points to Arctic and East Asian operationally motivated work via NATO CMRE and the Korean Acoustical Society (2021).
+Operational forecasting and naval acoustics appear throughout the draft references: HYCOM/NCODA via Chassignet et al. (2009), Cummings (2005), and Cummings and Smedstad (2013); GDEM via Carnes (2009) and Teague, Carron, and Hogan (1990); acoustic modeling links such as Chu, Haeger, et al. (2002); broader coordinated prediction systems through Le Traon et al. (2019), Lellouche et al. (2018), Lellouche et al. (2021), Bell et al. (2009), Tonani et al. (2015), and Chassignet et al. (2020).
 
 Ocean acoustic tomography appears as an especially revealing comparison system in the draft literature. Dushaw et al. (2009, DOI: `10.1029/2008JC005124`), Dushaw (2019, DOI: `10.1175/JTECH-D-18-0082.1`), Dushaw (2022, DOI: `10.16993/tellusa.39`), Woolfe et al. (2015, DOI: `10.1002/2015GL063438`), and Munk, Worcester, and Wunsch (1995) all suggest that Argo and tomography each capture important but incomplete pieces of the same thermal structure, and that line-integrated acoustic constraints can reveal deficits that profile-based observations alone miss.
 
-Sensitivity and propagation-focused studies in the draft inventory include Chen et al. (2017), Chen et al. (2018), a 2024 *Frontiers in Marine Science* convergence-zone prediction paper (DOI: `10.3389/fmars.2024.1364884`), a 2025 eddy-parameterized propagation-loss paper (DOI: `10.3389/fmars.2025.1588066`), and a 2025 *JMSE* convergence-zone paper. These citations suggest that Argo-derived SSP variability is already being treated as acoustically consequential in propagation contexts.
+Sensitivity and propagation-focused studies in the draft inventory include Chen et al. (2017), Chen et al. (2018), a 2024 *Frontiers in Marine Science* convergence-zone prediction paper (DOI: `10.3389/fmars.2024.1364884`), a 2025 eddy-parameterized propagation-loss paper (DOI: `10.3389/fmars.2025.1588066`), and Luo et al. (2025, DOI: `10.3390/jmse13091649`). These citations suggest that Argo-derived SSP variability is already being treated as acoustically consequential in propagation contexts.
 
-The source list also hints at an emerging direct instrumentation bridge between Argo and passive acoustics, via Nystuen et al. (~2014) and Bozzano et al. (2026, DOI: `10.5194/os-22-101-2026`).
+The source list also hints at an emerging direct instrumentation bridge between Argo and passive acoustics, via Nystuen et al. (2011, DOI: `10.1121/1.3587814`) and Bozzano et al. (2026, DOI: `10.5194/os-22-101-2026`).
 
 For this repository, that means a deterministic Argo-to-sound-speed replication is already operationally legible. The remaining contribution space is not to prove sound speed matters for acoustics, but to quantify how interpolation and uncertainty matter once sound speed is already in the loop.
 
@@ -84,13 +84,13 @@ For this repository, that means a deterministic Argo-to-sound-speed replication 
 
 The current bibliography suggests a fast-moving statistical and machine-learning literature around Argo-derived profile prediction, spatiotemporal interpolation, and uncertainty-aware mapping.
 
-On the probabilistic-statistical side, the most important references in the draft list appear to be Kuusela and Stein (2018, DOI: `10.1098/rspa.2018.0400`), Park, Kuusela, Giglio, and Gray (2023, DOI: `10.1214/22-AOAS1679`), Cao et al. (2025), and Su et al. (2023, DOI: `10.3389/fmars.2023.1121334`). These works suggest that Gaussian-process-based approaches already provide a sophisticated uncertainty language for nonstationary, heteroskedastic ocean fields.
+On the probabilistic-statistical side, the most important references in the draft list appear to be Kuusela and Stein (2018, DOI: `10.1098/rspa.2018.0400`), Park, Kuusela, Giglio, and Gray (2023, DOI: `10.1214/22-AOAS1679`), Liu and Cao (2025, DOI: `10.48550/arXiv.2510.18067`), and Su et al. (2023, DOI: `10.3389/fmars.2023.1121334`). These works suggest that Gaussian-process-based approaches already provide a sophisticated uncertainty language for nonstationary, heteroskedastic ocean fields.
 
-For neural-network uncertainty precedents, the draft source set highlights CANYON (Sauzède et al., 2017, DOI: `10.3389/fmars.2017.00128`), CANYON-B (Bittig et al., 2018, DOI: `10.3389/fmars.2018.00328`), ESPER (Carter et al., 2021, DOI: `10.1002/lom3.10461`), CANYON-MED (Fourrier et al., 2020), GOM-NNpH (Osborne et al., 2024), Pietropolli et al. (2024, DOI: `10.5194/gmd-17-7347-2024`), and Amadio et al. (2024, DOI: `10.5194/os-20-689-2024`). Those citations are not about sound speed specifically, but they show that local, input-dependent uncertainty for Argo-derived variables is already a mature idea elsewhere in the Argo ecosystem.
+For neural-network uncertainty precedents, the draft source set highlights CANYON (Sauzède et al., 2017, DOI: `10.3389/fmars.2017.00128`), CANYON-B (Bittig et al., 2018, DOI: `10.3389/fmars.2018.00328`), ESPER (Carter et al., 2021, DOI: `10.1002/lom3.10461`), CANYON-MED (Fourrier et al., 2020, DOI: `10.3389/fmars.2020.00620`), GOM-NNpH (Osborne et al., 2024, DOI: `10.3389/fmars.2024.1468909`), Pietropolli et al. (2024, DOI: `10.5194/gmd-17-7347-2024`), and Amadio et al. (2024, DOI: `10.5194/os-20-689-2024`). Those citations are not about sound speed specifically, but they show that local, input-dependent uncertainty for Argo-derived variables is already a mature idea elsewhere in the Argo ecosystem.
 
-The sound-speed ML subset in the draft source list is extensive: Madiligama, Zou, and Zhang (2025, DOI: `10.1038/s44172-025-00459-6`); a 2024 STA-ConvLSTM model; a 2024 hierarchical LSTM; a 2025 *Water* random-forest paper (DOI: `10.3390/w17040539`); a 2022 South China Sea XGBoost paper (DOI: `10.3389/fmars.2022.1051820`); a 2024 LSTM paper (DOI: `10.3389/fmars.2024.1375766`); Lu et al. (2022, DOI: `10.3390/jmse10050572`); a 2021 BP-ANN *JMSE* paper; a 2025 STNet paper; and an IEEE OCEANS 2021 conference paper (DOI: `10.1109/OCEANS47282.2021.9600074`). Taken together, they suggest a field that is moving rapidly toward predictive SSP and sound-speed models, but not necessarily toward transparent uncertainty decomposition at the per-profile vertical interpolation stage.
+The sound-speed ML subset in the draft source list is extensive: Madiligama, Zou, and Zhang (2025, DOI: `10.1038/s44172-025-00459-6`); Liu et al. (2024, DOI: `10.3390/jmse12111943`); Lu et al. (2024, DOI: `10.3390/jmse12071041`); a 2025 *Water* random-forest paper (DOI: `10.3390/w17040539`); a 2022 South China Sea XGBoost paper (DOI: `10.3389/fmars.2022.1051820`); a 2024 LSTM paper (DOI: `10.3389/fmars.2024.1375766`); Lu et al. (2022, DOI: `10.3390/jmse10050572`); Huang et al. (2021, DOI: `10.3390/jmse9050488`); Huang et al. (2025, DOI: `10.3390/jmse13071370`); and Ahmed, Younis, and De Leon (2021, DOI: `10.1109/DCOSS52077.2021.00074`). Taken together, they suggest a field that is moving rapidly toward predictive SSP and sound-speed models, but not necessarily toward transparent uncertainty decomposition at the per-profile vertical interpolation stage.
 
-The draft set also includes broader spatiotemporal interpolation work through Troupin et al. (2012), Barth et al. (2014, 2020, 2022), Bhaskar et al. (2021, DOI: `10.1007/s12040-021-01675-2`), Lyman and Johnson (2023), Oke et al. (2021, DOI: `10.3389/feart.2021.696985`), Jones et al. (2019, DOI: `10.1029/2018JC014629`), a 2022 *Science China Earth Sciences* GMM QC paper, a 2021 Bi-LSTM paper (DOI: `10.1155/2021/5665386`), Johnson et al. (2022, arXiv:2211.10444), Li et al. (2018), an IEEE OCEANS 2021 Indian Ocean hierarchical reconstruction paper (DOI: `10.1109/OCEANS2021.9520063`), a 2024 *Applied Ocean Research* correlation-radius study, and a 2024 *Acta Oceanologica Sinica* CORA comparison (DOI: `10.1007/s13131-024-2388-6`).
+The draft set also includes broader spatiotemporal interpolation work through Troupin et al. (2012), Barth et al. (2014, 2020, 2022), Bhaskar et al. (2021, DOI: `10.1007/s12040-021-01675-2`), Lyman and Johnson (2023), Oke et al. (2021, DOI: `10.3389/feart.2021.696985`), Jones et al. (2019, DOI: `10.1029/2018JC014629`), Zhang, Qian, and Dong (2023, DOI: `10.1016/j.aosl.2022.100292`), a 2021 Bi-LSTM paper (DOI: `10.1155/2021/5665386`), Johnson et al. (2022, arXiv:2211.10444), Li, Qu, and Zhou (2021, DOI: `10.1109/ACCESS.2021.3102608`), Liu et al. (2025, DOI: `10.1016/j.apor.2024.104408`), and a 2024 *Acta Oceanologica Sinica* CORA comparison (DOI: `10.1007/s13131-024-2388-6`).
 
 The clear implication is that an uncertainty-aware interpolation pipeline for individual profiles would not be out of step with the field. It would instead connect a missing low-level profile-processing layer to a statistical ecosystem that already expects quantified uncertainty.
 
@@ -98,7 +98,7 @@ The clear implication is that an uncertainty-aware interpolation pipeline for in
 
 The broader Argo context in the draft citation set is centered on Johnson et al. (2022, DOI: `10.1146/annurev-marine-022521-102008`), Riser et al. (2016, DOI: `10.1038/nclimate2872`), and Roemmich et al. (2009), plus the OneArgo planning literature through Roemmich et al. (2019), Jayne et al. (2017), and Thierry et al. (2025, DOI: `10.3389/fmars.2025.1593904`). Together these references suggest that Argo has already grown beyond a core T/S program into a multi-mission observing system with deep and biogeochemical extensions.
 
-That matters directly for acoustics. Zilberman et al. (2023, DOI: `10.3389/fmars.2023.1287867`) and Iqbal et al. (2019) suggest that Deep Argo materially changes deep sound-speed characterization, including errors introduced by extrapolating shallower profiles downward. Cheng et al. (2026), von Schuckmann and Le Traon (2011), and Lynch et al. (~2018) suggest that climate-driven changes in heat content and stratification will continue to alter acoustic conditions over time. The draft source list also hints at downstream environmental-noise and sanctuary-monitoring links through NOAA / Navy SanctSound.
+That matters directly for acoustics. Zilberman et al. (2023, DOI: `10.3389/fmars.2023.1287867`) and Iqbal et al. (2019) suggest that Deep Argo materially changes deep sound-speed characterization, including errors introduced by extrapolating shallower profiles downward. Pan et al. (2026), von Schuckmann and Le Traon (2011), and Lynch et al. (2018, DOI: `10.5670/oceanog.2018.219`) suggest that climate-driven changes in heat content and stratification will continue to alter acoustic conditions over time. The draft source list also hints at downstream environmental-noise and sanctuary-monitoring links through the SanctSound raw passive acoustic archive (NOAA Office of National Marine Sanctuaries and U.S. Navy, 2020, DOI: `10.25921/saca-sp25`).
 
 The practical takeaway is that a sound-speed-focused Argo interpolation workflow is not a niche detour. It fits naturally into a program whose scope is still broadening in exactly the directions that increase acoustic relevance.
 
@@ -112,163 +112,153 @@ That gap is exactly where this repository can contribute. A deterministic Jana e
 
 ## References
 
-The bibliography below normalizes the current citation inventory as far as the available local metadata allows. Jana et al. (2022) has been verified against the local PDF in [sources/](sources/). All other entries remain provisional and should be checked against full text before using them as final bibliography entries or adding page-specific citations. Entries that still lack enough metadata to normalize cleanly are listed separately at the end so they remain tracked rather than disappearing from the review.
+The references below are formatted in MLA style where bibliographic metadata could be recovered from verified local copies, DOI/arXiv metadata, or official publisher and repository records. Cited works that still lack enough metadata to render clean MLA entries are tracked separately afterward so they remain visible acquisition targets.
 
-### Verified Local Source
+### MLA-Formatted References
 
-- Jana, S., Gangopadhyay, A., Haley, P. J., Jr., & Lermusiaux, P. F. J. (2022). *Sound Speed Variability over Bay of Bengal from Argo Observations (2011-2020).* In *OCEANS 2022 - Chennai* (pp. 1-8). IEEE. https://doi.org/10.1109/OCEANSChennai45887.2022.9775509
-
-### Provisional Bibliography
-
-- Affatati, Scaini, and Salon (2022). Provisional entry. https://doi.org/10.1029/2021EF002099
-- Akima (1970). Provisional entry. Full bibliographic metadata pending full-text review.
-- Allen et al. (2017). Provisional entry. https://doi.org/10.1002/lom3.10203
-- Allen et al. (2025). Provisional entry. https://doi.org/10.1002/lom3.10715
-- Amadio et al. (2024). Provisional entry. https://doi.org/10.5194/os-20-689-2024
-- Armansyah, Sukoco, and Pranowo (2018). Provisional entry. Full bibliographic metadata pending full-text review.
-- Barker and McDougall (2020). Provisional entry. https://doi.org/10.1175/JTECH-D-19-0211.1
-- Barth et al. (2014). Provisional entry. Full bibliographic metadata pending full-text review.
-- Barth et al. (2020). Provisional entry. Full bibliographic metadata pending full-text review.
-- Barth et al. (2022). Provisional entry. Full bibliographic metadata pending full-text review.
-- Bell et al. (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Bhaskar et al. (2021). Provisional entry. https://doi.org/10.1007/s12040-021-01675-2
-- Bittig et al. (2018). Provisional entry. https://doi.org/10.3389/fmars.2018.00328
-- Bozzano et al. (2026). Provisional entry. https://doi.org/10.5194/os-22-101-2026
-- Brewer et al. (2015). Provisional entry. https://doi.org/10.1016/j.marchem.2015.09.009
-- Cabanes, Thierry, and Lagadec (2016). Provisional entry. Full bibliographic metadata pending full-text review.
-- Cao et al. (2025). Provisional entry. Full bibliographic metadata pending full-text review.
-- Carnes (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Carter et al. (2021). Provisional entry. https://doi.org/10.1002/lom3.10461
-- Chassignet et al. (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Chassignet et al. (2020). Provisional entry. Full bibliographic metadata pending full-text review.
-- Chen and Millero (1977). Provisional entry. https://doi.org/10.1121/1.381646
-- Chen et al. (2017). Provisional entry. Full bibliographic metadata pending full-text review.
-- Chen et al. (2018). Provisional entry. Full bibliographic metadata pending full-text review.
-- Chen et al. (2020). Provisional entry. https://doi.org/10.1016/j.apacoust.2020.107478
-- Cheng and Zhu (2014). Provisional entry. https://doi.org/10.1175/JTECH-D-13-00220.1
-- Cheng et al. (2024). Provisional entry. https://doi.org/10.5194/essd-16-3517-2024
-- Cheng et al. (2026). Provisional entry. Full bibliographic metadata pending full-text review.
-- Chu and Fan (2024). Provisional entry. https://doi.org/10.1038/s41597-024-04074-6
-- Chu, Haeger, et al. (2002). Provisional entry. Full bibliographic metadata pending full-text review.
-- Coppens (1981). Provisional entry. Full bibliographic metadata pending full-text review.
-- Cummings (2005). Provisional entry. Full bibliographic metadata pending full-text review.
-- Cummings and Smedstad (2013). Provisional entry. Full bibliographic metadata pending full-text review.
-- Del Grosso (1974). Provisional entry. https://doi.org/10.1121/1.1903388
-- Dunn and Ridgway (2002). Provisional entry. Full bibliographic metadata pending full-text review.
-- Dushaw et al. (1993). Provisional entry. https://doi.org/10.1121/1.405660
-- Dushaw et al. (2009). Provisional entry. https://doi.org/10.1029/2008JC005124
-- Dushaw (2019). Provisional entry. https://doi.org/10.1175/JTECH-D-18-0082.1
-- Dushaw (2022). Provisional entry. https://doi.org/10.16993/tellusa.39
-- Feistel (2003). Provisional entry. Full bibliographic metadata pending full-text review.
-- Feistel (2008). Provisional entry. https://doi.org/10.1016/j.dsr.2008.07.004
-- Feistel et al. (2010). Provisional entry. Full bibliographic metadata pending full-text review.
-- Fofonoff and Millard (1983). Provisional entry. Full bibliographic metadata pending full-text review.
-- Fourrier et al. (2020). Provisional entry. Full bibliographic metadata pending full-text review.
-- Fritsch and Carlson (1980). Provisional entry. Full bibliographic metadata pending full-text review.
-- Fujii et al. (2024). Provisional entry. https://doi.org/10.3389/fmars.2024.1496409
-- Gaillard et al. (2016). Provisional entry. https://doi.org/10.1175/JCLI-D-15-0028.1
-- Good, Martin, and Rayner (2013). Provisional entry. https://doi.org/10.1002/2013JC009067
-- Gouretski (2018). Provisional entry. https://doi.org/10.5194/os-14-1127-2018
-- Grekov, Grekov, and Sychov (2021). Provisional entry. https://doi.org/10.1016/j.measurement.2021.109073
-- He et al. (2024). Provisional entry. Full bibliographic metadata pending full-text review.
-- Hjelmervik, Jensen, and Ostenstad (2012). Provisional entry. https://doi.org/10.1007/s10236-011-0499-z
-- Hjelmervik and Hjelmervik (2013). Provisional entry. https://doi.org/10.1007/s10236-013-0623-3
-- IOC, SCOR, and IAPSO (2010). Provisional entry. Full bibliographic metadata pending full-text review.
-- Iqbal et al. (2019). Provisional entry. Full bibliographic metadata pending full-text review.
-- Jayne et al. (2017). Provisional entry. Full bibliographic metadata pending full-text review.
-- Jean-Michel et al. (2021). Provisional entry. Full bibliographic metadata pending full-text review.
-- Johnson et al. (2022a). Provisional entry. https://doi.org/10.1146/annurev-marine-022521-102008
-- Johnson et al. (2022b). Provisional entry. https://arxiv.org/abs/2211.10444
-- Jones et al. (2019). Provisional entry. https://doi.org/10.1029/2018JC014629
-- Katsura (2021). Provisional entry. https://doi.org/10.1029/2020JC016591
-- Kobayashi et al. (2019). Provisional entry. https://doi.org/10.1186/s40645-019-0310-1
-- Korean Acoustical Society (2021). Provisional entry. Full bibliographic metadata pending full-text review.
-- Kuusela and Stein (2018). Provisional entry. https://doi.org/10.1098/rspa.2018.0400
-- Le Traon et al. (2019). Provisional entry. Full bibliographic metadata pending full-text review.
-- Lellouche et al. (2018). Provisional entry. Full bibliographic metadata pending full-text review.
-- Leroy, Robinson, and Goldsmith (2008). Provisional entry. https://doi.org/10.1121/1.2988296
-- Li et al. (2017). Provisional entry. https://doi.org/10.1002/2016JC012285
-- Li et al. (2018). Provisional entry. Full bibliographic metadata pending full-text review.
-- Li et al. (2022). Provisional entry. https://doi.org/10.1029/2022GL101079
-- Liu et al. (2024). Provisional entry. https://doi.org/10.1029/2023JC020871
-- Lu et al. (2022). Provisional entry. https://doi.org/10.3390/jmse10050572
-- Lyman and Johnson (2023). Provisional entry. Full bibliographic metadata pending full-text review.
-- Mackenzie (1981). Provisional entry. https://doi.org/10.1121/1.386920
-- Madiligama, Zou, and Zhang (2025). Provisional entry. https://doi.org/10.1038/s44172-025-00459-6
-- Mandelberg and Frizzell-Makowski (2000). Provisional entry. Full bibliographic metadata pending full-text review.
-- McDougall et al. (2003). Provisional entry. Full bibliographic metadata pending full-text review.
-- Meinen and Watts (1997). Provisional entry. https://doi.org/10.1121/1.419655
-- Millero and Li (1994). Provisional entry. https://doi.org/10.1121/1.409844
-- Munk, Worcester, and Wunsch (1995). Provisional entry. Full bibliographic metadata pending full-text review.
-- North and Livingstone (2013). Provisional entry. Full bibliographic metadata pending full-text review.
-- Oke et al. (2021). Provisional entry. https://doi.org/10.3389/feart.2021.696985
-- Osborne et al. (2024). Provisional entry. Full bibliographic metadata pending full-text review.
-- Owens and Wong (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Park, Kuusela, Giglio, and Gray (2023). Provisional entry. https://doi.org/10.1214/22-AOAS1679
-- Pawlowicz et al. (2012). Provisional entry. Full bibliographic metadata pending full-text review.
-- Penupothu (2025). Provisional entry. https://doi.org/10.21227/61qc-z803
-- Pietropolli et al. (2024). Provisional entry. https://doi.org/10.5194/gmd-17-7347-2024
-- Pike and Beiboer (1993). Provisional entry. Full bibliographic metadata pending full-text review.
-- Possenti et al. (2023). Provisional entry. https://doi.org/10.7717/peerj.16208
-- Reiniger and Ross (1968). Provisional entry. https://doi.org/10.1016/0011-7471(68)90040-5
-- Ridgway, Dunn, and Wilkin (2002). Provisional entry. Full bibliographic metadata pending full-text review.
-- Riser et al. (2016). Provisional entry. https://doi.org/10.1038/nclimate2872
-- Roemmich and Gilson (2009). Provisional entry. https://doi.org/10.1016/j.pocean.2009.03.004
-- Roemmich et al. (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Roemmich et al. (2019). Provisional entry. Full bibliographic metadata pending full-text review.
-- Roquet et al. (2015). Provisional entry. https://doi.org/10.1016/j.ocemod.2015.04.002
-- Salon et al. (2003). Provisional entry. Full bibliographic metadata pending full-text review.
-- Sauzede et al. (2017). Provisional entry. https://doi.org/10.3389/fmars.2017.00128
-- Schmidtko, Johnson, and Lyman (2013). Provisional entry. https://doi.org/10.1002/jgrc.20122
-- Spiesberger (1993). Provisional entry. Full bibliographic metadata pending full-text review.
-- Spiesberger and Metzger (1991a). Provisional entry. Full bibliographic metadata pending full-text review.
-- Spiesberger and Metzger (1991b). Provisional entry. Full bibliographic metadata pending full-text review.
-- Srinivasu et al. (2024). Provisional entry. https://doi.org/10.1029/2023EA003497
-- Su et al. (2023). Provisional entry. https://doi.org/10.3389/fmars.2023.1121334
-- Swaminathan and Bhaskaran (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Teague, Carron, and Hogan (1990). Provisional entry. Full bibliographic metadata pending full-text review.
-- Thierry et al. (2025). Provisional entry. https://doi.org/10.3389/fmars.2025.1593904
-- Tonani et al. (2015). Provisional entry. Full bibliographic metadata pending full-text review.
-- Troupin et al. (2012). Provisional entry. Full bibliographic metadata pending full-text review.
-- Udaya Bhaskar, Swain, and Ravichandran (2008). Provisional entry. https://doi.org/10.1007/BF03020695
-- Udaya Bhaskar et al. (2012). Provisional entry. Full bibliographic metadata pending full-text review.
-- Udaya Bhaskar and Swain (2016). Provisional entry. Full bibliographic metadata pending full-text review.
-- von Schuckmann and Le Traon (2011). Provisional entry. Full bibliographic metadata pending full-text review.
-- Wilson (1960). Provisional entry. Full bibliographic metadata pending full-text review.
-- Wong and Zhu (1995). Provisional entry. https://doi.org/10.1121/1.413048
-- Wong et al. (2020). Provisional entry. https://doi.org/10.3389/fmars.2020.00700
-- Wong, Gilson, and Cabanes (2023). Provisional entry. https://doi.org/10.5194/essd-15-383-2023
-- Wong, Johnson, and Owens (2003). Provisional entry. Full bibliographic metadata pending full-text review.
-- Woolfe et al. (2015). Provisional entry. https://doi.org/10.1002/2015GL063438
-- Xu et al. (2009). Provisional entry. Full bibliographic metadata pending full-text review.
-- Yu et al. (2022). Provisional entry. https://doi.org/10.3389/fmars.2022.1030980
-- Zhang et al. (2023). Provisional entry. https://doi.org/10.1007/s10872-023-00701-9
-- Zhou et al. (2023). Provisional entry. https://doi.org/10.1029/2022JC019386
-- Zilberman et al. (2023). Provisional entry. https://doi.org/10.3389/fmars.2023.1287867
-
-### Cited Works Pending Full Bibliographic Recovery
-
-- 2021 *JMSE* BP-ANN paper cited in the machine-learning section. Full author, title, and DOI metadata pending.
-- 2021 IEEE OCEANS conference paper cited in the machine-learning section. https://doi.org/10.1109/OCEANS47282.2021.9600074
-- 2021 Bi-LSTM paper cited in the interpolation and machine-learning section. https://doi.org/10.1155/2021/5665386
-- 2022 GDCSM-Argo product cited in the interpolation section. Full author, title, and DOI metadata pending.
-- 2022 *Science China Earth Sciences* GMM QC paper cited in the machine-learning section. Full author, title, and DOI metadata pending.
-- 2022 South China Sea XGBoost sound-speed paper cited in the machine-learning section. https://doi.org/10.3389/fmars.2022.1051820
-- 2023 *Frontiers in Marine Science* sound-channel classification paper cited in the regional-variability section. https://doi.org/10.3389/fmars.2023.1130061
-- 2024 *Acta Oceanologica Sinica* CORA comparison paper cited in the machine-learning section. https://doi.org/10.1007/s13131-024-2388-6
-- 2024 *Applied Ocean Research* correlation-radius study cited in the machine-learning section. Full author, title, and DOI metadata pending.
-- 2024 *Frontiers in Marine Science* convergence-zone prediction paper cited in the acoustic-applications section. https://doi.org/10.3389/fmars.2024.1364884
-- 2024 *Frontiers in Marine Science* LSTM sound-speed paper cited in the machine-learning section. https://doi.org/10.3389/fmars.2024.1375766
-- 2024 *Remote Sensing* South China Sea eddy-effects paper cited in the regional-variability section. Full author, title, and DOI metadata pending.
-- 2024 STA-ConvLSTM sound-speed paper cited in the machine-learning section. Full author, title, and DOI metadata pending.
-- 2024 hierarchical LSTM sound-speed paper cited in the machine-learning section. Full author, title, and DOI metadata pending.
-- 2025 *Frontiers in Marine Science* eddy-parameterized propagation-loss paper cited in the acoustic-applications section. https://doi.org/10.3389/fmars.2025.1588066
-- 2025 *JMSE* convergence-zone paper cited in the acoustic-applications section. Full author, title, and DOI metadata pending.
-- 2025 STNet sound-speed paper cited in the machine-learning section. Full author, title, and DOI metadata pending.
-- 2025 *Water* random-forest paper cited in the machine-learning section. https://doi.org/10.3390/w17040539
-- IEEE OCEANS 2021 Indian Ocean hierarchical reconstruction paper cited in the machine-learning section. https://doi.org/10.1109/OCEANS2021.9520063
-- Lynch et al. (~2018) climate and acoustics reference cited in the Argo-program section. Exact year and bibliographic metadata pending.
-- NATO CMRE Arctic acoustics work cited in the acoustic-applications section. Exact year and bibliographic metadata pending.
-- NOAA / Navy SanctSound references cited in the Argo-program section. Exact document selection and bibliographic metadata pending.
-- Nystuen et al. (~2014) passive-acoustics bridge reference cited in the acoustic-applications section. Exact year and bibliographic metadata pending.
-- Prasanna Kumar and Somayajulu (year pending) Indian Ocean sound-channel reference cited in the regional-variability section. Full bibliographic metadata pending.
+- Affatati, Alice, et al. “Ocean Sound Propagation in a Changing Climate: Global Sound Speed Changes and Identification of Acoustic Hotspots.” Earth’s Future, vol. 10, no. 3, Mar. 2022. https://doi.org/10.1029/2021ef002099.
+- Ahmed, A. B. Riaz, Mohamed Younis, and Miguel Hernandez De Leon. “Machine Learning Based Sound Speed Prediction for Underwater Networking Applications.” 2021 IEEE 17th International Conference on Distributed Computing in Sensor Systems (DCOSS), IEEE, 2021, pp. 436–42. https://doi.org/10.1109/DCOSS52077.2021.00074.
+- Akima, Hiroshi. “[A New Method of Interpolation and Smooth Curve Fitting Based on Local Procedures](sources/akima-1970-smooth_curve_fitting.pdf).” Journal of the ACM, vol. 17, no. 4, Oct. 1970, pp. 589–602. https://doi.org/10.1145/321607.321609.
+- Allen, J. T., et al. “A New Salinity Equation for Sound Speed Instruments.” Limnology and Oceanography: Methods, vol. 15, no. 9, Sept. 2017, pp. 810–20. https://doi.org/10.1002/lom3.10203.
+- Allen, J. T., et al. “TEOS10-Compliant Salinity and Density Equations for Sound Speed Instruments.” Limnology and Oceanography: Methods, vol. 23, no. 11, Aug. 2025, pp. 834–49. https://doi.org/10.1002/lom3.10715.
+- Amadio, Carolina, et al. “[Combining Neural Networks and Data Assimilation to Enhance the Spatial Impact of Argo Floats in the Copernicus Mediterranean Biogeochemical Model](sources/amadio-2024-neural_networks_data_assimilation_argo_spatial_impact.pdf).” Ocean Science, vol. 20, no. 3, May 2024, pp. 689–710. https://doi.org/10.5194/os-20-689-2024.
+- Armansyah, D., N. B. Sukoco, and W. S. Pranowo. “Sonic Layer Depth Variation Analysis Utilizing BIDE (Banda ITF Dynamic Experiment) Argo Float In Situ Observation For Undersea Warfare Tactical Environment Support.” Journal Asro, vol. 9, no. 1, 2018, pp. 62–73.
+- Barker, Paul M., and Trevor J. McDougall. “[Two Interpolation Methods Using Multiply-Rotated Piecewise Cubic Hermite Interpolating Polynomials](sources/barker-2020-two_interpolation_methods.pdf).” Journal of Atmospheric and Oceanic Technology, vol. 37, no. 4, Apr. 2020, pp. 605–19. https://doi.org/10.1175/jtech-d-19-0211.1.
+- Barth, Alexander, et al. “[divand-1.0: N-Dimensional Variational Data Analysis for Ocean Observations](sources/barth-2014-divand_1_0.pdf).” Geoscientific Model Development, vol. 7, no. 1, Jan. 2014, pp. 225–41. https://doi.org/10.5194/gmd-7-225-2014.
+- Barth, Alexander, et al. “[DINCAE 1.0: a Convolutional Neural Network with Error Estimates to Reconstruct Sea Surface Temperature Satellite Observations](sources/barth-2020-dincae_1_0.pdf).” Geoscientific Model Development, vol. 13, no. 3, Mar. 2020, pp. 1609–22. https://doi.org/10.5194/gmd-13-1609-2020.
+- Barth, Alexander, et al. “[DINCAE 2.0: Multivariate Convolutional Neural Network with Error Estimates to Reconstruct Sea Surface Temperature Satellite and Altimetry Observations](sources/barth-2022-dincae_2_0.pdf).” Geoscientific Model Development, vol. 15, no. 5, Mar. 2022, pp. 2183–96. https://doi.org/10.5194/gmd-15-2183-2022.
+- Bell, Michael J., et al. “[GODAE: The Global Ocean Data Assimilation Experiment](sources/bell-2009-godae_global_ocean_data_assimilation_experiment.pdf).” Oceanography, vol. 22, no. 3, 2009, pp. 14–21. https://doi.org/10.5670/oceanog.2009.62.
+- Bittig, Henry C., et al. “[An Alternative to Static Climatologies: Robust Estimation of Open Ocean CO2 Variables and Nutrient Concentrations From T, S, and O2 Data Using Bayesian Neural Networks](sources/bittig-2018-bayesian_nn_co2_variables_and_nutrients.pdf).” Frontiers in Marine Science, vol. 5, Sept. 2018. https://doi.org/10.3389/fmars.2018.00328.
+- Brewer, Peter G., et al. “Ocean Chemistry and the Speed of Sound in Seawater.” Marine Chemistry, vol. 177, Dec. 2015, pp. 591–606. https://doi.org/10.1016/j.marchem.2015.09.009.
+- Cabanes, Cécile, Virginie Thierry, and Catherine Lagadec. “Improvement of Bias Detection in Argo Float Conductivity Sensors and Its Application in the North Atlantic.” Deep Sea Research Part I: Oceanographic Research Papers, vol. 114, Aug. 2016, pp. 128–36. https://doi.org/10.1016/j.dsr.2016.05.007.
+- Carnes, Michael R. Description and Evaluation of GDEM-V 3.0. Naval Research Laboratory, Oceanography Division, 2009. Memorandum report ADA494306.
+- Carter, Brendan R., et al. “[New and Updated Global Empirical Seawater Property Estimation Routines](sources/carter-2021-empirical_seawater_property_estimation_routines.pdf).” Limnology and Oceanography: Methods, vol. 19, no. 12, Oct. 2021, pp. 785–809. https://doi.org/10.1002/lom3.10461.
+- Chen, Chen-Tung, and Frank J. Millero. “Speed of Sound in Seawater at High Pressures.” The Journal of the Acoustical Society of America, vol. 62, no. 5, Nov. 1977, pp. 1129–35. https://doi.org/10.1121/1.381646.
+- Chen, Chao, et al. “Acoustic Propagation Analysis with a Sound Speed Feature Model in the Front Area of Kuroshio Extension.” Applied Ocean Research, vol. 68, Oct. 2017, pp. 1–10. https://doi.org/10.1016/j.apor.2017.08.001.
+- Chen, Chao, et al. “Reconstructing Sound Speed Profiles Worldwide with Sea Surface Data.” Applied Ocean Research, vol. 77, Aug. 2018, pp. 26–33. https://doi.org/10.1016/j.apor.2018.05.002.
+- Chen, Cheng, et al. “Investigating Acoustic Propagation in the Sonic Duct Related with Subtropical Mode Water in Northwestern Pacific Ocean.” Applied Acoustics, vol. 169, Dec. 2020, p. 107478. https://doi.org/10.1016/j.apacoust.2020.107478.
+- Chen, Yuanhong, et al. “[Data Driven Three-Dimensional Temperature and Salinity Anomaly Reconstruction of the Northwest Pacific Ocean](sources/chen-2023-northwest_pacific_ts_anomaly_reconstruction.pdf).” Frontiers in Marine Science, vol. 10, May 2023. https://doi.org/10.3389/fmars.2023.1121334.
+- Cheng, Lijing, and Jiang Zhu. “Uncertainties of the Ocean Heat Content Estimation Induced by Insufficient Vertical Resolution of Historical Ocean Subsurface Observations.” Journal of Atmospheric and Oceanic Technology, vol. 31, no. 6, June 2014, pp. 1383–96. https://doi.org/10.1175/jtech-d-13-00220.1.
+- Cheng, Lijing, et al. “[IAPv4 Ocean Temperature and Ocean Heat Content Gridded Dataset](sources/cheng-2024-iapv4_ocean_temperature_ocean_heat_content.pdf).” Earth System Science Data, vol. 16, no. 8, Aug. 2024, pp. 3517–46. https://doi.org/10.5194/essd-16-3517-2024.
+- Chassignet, Eric P., et al. “[US GODAE: Global Ocean Prediction with the HYbrid Coordinate Ocean Model (HYCOM)](sources/chassignet-2009-hycom_global_ocean_prediction.pdf).” Oceanography, vol. 22, no. 2, 2009, pp. 64–75. https://doi.org/10.5670/oceanog.2009.39.
+- Chassignet, Eric P., et al. “[Impact of Horizontal Resolution on Global Ocean-Sea Ice Model Simulations Based on the Experimental Protocols of the Ocean Model Intercomparison Project Phase 2 (OMIP-2)](sources/chassignet-2020-omip_2_resolution_impact.pdf).” Geoscientific Model Development, vol. 13, no. 9, Sept. 2020, pp. 4595–4637. https://doi.org/10.5194/gmd-13-4595-2020.
+- Chu, Peter C., et al. “Yellow Sea Acoustic Uncertainty Caused by Hydrographic Data Errors.” *Impact of Littoral Environment Variability on Acoustic Prediction and Sonar Performance*, edited by N. G. Pace and F. B. Jensen, Kluwer Academic Publishers, 2002, pp. 563–70.
+- Chu, Peter C., and Chenwu Fan. “[Global Climatological Dataset of Undersea Acoustic Parameters Derived from the NCEI World Ocean Atlas 2023](sources/chu-2024-global_acoustic_parameters_from_woa_2023.pdf).” Scientific Data, vol. 11, no. 1, Nov. 2024. https://doi.org/10.1038/s41597-024-04074-6.
+- Coppens, A. B. “Simple Equations for the Speed of Sound in Neptunian Waters.” The Journal of the Acoustical Society of America, vol. 69, no. 3, Mar. 1981, pp. 862–63. https://doi.org/10.1121/1.385486.
+- Cummings, James A. “Operational Multivariate Ocean Data Assimilation.” Quarterly Journal of the Royal Meteorological Society, vol. 131, no. 613, Oct. 2005, pp. 3583–3604. https://doi.org/10.1256/qj.05.105.
+- Cummings, James A., and O. M. Smedstad. “Variational Data Analysis for the Global Ocean.” Data Assimilation for Atmospheric, Oceanic and Hydrologic Applications, vol. II, edited by S. K. Park and L. Xu, Springer, 2013, pp. 303–43. https://doi.org/10.1007/978-3-642-35088-7_13.
+- Del Grosso, V. A. “New Equation for the Speed of Sound in Natural Waters (with Comparisons to Other Equations).” The Journal of the Acoustical Society of America, vol. 56, no. 4, Oct. 1974, pp. 1084–91. https://doi.org/10.1121/1.1903388.
+- Delaigue, Louise, et al. “[Passive Acoustic Monitoring from Profiling Floats as a Pathway to Scalable Autonomous Observations of Global Surface Wind](sources/delaigue-2026-passive_acoustic_monitoring_from_profiling_floats.pdf).” Ocean Science, vol. 22, no. 1, Jan. 2026, pp. 101–17. https://doi.org/10.5194/os-22-101-2026.
+- Dunn, John R., and Ken R. Ridgway. “Mapping Ocean Properties in Regions of Complex Topography.” Deep Sea Research Part I: Oceanographic Research Papers, vol. 49, no. 3, Mar. 2002, pp. 591–604. https://doi.org/10.1016/S0967-0637(01)00069-3.
+- Dushaw, B. D., et al. “A Decade of Acoustic Thermometry in the North Pacific Ocean.” Journal of Geophysical Research: Oceans, vol. 114, no. C7, July 2009. https://doi.org/10.1029/2008jc005124.
+- Dushaw, Brian D. “Ocean Acoustic Tomography in the North Atlantic.” Journal of Atmospheric and Oceanic Technology, vol. 36, no. 2, Jan. 2019, pp. 183–202. https://doi.org/10.1175/jtech-d-18-0082.1.
+- Dushaw, Brian D. “Surprises in Physical Oceanography: Contributions from Ocean Acoustic Tomography.” Tellus A: Dynamic Meteorology and Oceanography, vol. 74, no. 2022, Mar. 2022, p. 33. https://doi.org/10.16993/tellusa.39.
+- Dushaw, Brian D., et al. “On Equations for the Speed of Sound in Seawater.” The Journal of the Acoustical Society of America, vol. 93, no. 1, Jan. 1993, pp. 255–75. https://doi.org/10.1121/1.405660.
+- Feistel, Rainer. “A New Extended Gibbs Thermodynamic Potential of Seawater.” Progress in Oceanography, vol. 58, no. 1, July 2003, pp. 43–114. https://doi.org/10.1016/S0079-6611(03)00088-0.
+- Feistel, Rainer. “A Gibbs Function for Seawater Thermodynamics for −6 to 80 °C and Salinity up to 120 g Kg–1.” Deep Sea Research Part I: Oceanographic Research Papers, vol. 55, no. 12, Dec. 2008, pp. 1639–71. https://doi.org/10.1016/j.dsr.2008.07.004.
+- Feistel, Rainer, et al. “[Numerical Implementation and Oceanographic Application of the Thermodynamic Potentials of Liquid Water, Water Vapour, Ice, Seawater and Humid Air. Part 1: Background and Equations](sources/feistel-2010-thermodynamic_potentials_background_and_equations.pdf).” Ocean Science, vol. 6, no. 3, 2010, pp. 633–77. https://doi.org/10.5194/os-6-633-2010.
+- Fofonoff, N. P., and R. C. Millard, Jr. Algorithms for Computation of Fundamental Properties of Seawater. UNESCO, 1983. Technical Papers in Marine Science 44.
+- Fourrier, Marine, et al. “[A Regional Neural Network Approach to Estimate Water-Column Nutrient Concentrations and Carbonate System Variables in the Mediterranean Sea: CANYON-MED](sources/fourrier-2020-canyon_med_carbonate_system_variables.pdf).” Frontiers in Marine Science, vol. 7, Aug. 2020, article 620. https://doi.org/10.3389/fmars.2020.00620.
+- Fritsch, F. N., and R. E. Carlson. “Monotone Piecewise Cubic Interpolation.” SIAM Journal on Numerical Analysis, vol. 17, no. 2, 1980, pp. 238–46. https://doi.org/10.1137/0717021.
+- Gaillard, Fabienne, et al. “In Situ–Based Reanalysis of the Global Ocean Temperature and Salinity with ISAS: Variability of the Heat Content and Steric Height.” Journal of Climate, vol. 29, no. 4, Feb. 2016, pp. 1305–23. https://doi.org/10.1175/jcli-d-15-0028.1.
+- Good, Simon A., et al. “EN4: Quality Controlled Ocean Temperature and Salinity Profiles and Monthly Objective Analyses with Uncertainty Estimates.” Journal of Geophysical Research: Oceans, vol. 118, no. 12, Dec. 2013, pp. 6704–16. https://doi.org/10.1002/2013jc009067.
+- Gouretski, Viktor. “[World Ocean Circulation Experiment – Argo Global Hydrographic Climatology](sources/gouretski-2018-woce_argo_hydrographic_climatology.pdf).” Ocean Science, vol. 14, no. 5, Sept. 2018, pp. 1127–46. https://doi.org/10.5194/os-14-1127-2018.
+- Grekov, Aleksandr N., et al. “Estimating Quality of Indirect Measurements of Sea Water Sound Velocity by CTD Data.” Measurement, vol. 175, Apr. 2021, p. 109073. https://doi.org/10.1016/j.measurement.2021.109073.
+- He, Yinghao, et al. “Sound Speed Profile Classification and Prediction in the Western Pacific Ocean Based on Fuzzy C-Means Clustering and an Attention-Based CNN-LSTM Model.” IEEE Journal of Oceanic Engineering, vol. 49, no. 2, Apr. 2024, pp. 539–55. https://doi.org/10.1109/JOE.2024.3349278.
+- Hjelmervik, Karl Thomas, and Karina Hjelmervik. “[Estimating Temperature and Salinity Profiles Using Empirical Orthogonal Functions and Clustering on Historical Measurements](sources/hjelmervik-2013-estimating_ts_profiles_eof_clustering.html).” Ocean Dynamics, vol. 63, no. 7, June 2013, pp. 809–21. https://doi.org/10.1007/s10236-013-0623-3.
+- Hjelmervik, Karl Thomas, et al. “[Classification of Acoustically Stable Areas Using Empirical Orthogonal Functions](sources/hjelmervik-2011-classification_of_acoustically_stable_areas.html).” Ocean Dynamics, vol. 62, no. 2, Nov. 2011, pp. 253–64. https://doi.org/10.1007/s10236-011-0499-z.
+- Hosoda, Shigeki, et al. “[New Method of Temperature and Conductivity Sensor Calibration with Improved Efficiency for Screening SBE41 CTD on Argo Floats](sources/hosoda-2019-sbe41_ctd_sensor_calibration.pdf).” Progress in Earth and Planetary Science, vol. 6, no. 1, Nov. 2019. https://doi.org/10.1186/s40645-019-0310-1.
+- Huang, Jin, et al. “Rapid Modeling of the Sound Speed Field in the South China Sea Based on a Comprehensive Optimal LM-BP Artificial Neural Network.” Journal of Marine Science and Engineering, vol. 9, no. 5, May 2021, article 488. https://doi.org/10.3390/jmse9050488.
+- Huang, Wei, et al. “STNet: Prediction of Underwater Sound Speed Profiles with an Advanced Semi-Transformer Neural Network.” Journal of Marine Science and Engineering, vol. 13, no. 7, July 2025, article 1370. https://doi.org/10.3390/jmse13071370.
+- IOC, SCOR, and IAPSO. *[The International Thermodynamic Equation of Seawater—2010: Calculation and Use of Thermodynamic Properties](sources/ioc_scor_iapso-2010-teos_10_manual.pdf).* Intergovernmental Oceanographic Commission, 2010. Manuals and Guides 56.
+- Ishikawa, Ichiro, et al. “[Evaluation of the Effects of Argo Data Quality Control on Global Ocean Data Assimilation Systems](sources/ishikawa-2024-effects_of_argo_qc_on_data_assimilation_systems.pdf).” Frontiers in Marine Science, vol. 11, Dec. 2024. https://doi.org/10.3389/fmars.2024.1496409.
+- Iqbal, Khan, A. G. Bhaskara Rao, Y. Ashok Kumar, and T. V. S. Udaya Bhaskar. “Significance of Deep Argo Data in Computation of Sound Speed in Deep Oceanic Waters.” Underwater Acoustics Conference & Exhibition, 2019.
+- Jana, Sudip, et al. “[Sound Speed Variability over Bay of Bengal from Argo Observations (2011-2020)](sources/jana-2022-bay_of_bengal_sound_speed_variability.pdf).” OCEANS 2022 - Chennai, Feb. 2022, pp. 1–8. https://doi.org/10.1109/oceanschennai45887.2022.9775509.
+- Jayne, Steven R., et al. “[The Argo Program: Present and Future](sources/jayne-2017-argo_program_present_and_future.pdf).” Oceanography, vol. 30, no. 2, 2017, pp. 18–28. https://doi.org/10.5670/oceanog.2017.213.
+- Jha, Ravi Kumar, and T. V. S. Udaya Bhaskar. “[Optimal Parameters for Generation of Gridded Product of Argo Temperature and Salinity Using DIVA](sources/jha-2021-optimal_parameters_argo_gridding_diva.html).” Journal of Earth System Science, vol. 130, no. 3, Aug. 2021. https://doi.org/10.1007/s12040-021-01675-2.
+- Jiang, Fan, et al. “Ocean Observation Data Prediction for Argo Data Quality Control Using Deep Bidirectional LSTM Network.” Security and Communication Networks, edited by Yinghui Ye, vol. 2021, Oct. 2021, pp. 1–11. https://doi.org/10.1155/2021/5665386.
+- Johnson, Gregory C., et al. “[Argo—Two Decades: Global Oceanography, Revolutionized](sources/johnson-2022-argo_two_decades_global_oceanography.pdf).” Annual Review of Marine Science, vol. 14, no. 1, Jan. 2022, pp. 379–403. https://doi.org/10.1146/annurev-marine-022521-102008.
+- Johnson, J. Emmanuel, et al. “[Neural Fields for Fast and Scalable Interpolation of Geophysical Ocean Variables](sources/johnson-2022-neural_fields_geophysical_ocean_interpolation.pdf).” arXiv, 2022, https://doi.org/10.48550/arXiv.2211.10444.
+- Jones, Daniel C., et al. “Unsupervised Clustering of Southern Ocean Argo Float Temperature Profiles.” Journal of Geophysical Research: Oceans, vol. 124, no. 1, Jan. 2019, pp. 390–402. https://doi.org/10.1029/2018jc014629.
+- Katsura, S., et al. “Upper Ocean Stratification in the Eastern Pacific During the SPURS‐2 Field Campaign.” Journal of Geophysical Research: Oceans, vol. 126, no. 3, Mar. 2021. https://doi.org/10.1029/2020jc016591.
+- Kuusela, Mikael, and Michael L. Stein. “[Locally Stationary Spatio-Temporal Interpolation of Argo Profiling Float Data](sources/kuusela-2018-locally_stationary_spatiotemporal_interpolation.html).” Proceedings of the Royal Society A: Mathematical, Physical and Engineering Sciences, vol. 474, no. 2220, Dec. 2018, p. 20180400. https://doi.org/10.1098/rspa.2018.0400.
+- Leroy, Claude C., et al. “A New Equation for the Accurate Calculation of Sound Speed in All Oceans.” The Journal of the Acoustical Society of America, vol. 124, no. 5, Nov. 2008, pp. 2774–82. https://doi.org/10.1121/1.2988296.
+- Li, Bingyang, and Jingsheng Zhai. “A Novel Sound Speed Profile Prediction Method Based on the Convolutional Long-Short Term Memory Network.” Journal of Marine Science and Engineering, vol. 10, no. 5, Apr. 2022, p. 572. https://doi.org/10.3390/jmse10050572.
+- Li, Haipeng, Ke Qu, and Jianbo Zhou. “Reconstructing Sound Speed Profile From Remote Sensing Data: Nonlinear Inversion Based on Self-Organizing Map.” IEEE Access, vol. 9, 2021, pp. 109754–62. https://doi.org/10.1109/ACCESS.2021.3102608.
+- Li, Hong, et al. “Development of a Global Gridded Argo Data Set with Barnes Successive Corrections.” Journal of Geophysical Research: Oceans, vol. 122, no. 2, Feb. 2017, pp. 866–89. https://doi.org/10.1002/2016jc012285.
+- Li, Yuehua, et al. “[Sensitivity of Observationally Based Estimates of Ocean Heat Content and Thermal Expansion to Vertical Interpolation Schemes](sources/li-2022-ocean_heat_content_interpolation_sensitivity.pdf).” Geophysical Research Letters, vol. 49, no. 24, Dec. 2022. https://doi.org/10.1029/2022gl101079.
+- Liu, Chao, et al. “‘Salty Drift’ of Argo Floats Affects the Gridded Ocean Salinity Products.” Journal of Geophysical Research: Oceans, vol. 129, no. 9, Sept. 2024. https://doi.org/10.1029/2023jc020871.
+- Liu, Chen, and Ke Qu. “[Wide-Area Sound Speed Profile Estimation Based on a Pre-Classification Scheme for Sound Speed Perturbation Modes](sources/liu-2023-wide_area_sound_speed_profile_estimation.pdf).” Frontiers in Marine Science, vol. 10, Feb. 2023. https://doi.org/10.3389/fmars.2023.1130061.
+- Liu, Nian, and Jian Cao. “[Principled Argo Modeling Using Vecchia-Based Gaussian Processes](sources/liu-2025-principled_argo_modeling_vecchia_gp.pdf).” arXiv, 20 Oct. 2025. https://doi.org/10.48550/arXiv.2510.18067.
+- Liu, Xintong, et al. “Influence of Abnormal Eddies on Seasonal Variations in Sonic Layer Depth in the South China Sea.” Remote Sensing, vol. 16, no. 15, Aug. 2024, article 2845. https://doi.org/10.3390/rs16152845.
+- Liu, Yuhang, et al. “A Novel Reconstruction Model for the Underwater Sound Speed Field Utilizing Ocean Remote Sensing Observations and Argo Profiles.” Water, vol. 17, no. 4, Feb. 2025, p. 539. https://doi.org/10.3390/w17040539.
+- Liu, Yu, et al. “A Multi-Spatial Scale Ocean Sound Speed Prediction Method Based on Deep Learning.” Journal of Marine Science and Engineering, vol. 12, no. 11, Nov. 2024, article 1943. https://doi.org/10.3390/jmse12111943.
+- Liu, Yuyao, Yu Chen, Wei Chen, and Zhou Meng. “Estimation of Sound Speed Profile Based on Optimal Spatial Correlation Radius: A Case Study of the Northwest Pacific.” Applied Ocean Research, vol. 154, Jan. 2025, article 104408. https://doi.org/10.1016/j.apor.2024.104408.
+- Lellouche, Jean-Michel, et al. “[Recent Updates to the Copernicus Marine Service Global Ocean Monitoring and Forecasting Real-Time 1/12° High-Resolution System](sources/lellouche-2018-cmems_global_forecasting_system.pdf).” Ocean Science, vol. 14, no. 5, Sept. 2018, pp. 1093–1126. https://doi.org/10.5194/os-14-1093-2018.
+- Lellouche, Jean-Michel, et al. “[The Copernicus Global 1/12° Oceanic and Sea Ice GLORYS12 Reanalysis](sources/lellouche-2021-glorys12_reanalysis.pdf).” Frontiers in Earth Science, vol. 9, July 2021, article 698876. https://doi.org/10.3389/feart.2021.698876.
+- Le Traon, Pierre-Yves, et al. “[From Observation to Information and Users: The Copernicus Marine Service Perspective](sources/le_traon-2019-copernicus_marine_service_perspective.pdf).” Frontiers in Marine Science, vol. 6, May 2019, article 234. https://doi.org/10.3389/fmars.2019.00234.
+- Lu, Jiajun, et al. “Enhancing Few-Shot Prediction of Ocean Sound Speed Profiles through Hierarchical Long Short-Term Memory Transfer Learning.” Journal of Marine Science and Engineering, vol. 12, no. 7, June 2024, article 1041. https://doi.org/10.3390/jmse12071041.
+- Luo, Guangyu, et al. “Deep-Sea Convergence Zone Parameter Prediction with Non-Uniform Mixed-Layer Sound Speed Profiles.” Journal of Marine Science and Engineering, vol. 13, no. 9, Aug. 2025, article 1649. https://doi.org/10.3390/jmse13091649.
+- Lyman, John M., and Gregory C. Johnson. “[Global High-Resolution Random Forest Regression Maps of Ocean Heat Content Anomalies Using In Situ and Satellite Data](sources/lyman-2023-random_forest_ocean_heat_content_maps.pdf).” Journal of Atmospheric and Oceanic Technology, vol. 40, no. 5, 2023, pp. 575–86. https://doi.org/10.1175/JTECH-D-22-0058.1.
+- Mackenzie, Kenneth V. “Nine-Term Equation for Sound Speed in the Oceans.” The Journal of the Acoustical Society of America, vol. 70, no. 3, Sept. 1981, pp. 807–12. https://doi.org/10.1121/1.386920.
+- Madiligama, Madusanka, et al. “[Leveraging Satellite Observations and Machine Learning for Underwater Sound Speed Estimation](sources/madiligama-2025-satellite_ml_underwater_sound_speed_estimation.pdf).” Communications Engineering, vol. 4, no. 1, July 2025. https://doi.org/10.1038/s44172-025-00459-6.
+- Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08.
+- McDougall, Trevor J., David R. Jackett, Daniel G. Wright, and Rainer Feistel. “Accurate and Computationally Efficient Algorithms for Potential Temperature and Density of Seawater.” Journal of Atmospheric and Oceanic Technology, vol. 20, no. 5, May 2003, pp. 730–41. https://doi.org/10.1175/1520-0426(2003)20<730:AACEAF>2.0.CO;2.
+- Meinen, Christopher S., and D. Randolph Watts. “Further Evidence That the Sound-Speed Algorithm of Del Grosso Is More Accurate than That of Chen and Millero.” The Journal of the Acoustical Society of America, vol. 102, no. 4, Oct. 1997, pp. 2058–62. https://doi.org/10.1121/1.419655.
+- Millero, Frank J., and Xu Li. “Comments on ‘“On Equations for the Speed of Sound in Seawater”’ [J. Acoust. Soc. Am. 93, 255–275 (1993)].” The Journal of the Acoustical Society of America, vol. 95, no. 5, May 1994, pp. 2757–59. https://doi.org/10.1121/1.409844.
+- Munk, Walter, Peter Worcester, and Carl Wunsch. Ocean Acoustic Tomography. Cambridge University Press, 1995. Cambridge Monographs on Mechanics. https://doi.org/10.1017/CBO9780511666926.
+- NOAA Office of National Marine Sanctuaries, and U.S. Navy. *SanctSound Raw Passive Acoustic Data*. NOAA National Centers for Environmental Information, 2020. https://doi.org/10.25921/saca-sp25.
+- Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814.
+- North, Ryan P., and David M. Livingstone. “Comparison of Linear and Cubic Spline Methods of Interpolating Lake Water Column Profiles.” Limnology and Oceanography: Methods, vol. 11, no. 4, Apr. 2013, pp. 213–24. https://doi.org/10.4319/lom.2013.11.213.
+- Oke, Peter R., et al. “[Combining Argo and Satellite Data Using Model-Derived Covariances: Blue Maps](sources/oke-2021-blue_maps_argo_satellite_covariances.pdf).” Frontiers in Earth Science, vol. 9, June 2021. https://doi.org/10.3389/feart.2021.696985.
+- Osborne, Emily B., et al. “[A Neural Network Algorithm for Quantifying Seawater pH Using Biogeochemical-Argo Floats in the Open Gulf of Mexico](sources/osborne-2024-bgc_argo_ph_gulf_of_mexico.pdf).” Frontiers in Marine Science, vol. 11, Nov. 2024, article 1468909. https://doi.org/10.3389/fmars.2024.1468909.
+- Owens, William B., and Annie Wong. “An Improved Calibration Method for the Drift of the Conductivity Sensor on Autonomous CTD Profiling Floats by θ-S Climatology.” Deep Sea Research Part I: Oceanographic Research Papers, vol. 56, no. 3, Mar. 2009, pp. 450–57. https://doi.org/10.1016/j.dsr.2008.09.008.
+- Ou, Zhenyi, et al. “[Estimation of Sound Speed Profiles Based on Remote Sensing Parameters Using a Scalable End-to-End Tree Boosting Model](sources/ou-2022-remote_sensing_tree_boosting_sound_speed_profiles.pdf).” Frontiers in Marine Science, vol. 9, Dec. 2022. https://doi.org/10.3389/fmars.2022.1051820.
+- Pan, Yuying, Lijing Cheng, John Abraham, et al. “[Ocean Heat Content Sets Another Record in 2025](sources/pan-2026-ocean_heat_content_record_2025.html).” Advances in Atmospheric Sciences, 2026. https://doi.org/10.1007/s00376-026-5876-0.
+- Park, Beomjo, et al. “Spatiotemporal Local Interpolation of Global Ocean Heat Transport Using Argo Floats: A Debiased Latent Gaussian Process Approach.” The Annals of Applied Statistics, vol. 17, no. 2, June 2023. https://doi.org/10.1214/22-aoas1679.
+- Pawlowicz, R., T. McDougall, R. Feistel, and R. Tailleux. “[An Historical Perspective on the Development of the Thermodynamic Equation of Seawater: A Long and Complicated Story](sources/pawlowicz-2012-teos_10_historical_perspective.pdf).” Ocean Science, vol. 8, no. 2, 2012, pp. 161–74. https://doi.org/10.5194/os-8-161-2012.
+- Pike, J. M., and F. L. Beiboer. A Comparison between Algorithms for the Speed of Sound in Seawater. The Hydrographic Society, 1993. Special Publication 34.
+- Penupothu, Madhav. “Time Series SSP Data in Indian Ocean.” IEEE DataPort, 2025, https://doi.org/10.21227/61QC-Z803.
+- Pietropolli, Gloria, et al. “[PPCon 1.0: Biogeochemical-Argo Profile Prediction with 1D Convolutional Networks](sources/pietropolli-2024-ppcon_1_0.pdf).” Geoscientific Model Development, vol. 17, no. 20, Oct. 2024, pp. 7347–64. https://doi.org/10.5194/gmd-17-7347-2024.
+- Prasanna Kumar, S., et al. “Sound Speed Structure in the Arabian Sea and the Bay of Bengal.” Indian Journal of Marine Sciences, vol. 22, no. 1, Mar. 1993, pp. 17–20.
+- Possenti, Luca, et al. “Predicting the Contribution of Climate Change on North Atlantic Underwater Sound Propagation.” PeerJ, vol. 11, Oct. 2023, p. e16208. https://doi.org/10.7717/peerj.16208.
+- Reiniger, R. F., and C. K. Ross. “A Method of Interpolation with Application to Oceanographic Data.” Deep Sea Research and Oceanographic Abstracts, vol. 15, no. 2, Apr. 1968, pp. 185–93. https://doi.org/10.1016/0011-7471(68)90040-5.
+- Ridgway, K. R., J. R. Dunn, and J. L. Wilkin. “Ocean Interpolation by Four-Dimensional Weighted Least Squares: Application to the Waters around Australasia.” Journal of Atmospheric and Oceanic Technology, vol. 19, no. 9, Sept. 2002, pp. 1357–75. https://doi.org/10.1175/1520-0426(2002)019<1357:OIBFDW>2.0.CO;2.
+- Riser, Stephen C., et al. “Fifteen Years of Ocean Observations with the Global Argo Array.” Nature Climate Change, vol. 6, no. 2, Jan. 2016, pp. 145–53. https://doi.org/10.1038/nclimate2872.
+- Roemmich, Dean, and the Argo Steering Team. “[Argo: The Challenge of Continuing 10 Years of Progress](sources/roemmich-2009-argo_challenge_continuing_10_years.pdf).” Oceanography, vol. 22, no. 3, 2009, pp. 46–55. https://doi.org/10.5670/oceanog.2009.65.
+- Roemmich, Dean, and John Gilson. “The 2004–2008 Mean and Annual Cycle of Temperature, Salinity, and Steric Height in the Global Ocean from the Argo Program.” Progress in Oceanography, vol. 82, no. 2, Aug. 2009, pp. 81–100. https://doi.org/10.1016/j.pocean.2009.03.004.
+- Roemmich, Dean, et al. “[On the Future of Argo: A Global, Full-Depth, Multi-Disciplinary Array](sources/roemmich-2019-future_of_argo.pdf).” Frontiers in Marine Science, vol. 6, Aug. 2019, article 439. https://doi.org/10.3389/fmars.2019.00439.
+- Roquet, F., et al. “Accurate Polynomial Expressions for the Density and Specific Volume of Seawater Using the TEOS-10 Standard.” Ocean Modelling, vol. 90, June 2015, pp. 29–43. https://doi.org/10.1016/j.ocemod.2015.04.002.
+- Sauzède, Raphaëlle, et al. “[Estimates of Water-Column Nutrient Concentrations and Carbonate System Parameters in the Global Ocean: A Novel Approach Based on Neural Networks](sources/sauzede-2017-nutrient_and_carbonate_nn_estimates.pdf).” Frontiers in Marine Science, vol. 4, May 2017. https://doi.org/10.3389/fmars.2017.00128.
+- Salon, S., et al. “[Sound Speed in the Mediterranean Sea: An Analysis from a Climatological Data Set](sources/salon-2003-mediterranean_sea_sound_speed_analysis.pdf).” Annales Geophysicae, vol. 21, no. 3, Mar. 2003, pp. 833–46. https://doi.org/10.5194/angeo-21-833-2003.
+- Schmidtko, Sunke, et al. “MIMOC: A Global Monthly Isopycnal Upper‐ocean Climatology with Mixed Layers.” Journal of Geophysical Research: Oceans, vol. 118, no. 4, Apr. 2013, pp. 1658–72. https://doi.org/10.1002/jgrc.20122.
+- Spiesberger, John L. “Is Del Grosso’s Sound-Speed Algorithm Correct?” The Journal of the Acoustical Society of America, vol. 93, no. 4, Apr. 1993, pp. 2235–37. https://doi.org/10.1121/1.406169.
+- Spiesberger, John L., and Kurt Metzger. “A New Algorithm for Sound Speed in Seawater.” The Journal of the Acoustical Society of America, vol. 89, no. 6, June 1991, pp. 2677–88. https://doi.org/10.1121/1.400988.
+- Spiesberger, John L., and Kurt Metzger. “Basin-Scale Tomography: A New Tool for Studying Weather and Climate.” Journal of Geophysical Research: Oceans, vol. 96, no. C3, Mar. 1991, pp. 4869–89. https://doi.org/10.1029/90JC02538.
+- Srinivasu, Kotta, et al. “Study on Acoustic Variability Affected by Upper Ocean Dynamics in South Eastern Arabian Sea.” Earth and Space Science, vol. 11, no. 11, Nov. 2024. https://doi.org/10.1029/2023ea003497.
+- Swaminathan, V. S., and B. Prasad Kumar. “Variability in Sound Speed Structure and SOFAR Channel Depth in the Indian Ocean.” Journal of Ship Technology, vol. 5, 2009, pp. 53–72.
+- Tao, Shiyuan, et al. “[Analysis of the Distribution of Sound Velocity Profiles and Sound Propagation Laws Based on a Global High-Resolution Ocean Reanalysis Product](sources/tao-2025-global_reanalysis_sound_velocity_profiles.html).” Acta Oceanologica Sinica, vol. 44, no. 5, May 2025, pp. 131–49. https://doi.org/10.1007/s13131-024-2388-6.
+- Teague, William J., Michael J. Carron, and Patrick J. Hogan. “A Comparison between the Generalized Digital Environmental Model and Levitus Climatologies.” Journal of Geophysical Research: Oceans, vol. 95, no. C5, May 1990, pp. 7167–83. https://doi.org/10.1029/JC095iC05p07167.
+- Thierry, Virginie, et al. “[Advancing Ocean Monitoring and Knowledge for Societal Benefit: The Urgency to Expand Argo to OneArgo by 2030](sources/thierry-2025-oneargo_by_2030.pdf).” Frontiers in Marine Science, vol. 12, June 2025. https://doi.org/10.3389/fmars.2025.1593904.
+- Tonani, Marina, et al. “Status and Future of Global and Regional Ocean Prediction Systems.” Journal of Operational Oceanography, vol. 8, supp. 2, Oct. 2015, pp. s201–s220. https://doi.org/10.1080/1755876X.2015.1049892.
+- Troupin, Charles, et al. “Generation of Analysis and Consistent Error Fields Using the Data Interpolating Variational Analysis (DIVA).” Ocean Modelling, vols. 52–53, Aug. 2012, pp. 90–101. https://doi.org/10.1016/j.ocemod.2012.05.002.
+- Udaya Bhaskar, TVS, et al. “[Seasonal Variability of Sonic Layer Depth in the Central Arabian Sea](sources/udaya_bhaskar-2008-seasonal_variability_sonic_layer_depth.html).” Ocean Science Journal, vol. 43, no. 3, Sept. 2008, pp. 147–52. https://doi.org/10.1007/bf03020695.
+- Udaya Bhaskar, T. V. S., Debadatta Swain, and M. Ravichandran. “Determination of Sonic Layer Depth from XBT Profiles and Climatological Salinities in the Arabian Sea.” Indian Journal of Marine Sciences, vol. 41, no. 1, Feb. 2012, pp. 36–44.
+- Udaya Bhaskar, T. V. S., and Debadatta Swain. “Relation between Sonic Layer and Mixed Layer Depth in the Arabian Sea.” Indian Journal of Geo-Marine Sciences, vol. 45, no. 10, Oct. 2016, pp. 1264–71.
+- von Schuckmann, Karina, and Pierre-Yves Le Traon. “[How Well Can We Derive Global Ocean Indicators from Argo Data?](sources/von_schuckmann-2011-global_ocean_indicators_from_argo.pdf).” Ocean Science, vol. 7, no. 6, 2011, pp. 783–91. https://doi.org/10.5194/os-7-783-2011.
+- Wilson, Wayne D. “Speed of Sound in Sea Water as a Function of Temperature, Pressure, and Salinity.” The Journal of the Acoustical Society of America, vol. 32, no. 6, June 1960, pp. 641–44. https://doi.org/10.1121/1.1908167.
+- Wong, Annie P. S., et al. “[Argo Data 1999–2019: Two Million Temperature-Salinity Profiles and Subsurface Velocity Observations From a Global Array of Profiling Floats](sources/wong-2020-argo_data_1999_2019.pdf).” Frontiers in Marine Science, vol. 7, Sept. 2020. https://doi.org/10.3389/fmars.2020.00700.
+- Wong, Annie P. S., et al. “[Argo Salinity: Bias and Uncertainty Evaluation](sources/wong-2023-argo_salinity.pdf).” Earth System Science Data, vol. 15, no. 1, Jan. 2023, pp. 383–93. https://doi.org/10.5194/essd-15-383-2023.
+- Wong, Annie P. S., Gregory C. Johnson, and William B. Owens. “[Delayed-Mode Calibration of Autonomous CTD Profiling Float Salinity Data by Theta-S Climatology](sources/wong-2003-delayed_mode_calibration_of_ctd.pdf).” Journal of Atmospheric and Oceanic Technology, vol. 20, no. 2, Feb. 2003, pp. 308–18. https://doi.org/10.1175/1520-0426(2003)020<0308:DMCOAC>2.0.CO;2.
+- Wong, George S. K., and Shi-ming Zhu. “Speed of Sound in Seawater as a Function of Salinity, Temperature, and Pressure.” The Journal of the Acoustical Society of America, vol. 97, no. 3, Mar. 1995, pp. 1732–36. https://doi.org/10.1121/1.413048.
+- Woolfe, Katherine F., et al. “Monitoring Deep‐ocean Temperatures Using Acoustic Ambient Noise.” Geophysical Research Letters, vol. 42, no. 8, Apr. 2015, pp. 2878–84. https://doi.org/10.1002/2015gl063438.
+- Xu, Luochuan, et al. “[A Parameterized Model for the Real-Time Reconstruction of Underwater Sound Speed Fields in Oceanic Eddy Environment](sources/xu-2025-sound_speed_fields_in_eddy_environment.pdf).” Frontiers in Marine Science, vol. 12, Aug. 2025. https://doi.org/10.3389/fmars.2025.1588066.
+- Xu, Weishuai, et al. “[A Physics-Informed Machine Learning Approach for Predicting Acoustic Convergence Zone Features from Limited Mesoscale Eddy Data](sources/xu-2024-acoustic_convergence_zone_features.pdf).” Frontiers in Marine Science, vol. 11, May 2024. https://doi.org/10.3389/fmars.2024.1364884.
+- Yu, Long, et al. “[Research on Outlier Detection in CTD Conductivity Data Based on Cubic Spline Fitting](sources/yu-2022-outlier_detection_ctd_conductivity.pdf).” Frontiers in Marine Science, vol. 9, Nov. 2022. https://doi.org/10.3389/fmars.2022.1030980.
+- Zhang, Chunling, et al. “Global Gridded Argo Dataset Based on Gradient-Dependent Optimal Interpolation.” Journal of Marine Science and Engineering, vol. 10, no. 5, May 2022, article 650. https://doi.org/10.3390/jmse10050650.
+- Zhang, Gengming, et al. “[Subsurface Sound Channel and Seasonal Variation of Its Characteristics in the Mid-Latitude of Northwest Pacific](sources/zhang-2023-northwest_pacific_subsurface_sound_channel.html).” Journal of Oceanography, vol. 79, no. 6, Aug. 2023, pp. 619–27. https://doi.org/10.1007/s10872-023-00701-9.
+- Zhang, Qi, Chenyan Qian, and Changming Dong. “A Machine Learning Approach to Quality-Control Argo Temperature Data.” Atmospheric and Oceanic Science Letters, vol. 16, no. 4, July 2023, article 100292. https://doi.org/10.1016/j.aosl.2022.100292.
+- Zhang, Xu, Zhang Yong-gang, Zhang Sheng-jun, and Wu Shi-hua. “Distribution and Seasonal Variability of Acoustic Profile in the Philippine Sea.” Journal of Tropical Oceanography, vol. 28, no. 6, 2009, pp. 23–34. https://doi.org/10.11978/j.issn.1009-5470.2009.06.023.
+- Zhao, Yu, et al. “[Reconstructing the Sound Speed Profile of South China Sea Using Remote Sensing Data and Long Short-Term Memory Neural Networks](sources/zhao-2024-lstm_sound_speed_profile_reconstruction.pdf).” Frontiers in Marine Science, vol. 11, May 2024. https://doi.org/10.3389/fmars.2024.1375766.
+- Zhou, Gongfu, et al. “High‐Resolution Gridded Temperature and Salinity Fields From Argo Floats Based on a Spatiotemporal Four‐Dimensional Multigrid Analysis Method.” Journal of Geophysical Research: Oceans, vol. 128, no. 5, May 2023. https://doi.org/10.1029/2022jc019386.
+- Zilberman, Nathalie V., et al. “[Observing the Full Ocean Volume Using Deep Argo Floats](sources/zilberman-2023-deep_argo_full_ocean_volume.pdf).” Frontiers in Marine Science, vol. 10, Nov. 2023. https://doi.org/10.3389/fmars.2023.1287867.

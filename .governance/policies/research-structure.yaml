@@ -11,6 +11,7 @@ rules:
   - If notebooks exists, include notebooks/README.md as the index for notebook artifacts.
   - Notebook filenames should describe the experiment or diagnostic they contain.
   - Use sources for local reference material and do not commit contents unless explicitly directed.
+  - Name local files under sources as `<author-or-org>-<year>-<short_title>.<ext>`, using lowercase ASCII with hyphens between sections and underscores for spaces within a section when needed.
   - Include notebooks only when there is an actual prototype, experiment trail, or diagnostic artifact.
   - Treat topic notebooks as prototype artifacts, not canonical summaries.
   - Topic README.md should link to main research files and folder indexes, give brief descriptions, and note maturity when helpful.

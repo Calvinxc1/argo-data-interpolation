@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ..adapter import BaseAdapter
+from ..adapter.BaseAdapter import BaseAdapter
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,8 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
-from typing import Callable
 
-from ..adapter import BaseAdapter
+from ..adapter.BaseAdapter import BaseAdapter
 
 
 def calc_measure_error(adapter: BaseAdapter, pressure_data: NDArray[np.float64],

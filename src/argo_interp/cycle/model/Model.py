@@ -3,13 +3,14 @@ from numpy.typing import NDArray, ArrayLike
 from typing import Self
 from dataclasses import dataclass, field
 
-from .CycleError import CycleError, MeasureError
 from .ModelAdapters import ModelAdapters
-from .ModelData import ModelData
-from .ModelMeta import ModelMeta
-from .settings.ModelSettings import ModelSettings
-from ..adapter import BaseAdapter
-from ..validation import calc_fold_error
+from ..adapter.BaseAdapter import BaseAdapter
+from ..config.ModelSettings import ModelSettings
+from ..domain.CycleError import CycleError
+from ..domain.MeasureError import MeasureError
+from ..domain.ModelData import ModelData
+from ..domain.ModelMeta import ModelMeta
+from ..validation.calc_fold_error import calc_fold_error
 
 
 @dataclass

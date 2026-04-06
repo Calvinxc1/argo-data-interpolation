@@ -2,12 +2,12 @@ import numpy as np
 
 from .InterleavedKFolds import InterleavedKFolds
 from .calc_measure_error import calc_measure_error
-from ..adapter import BaseAdapter
-from ..model import ModelData
-from ..model.settings import ModelSettings
+from ..adapter.BaseAdapter import BaseAdapter
+from ..config.ModelSettings import ModelSettings
+from ..domain.ModelData import ModelData
 
 
-def calc_fold_error(model_data: ModelData, adapter: BaseAdapter,
+def calc_fold_error(model_data: ModelData, adapter: type[BaseAdapter],
                     settings: ModelSettings) -> tuple[float, float]:
     n_obs = len(model_data.pressure)
     k_folds = InterleavedKFolds(n_obs, settings.n_folds)

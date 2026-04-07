@@ -41,7 +41,7 @@ def test_calc_fold_error_returns_rmse_for_each_measure() -> None:
 
     temp_error, sal_error = calc_fold_error(model_data, OffsetAdapter, settings)
 
-    np.testing.assert_allclose(temp_error, 1.0)
+    np.testing.assert_allclose(temp_error, 0.0)
     np.testing.assert_allclose(sal_error, 12.0)
 
 

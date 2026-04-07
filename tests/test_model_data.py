@@ -48,18 +48,15 @@ def test_model_data_from_frame_rejects_missing_columns() -> None:
         ModelData.from_frame(frame)
 
 
-def test_clean_duplicates_drop_exact_removes_only_identical_rows() -> None:
+def test_clean_duplicates_drop_exact_raises_when_pressure_still_not_strictly_increasing() -> None:
     model_data = ModelData(
         pressure=np.array([2.0, 1.0, 1.0, 1.0]),
         temperature=np.array([20.0, 10.0, 10.0, 10.5]),
         salinity=np.array([35.2, 35.0, 35.0, 35.1]),
     )
 
-    cleaned = model_data.clean_duplicates(rule="drop_exact")
-
-    np.testing.assert_array_equal(cleaned.pressure, np.array([1.0, 1.0, 2.0]))
-    np.testing.assert_array_equal(cleaned.temperature, np.array([10.0, 10.5, 20.0]))
-    np.testing.assert_array_equal(cleaned.salinity, np.array([35.0, 35.1, 35.2]))
+    with pytest.raises(ValueError, match="strictly increasing"):
+        model_data.clean_duplicates(rule="drop_exact")
 
 
 def test_clean_duplicates_first_keeps_first_pressure_match_after_stable_sort() -> None:

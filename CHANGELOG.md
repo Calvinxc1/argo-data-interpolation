@@ -28,7 +28,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 
 ### Fixed
 
-- None yet.
+- Fixed `SplineAdapter.fit` to apply `extrapolate` on the fitted `BSpline` object instead of passing it to `make_splrep`, preventing runtime `TypeError` and restoring configurable extrapolation behavior.
 
 ### Removed
 

@@ -121,8 +121,8 @@ def test_model_build_uses_cross_validated_errors_and_fitted_adapters() -> None:
     assert model.error.pressure == 0.6
     assert model.error.temperature.sensor == 0.05
     assert model.error.salinity.sensor == 0.08
-    np.testing.assert_allclose(model.error.temperature.model, np.sqrt(2.5))
-    np.testing.assert_allclose(model.error.salinity.model, np.sqrt(18.5))
+    np.testing.assert_allclose(model.error.temperature.model, 0.5)
+    np.testing.assert_allclose(model.error.salinity.model, 12.0)
 
     np.testing.assert_array_equal(model.interpolate(np.array([1.0])).temperature, np.array([2.5]))
     np.testing.assert_array_equal(model.interpolate(np.array([1.0])).salinity, np.array([-1.0]))

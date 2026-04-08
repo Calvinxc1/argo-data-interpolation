@@ -1,6 +1,6 @@
 # Framing Notes: Argo Cycle Representation
 
-These working notes capture project positioning, claim boundaries, and implementation-oriented framing for the current vertical representation work. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). Candidate future sources are noted explicitly as pending literature-review inclusion rather than treated as established support.
+These working notes capture project positioning, claim boundaries, and implementation-oriented framing for the current vertical representation work. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). This file is the canonical place for the topic's high-level pitch and claim boundaries; more concrete audience and product concepts belong in [operationalization-notes.md](operationalization-notes.md).
 
 ## Project framing refinement
 
@@ -8,18 +8,9 @@ This project should not be framed as a new general Argo interpolation method or 
 
 The tighter working framing is:
 
-**A compact, uncertainty-aware Argo-derived vertical profile or baseline prior for near-real-time acoustic range support and related operational oceanography workflows.**
+**A compact, uncertainty-aware Argo-derived vertical profile representation for downstream oceanographic workflows, with acoustics-sensitive use cases as one current target.**
 
-This framing reflects a systems position rather than a claim of algorithmic dominance. The strongest use case is upstream support: a compact vertical representation that can provide an efficient environmental baseline or prior layer for mission-specific acoustic workflows and adjacent operational oceanography use cases.
-
-### Candidate operational anchors to move into the literature review
-
-Potential operational anchors for later source-backed treatment include public reporting around:
-
-- Canadian Argo national reporting on real-time Argo profile use by DND scientists, operational oceanographers, and sonar operators, including Ocean Navigator-based workflows
-- NOAA-facing descriptions of Argo support for acoustic propagation modeling through near-real-time temperature and salinity profiles
-
-Until those sources are reviewed and added to the literature review, they should remain acquisition targets or framing cues rather than cited support in source-backed writing.
+This framing reflects a systems position rather than a claim of algorithmic dominance. The strongest general use case is upstream support: a compact vertical representation that can provide an efficient environmental baseline or prior layer for downstream workflows without claiming to replace full ocean or acoustic models.
 
 ### What this implies for positioning
 
@@ -33,9 +24,9 @@ The strongest positioning is not "replace the acoustic model" or "win against go
 
 Good framing language to reuse:
 
-- acoustic decision-support infrastructure
-- baseline or prior layer for mission-specific ocean acoustic workflows
-- compact uncertainty-aware vertical profile representation for real-time Argo-supported acoustic operations
+- environmental prior layer for downstream workflows
+- compact uncertainty-aware vertical profile representation
+- queryable profile artifact for operational oceanography or acoustics-adjacent use cases
 
 ### What to avoid claiming
 
@@ -53,7 +44,7 @@ These are project requirements, not current validated results:
 
 ### Working one-line pitch
 
-**A compact, uncertainty-aware Argo profile encoding layer for near-real-time acoustic decision support, designed to provide efficient baseline ocean structure priors for mission-specific workflows.**
+**A compact, uncertainty-aware Argo profile encoding layer designed to provide efficient baseline ocean-structure priors for downstream workflows.**
 
 ## Working framing for the current vertical method
 
@@ -98,9 +89,7 @@ The combination of smoothing before knot detection and LSQ fitting rather than e
 
 ### The Li et al. (2022) framing
 
-Li et al. (2022) established that MRST-PCHIP is the most accurate vertical interpolation method currently available, recovering ocean heat content estimates 14% larger than those produced by linear interpolation over the 1956-2020 historical record. The absolute magnitude of that gap is 40 Zeta Joules, with a corresponding thermosteric sea level rise correction of 0.55 mm/yr.
-
-Critically, the 14% figure is the gap between linear interpolation and MRST-PCHIP. It does not apply as a claim for this pipeline over MRST-PCHIP. Li et al. (2022) establishes vertical interpolation accuracy as a climate-relevant problem with quantified downstream consequences, which motivates getting profile representation right.
+The literature review already summarizes Li et al. (2022) and the quantified downstream sensitivity of climate estimates to interpolation choice. The project-facing point here is narrower: that result shows why vertical representation quality matters, but it does not transfer any quantitative advantage from MRST-PCHIP to the current pipeline.
 
 ### The equivalence argument
 

@@ -1,12 +1,12 @@
 # Experiment Design Notes: Argo Cycle Representation
 
-These notes capture implementation options and planned validation experiments for the current cycle-representation pipeline. Source-backed method references should trace to [../literature-review.md](../literature-review.md).
+These notes capture implementation options and planned validation experiments for the current cycle-representation pipeline. Source-backed method references should trace to [../literature-review.md](../literature-review.md). Package names, implementation mappings, and tooling suggestions below are local engineering notes rather than literature-backed claims unless stated otherwise.
 
 ## Python implementations for comparison experiments
 
 ### Akima
 
-`scipy.interpolate.Akima1DInterpolator` is the recommended implementation. It is built into SciPy with no additional installation required and is the same algorithm referenced in the oceanographic literature.
+Local implementation note: `scipy.interpolate.Akima1DInterpolator` is the recommended comparison implementation. It is built into SciPy with no additional installation required and is a practical engineering proxy for the Akima method discussed in the literature review.
 
 ```python
 from scipy.interpolate import Akima1DInterpolator
@@ -19,13 +19,13 @@ SciPy also exposes a modified variant (`method="makima"` added in SciPy 1.13.0) 
 
 ### Reiniger-Ross
 
-There is no dedicated Python implementation of Reiniger-Ross. The canonical implementation is in the R `oce` package as `oceApprox(method="reiniger-ross")`, callable from Python via `rpy2`. The GSW-MATLAB toolbox contains `gsw_rr68_interp_SA_CT`, callable from Python via `oct2py`.
+Local tooling note: there is no dedicated Python implementation of Reiniger-Ross in the current stack. The canonical implementation is in the R `oce` package as `oceApprox(method="reiniger-ross")`, callable from Python via `rpy2`. The GSW-MATLAB toolbox contains `gsw_rr68_interp_SA_CT`, callable from Python via `oct2py`.
 
 For the comparison experiments, SciPy's `PchipInterpolator` and `Akima1DInterpolator` are probably sufficient without needing Reiniger-Ross, which is largely a historical baseline.
 
 ### MRST-PCHIP proxy
 
-`scipy.interpolate.PchipInterpolator` is plain PCHIP without the 16-rotation MR enhancement. It is an exact interpolant forced through every observation, which is the critical property shared with MRST-PCHIP that matters for the noise and spike injection experiments.
+Local implementation note: `scipy.interpolate.PchipInterpolator` is plain PCHIP without the 16-rotation MR enhancement. It is being used here as an engineering proxy because it preserves the exact-interpolation constraint that matters for the planned noise and spike injection experiments.
 
 ```python
 from scipy.interpolate import PchipInterpolator
@@ -34,7 +34,7 @@ pchip = PchipInterpolator(pres, temp)
 temp_interp = pchip(query_pressures)
 ```
 
-Full MRST-PCHIP can be implemented directly from Barker and McDougall (2020). The core is 16 PCHIP calls on rotated coordinate systems averaged back to the original frame, using observation index rather than pressure as the independent variable. Estimated implementation effort is a few hours. The `gsw` Python package does not currently expose the interpolation functions.
+Local implementation note: full MRST-PCHIP can be implemented directly from Barker and McDougall (2020). The core is 16 PCHIP calls on rotated coordinate systems averaged back to the original frame, using observation index rather than pressure as the independent variable. Estimated implementation effort is a few hours. The `gsw` Python package does not currently expose the interpolation functions.
 
 ## Quantitative comparison experiments
 

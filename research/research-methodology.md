@@ -12,9 +12,11 @@ Claims included in the final research documents were then checked manually again
 
 ## Topic Source of Truth
 
-Within each topic folder, `literature-review.md` is the canonical source-backed document for that topic. Topic notes and notebooks may interpret, synthesize, hypothesize, and plan, but any source-backed claim they make should trace to a source already covered in that topic literature review.
+Within each topic folder, `literature-review.md` is the canonical source-backed document for that topic. It is intended to stand on its own as a survey and synthesis of the reviewed literature, including a literature-derived account of the remaining gap when the topic warrants one. Topic notes and notebooks may interpret, hypothesize, and plan more freely, but any source-backed claim they make should trace to a source already covered in that topic literature review.
 
 In practice, that means notes and notebooks should not become parallel literature reviews. If a note or notebook requires a new source-backed claim not yet covered in the literature review, the literature review should be updated first or in the same change. Candidate future sources may still be mentioned in notes as acquisition targets or pending-review items, but they should not be presented there as established support until the topic literature review has been updated accordingly.
+
+The synthesis performed in a literature review is still constrained by the literature itself. A literature review may connect sources, compare method classes, and identify what the reviewed literature does or does not address, but it should not introduce new empirical findings, unverified project claims, or method performance claims that are not supported by the reviewed sources. A practical boundary test used in this project is: if a sentence could only have been written after running an experiment, building a model, or analyzing new data, it does not belong in the literature review; if it could have been written by someone who read the reviewed sources carefully and thought hard about them, it does. Relatedly, this project distinguishes a literature-derived gap from a project opportunity: the former is a statement about what the reviewed sources do not cover and belongs in the literature review, while the latter is a statement about how the project may respond and belongs in notes, notebooks, or other planning artifacts.
 
 ## Verification Approach
 

@@ -19,6 +19,6 @@ This note tracks bibliography entries in [../literature-review.md](../literature
 
 ## Pending References
 
-| Citation | Status | Source host | Last update | Notes |
-| --- | --- | --- | --- | --- |
-| Vitenti, S. D. P., de Simoni, F., Penna-Lima, M., & Barroso, E. J. "AutoKnots: Adaptive knot allocation for spline interpolation." Astronomy and Computing. https://doi.org/10.1016/j.ascom.2025.100970 | `preprint_only` | Elsevier / Astronomy and Computing | 2026-04-07 | Local file exists in `sources/`, but it appears to be an author-style preprint rather than the final publisher PDF. Title, author list, and DOI are supported by the local copy; final journal-front-matter verification remains outstanding. |
+| # | Citation | Status | Source host | Last update | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Vitenti, S. D. P., de Simoni, F., Penna-Lima, M., & Barroso, E. J. "AutoKnots: Adaptive knot allocation for spline interpolation." Astronomy and Computing. https://doi.org/10.1016/j.ascom.2025.100970 | `preprint_only` | Elsevier / Astronomy and Computing | 2026-04-07 | Local file exists in `sources/`, but it appears to be an author-style preprint rather than the final publisher PDF. Title, author list, and DOI are supported by the local copy; final journal-front-matter verification remains outstanding. |

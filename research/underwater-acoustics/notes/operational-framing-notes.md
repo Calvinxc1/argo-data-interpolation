@@ -4,7 +4,7 @@ These working notes capture the broader underwater-acoustics framing for uncerta
 
 ## Source-backed anchor
 
-The verified starting point for this topic is narrow but useful: Jana et al. (2022) shows that Argo-derived sound-speed profiles can be used to study variability, sonic layer depth, surface ducting, and shadow-zone-relevant structure in a real regional setting. That is enough to justify underwater acoustics as a legitimate downstream application area for the present package.
+The verified starting point for this topic is narrow but useful: Jana et al. (2022) shows that Argo-derived sound-speed profiles can be used to study variability, sonic layer depth, surface ducting, and shadow-zone-relevant structure in a real regional setting. This is covered in [Argo-Derived Sound Speed Climatologies and Regional Variability](../literature-review.md#argo-derived-sound-speed-climatologies-and-regional-variability). That section, together with [Acoustic Applications Increasingly Depend on Argo](../literature-review.md#acoustic-applications-increasingly-depend-on-argo), is enough to justify underwater acoustics as a legitimate downstream application area for the present package.
 
 ## Hypothesis
 

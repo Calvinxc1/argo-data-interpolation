@@ -2,13 +2,21 @@
 
 These working notes capture how the Jana et al. study can be used as the current downstream demonstration target for uncertainty-aware Argo profile interpolation. Source-backed claims in this file trace to [../literature-review.md](../literature-review.md). Broader downstream-model or package-specific statements that are not yet in the literature review are marked as proposal-level recommendations or future validation work.
 
+## Literature Review Alignment
+
+The source-backed Jana claims in this note align with [Argo-Derived Sound Speed Climatologies and Regional Variability](../literature-review.md#argo-derived-sound-speed-climatologies-and-regional-variability), which now summarizes Jana et al.'s Argo source data, profile screening, 5 m to 500 m / 1 m grid, and acoustically relevant outputs.
+
+The extension rationale aligns with [Vertical Interpolation Methods Remain Under-Reported](../literature-review.md#vertical-interpolation-methods-remain-under-reported), [Uncertainty Quantification: Sensor Precision Versus Mapping Error](../literature-review.md#uncertainty-quantification-sensor-precision-versus-mapping-error), and [Acoustic Applications Increasingly Depend on Argo](../literature-review.md#acoustic-applications-increasingly-depend-on-argo).
+
+The replication-method, validation, and notebook-alignment sections below are local implementation audit notes. They should not be promoted to canonical literature claims unless the supporting paper text or notebook output is cited explicitly.
+
 ## Citation
 
 Jana, S., Gangopadhyay, A., Haley, P. J., Jr., and Lermusiaux, P. F. J. (2022). *Sound speed variability over Bay of Bengal from Argo observations (2011-2020).* In *OCEANS 2022, Hampton Roads* (pp. 1-7). IEEE. DOI: `10.1109/OCEANSChennai45887.2022.9775509`
 
 ## Source-backed summary
 
-Jana et al. (2022) is currently the cleanest verified anchor for this topic because it uses public Argo observations, converts temperature and salinity to sound speed, interpolates the resulting profiles to a uniform 1 m grid from 5 m to 500 m, and analyzes outputs that matter acoustically, including sound-speed variability structure and sonic-layer-related interpretation.
+Jana et al. (2022) is currently the cleanest verified anchor for this topic because it uses public Argo observations, converts temperature and salinity to sound speed, interpolates the resulting profiles to a uniform 1 m grid from 5 m to 500 m, and analyzes outputs that matter acoustically, including sound-speed variability structure and sonic-layer-related interpretation. The matching canonical synthesis is in [Argo-Derived Sound Speed Climatologies and Regional Variability](../literature-review.md#argo-derived-sound-speed-climatologies-and-regional-variability).
 
 The paper's retained dataset size, filtering rules, and deterministic profile-processing sequence make it suitable for a like-for-like replication baseline. The strongest verified reason to use it is not that it is the most sophisticated acoustic study, but that it exposes a narrow, reproducible Argo-to-sound-speed workflow where interpolation choices are visible and downstream interpretation remains understandable. It is also a short IEEE OCEANS conference paper with a very compressed methods section, which is why several replication choices below remain explicitly interpretive rather than directly source-stated.
 

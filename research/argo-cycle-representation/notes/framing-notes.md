@@ -50,13 +50,13 @@ These are project requirements, not current validated results:
 
 The current implementation is best understood as a compact, queryable reconstruction artifact for a single Argo cycle rather than as an exact interpolant. That framing matters because several of its practical strengths come from deliberately not reproducing every observed point.
 
-For the current pipeline, the most important working differentiators are:
+For the current representation direction, the most important working differentiators are:
 
 - compact representation rather than retention of the raw observation grid
 - tunability across accuracy and efficiency regimes
 - depth-varying uncertainty terms rather than point estimates alone
 - explicit error attribution across named uncertainty components
-- robustness to noisy or outlying observations through smoothing plus LSQ fitting
+- possible robustness to noisy or outlying observations through non-exact smoothing fits
 
 This is an implementation-oriented interpretation of the method, not a claim established directly by the published literature.
 
@@ -83,7 +83,7 @@ For the present vertical-only pipeline, the first two are implemented concerns a
 
 ### Robustness interpretation
 
-The combination of smoothing before knot detection and LSQ fitting rather than exact interpolation suggests better robustness to local spikes and outliers than exact interpolants. That conclusion is still an implementation-level expectation until the comparison experiments are run directly. The relevant validation path is the planned noise-injection and spike-injection benchmark work rather than verbal comparison alone.
+The earlier curvature-adaptive LSQ prototype used smoothing before knot detection and least-squares fitting rather than exact interpolation. That design suggested better robustness to local spikes and outliers than exact interpolants, but the prototype should now be treated as a negative result unless validation demonstrates otherwise. The current validation path should compare the historical prototype, FITPACK smoothing splines, linear interpolation, and PCHIP directly through noise-injection, spike-injection, and holdout-reconstruction benchmarks rather than relying on verbal comparison alone. See [curvature-adaptive-spline-negative-result.md](curvature-adaptive-spline-negative-result.md).
 
 ## Evidence of the value of this work
 
@@ -97,4 +97,4 @@ If the planned cross-validation comparison demonstrates that this pipeline produ
 
 ### The additional value beyond equivalence
 
-Equivalence in reconstruction accuracy combined with superiority in other dimensions is the complete argument. Compression: 40 to 100x reduction in storage per profile per variable, with no retained raw data required at query time. Noise robustness: LSQ fitting averages over observations rather than honoring each one exactly, unlike all interpolating methods. Uncertainty quantification: depth-varying, physically decomposed, queryable from the stored artifact alone. Standalone queryability: arbitrary pressure queries from stored coefficients only, no original profile needed.
+Equivalence in reconstruction accuracy combined with superiority in other dimensions would be the complete argument. Compression, noise robustness, uncertainty quantification, and standalone queryability all need to be measured against exact-interpolant baselines rather than assumed from the original curvature-adaptive design. The negative-result framing matters here: if the curvature-adaptive LSQ prototype fails to justify its complexity, the same value argument can still be tested for FITPACK smoothing splines or another compact non-exact representation.

@@ -2,6 +2,8 @@
 
 These notes compare the current vertical representation pipeline to the main interpolation and representation references discussed in [../literature-review.md](../literature-review.md). They are intended as working interpretation and comparison notes rather than as a standalone source-backed review. Where local benchmark numbers or artifact-size estimates appear, they should be read as project context and cross-checked against the validation notebook rather than treated as literature claims.
 
+Implementation caveat: several passages below describe the curvature-adaptive least-squares spline prototype that motivated the original method framing. That prototype should now be treated as historical method-development context unless the validation notebook demonstrates robust performance. See [curvature-adaptive-spline-negative-result.md](curvature-adaptive-spline-negative-result.md) for the negative-result framing and the distinction between that prototype and FITPACK smoothing splines through `scipy.interpolate.make_splrep`.
+
 ## Barker and McDougall (2020): MRST-PCHIP comparison
 
 ### What they are solving vs. what this pipeline solves

@@ -14,6 +14,7 @@ rules:
   - Prefer multiple purpose-specific note files over one omnibus notes file when content spans distinct themes.
   - If notebooks exists, include notebooks/README.md as the index for notebook artifacts.
   - Notebook filenames should describe the experiment or diagnostic they contain.
+  - For notebooks under research topic notebooks/ folders, keep the committed .ipynb as the primary runnable artifact and maintain a paired Jupytext .py file in percent format alongside it for reviewability and search.
   - Use sources for local reference material and do not commit contents unless explicitly directed.
   - When local full-text article copies are kept under sources, treat PDF as the canonical format for resolved source acquisition; do not count HTML captures as resolved full-text copies.
   - When a local full-text source under sources is non-English, include an accompanying Markdown file in the same folder with the same stem as the source file containing the best available translation or translation notes for that source.

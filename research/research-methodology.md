@@ -18,6 +18,14 @@ In practice, that means notes and notebooks should not become parallel literatur
 
 The synthesis performed in a literature review is still constrained by the literature itself. A literature review may connect sources, compare method classes, and identify what the reviewed literature does or does not address, but it should not introduce new empirical findings, unverified project claims, or method performance claims that are not supported by the reviewed sources. A practical boundary test used in this project is: if a sentence could only have been written after running an experiment, building a model, or analyzing new data, it does not belong in the literature review; if it could have been written by someone who read the reviewed sources carefully and thought hard about them, it does. Relatedly, this project distinguishes a literature-derived gap from a project opportunity: the former is a statement about what the reviewed sources do not cover and belongs in the literature review, while the latter is a statement about how the project may respond and belongs in notes, notebooks, or other planning artifacts.
 
+## Notebook Artifact Policy
+
+Research notebooks under topic `notebooks/` folders are first-class research artifacts rather than disposable scratch work. The canonical runnable artifact remains the committed `.ipynb` file so that readers can open the notebook directly in Jupyter and inspect the saved narrative, code, and outputs together.
+
+To make those notebooks reviewable and searchable in version control, this project also keeps a paired Jupytext `.py` representation in percent format alongside each committed research notebook. The paired text file is a maintenance and review companion, not a replacement for the notebook artifact. Changes to research notebooks should therefore keep the `.ipynb` and its paired `.py` file in sync.
+
+This pairing policy applies to notebooks in the `research/**/notebooks/` subtree only. It does not imply that package code under `src/` should be developed inside notebooks, and it does not change the role of `literature-review.md` as the canonical source-backed artifact for each topic.
+
 ## Verification Approach
 
 Source-backed claims were included only when they could be supported by the cited material. When full-text access was available, those claims were checked directly against the original source. Page-specific citations were added after direct verification from the full text.

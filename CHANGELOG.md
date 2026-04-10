@@ -17,7 +17,9 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Changed
 
 - Added a changelog workflow policy and established this file as the single source of truth for staged and released change history.
+- Split repository licensing so `research/` materials are documented and machine-mapped as `CC-BY-4.0` while non-research project materials remain `GPL-3.0-or-later`.
 - Refactored topic-level research organization to support indexed `notes/` and `notebooks/` directories while keeping `literature-review.md` as the canonical source-backed artifact for each topic.
+- Standardized `source-acquisition-tracker.md` as a topic-root research artifact and added policy requiring same-stem Markdown translation companions for non-English local full-text sources.
 - Reorganized the Argo cycle-representation research materials into focused note files, moved notebook artifacts under an indexed notebooks folder, and aligned the spatio-temporal topic with the same notes-based layout.
 - Added research-policy rules requiring topic notes and notebooks to trace source-backed claims back through the topic literature review and to keep working-note structure consistent with the new folder model.
 - Reduced `CycleModel` memory and serialization overhead substantially by replacing heavy metadata models with slotted dataclasses and using compact custom pickle state.

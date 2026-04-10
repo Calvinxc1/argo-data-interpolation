@@ -1,6 +1,6 @@
 # Argo Cycle Representation Source Acquisition Tracker
 
-This note tracks bibliography entries in [../literature-review.md](../literature-review.md) that either do not yet have local full-text copies in `sources/` or still have a local-source verification gap. Linked references with fully verified local copies, and resolved web-native references, are not repeated here.
+This note tracks bibliography entries in [literature-review.md](literature-review.md) that either do not yet have local full-text copies in `sources/` or still have a local-source verification gap. Linked references with fully verified local copies, and resolved web-native references, are not repeated here.
 
 ## Summary
 

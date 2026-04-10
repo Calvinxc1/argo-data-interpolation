@@ -9,4 +9,12 @@ Source-backed claims in these notes should trace to [../literature-review.md](..
 - [jana-replication-notes.md](jana-replication-notes.md): working notes on why Jana et al. is the current demonstration target and how to extend it with uncertainty-aware interpolation.
 - [literature-review-project-framing-notes.md](literature-review-project-framing-notes.md): project-facing implications extracted from the literature review so the review can remain focused on source-backed synthesis.
 - [operational-framing-notes.md](operational-framing-notes.md): working notes on the underwater-acoustics positioning, candidate industry hooks, and pending-verification research questions.
-- [source-acquisition-tracker.md](source-acquisition-tracker.md): working tracker for unresolved bibliography entries, acquisition blockers, and local full-text follow-up.
+
+## License
+
+This folder is part of the [`research/`](../../README.md) subtree and is
+licensed under the Creative Commons Attribution 4.0 International
+license unless otherwise noted. See [`../../LICENSE`](../../LICENSE).
+The non-research parts of the repository remain under the GNU General
+Public License v3.0 or later as described in
+[`../../../README.md`](../../../README.md).

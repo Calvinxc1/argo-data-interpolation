@@ -14,4 +14,12 @@ For a quick pass through the topic, read the literature review first, then frami
 - [experiment-design-notes.md](experiment-design-notes.md): implementation notes and proposed comparison experiments for validating the current method.
 - [uncertainty-notes.md](uncertainty-notes.md): uncertainty decomposition, sensor-error conventions, and query-time storage or memory implications.
 - [operationalization-notes.md](operationalization-notes.md): product-facing and audience-facing framing for acoustic decision support and related operational workflows.
-- [source-acquisition-tracker.md](source-acquisition-tracker.md): remaining local-source acquisition or verification exceptions for bibliography items already listed in the lit review.
+
+## License
+
+This folder is part of the [`research/`](../../README.md) subtree and is
+licensed under the Creative Commons Attribution 4.0 International
+license unless otherwise noted. See [`../../LICENSE`](../../LICENSE).
+The non-research parts of the repository remain under the GNU General
+Public License v3.0 or later as described in
+[`../../../README.md`](../../../README.md).

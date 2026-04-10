@@ -3,8 +3,9 @@ when: [research_structure]
 rules:
   - Keep shared research-process documents at research root; keep topic materials inside topic folders.
   - Use lowercase hyphenated names by default.
-  - Standard topic structure is README.md, literature-review.md, optional notes, optional notebooks, optional sources.
+  - Standard topic structure is README.md, literature-review.md, optional source-acquisition-tracker.md, optional notes, optional notebooks, optional sources.
   - Keep literature-review.md at topic root as the canonical source-backed document.
+  - When a topic uses a source-acquisition tracker, keep source-acquisition-tracker.md at topic root rather than under notes.
   - Literature reviews should stand on their own as coherent documents, not just as source inventories.
   - A literature review may include direct source summary, source-derived synthesis across sources, and a literature-derived gap statement, provided each remains clearly about the reviewed literature rather than about new project results.
   - When topic notes depend on a source-backed claim, that claim should be covered in the topic literature review, even if the note expands on it interpretively.
@@ -15,6 +16,7 @@ rules:
   - Notebook filenames should describe the experiment or diagnostic they contain.
   - Use sources for local reference material and do not commit contents unless explicitly directed.
   - When local full-text article copies are kept under sources, treat PDF as the canonical format for resolved source acquisition; do not count HTML captures as resolved full-text copies.
+  - When a local full-text source under sources is non-English, include an accompanying Markdown file in the same folder with the same stem as the source file containing the best available translation or translation notes for that source.
   - For non-article web-native resources, prefer linking the canonical landing page in the literature review instead of storing HTML captures under sources.
   - Name local files under sources as `<author-or-org>-<year>-<short_title>.<ext>`, using lowercase ASCII with hyphens between sections and underscores for spaces within a section when needed.
   - Include notebooks only when there is an actual prototype, experiment trail, or diagnostic artifact.

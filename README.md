@@ -61,5 +61,10 @@ by the work of University of Washington Oceanography student Alnis Smidchens.
 
 ## License
 
-Released under the terms of the GNU Affero General Public License v3.0.
-See [`LICENSE`](LICENSE).
+This repository uses a split license:
+
+- Project materials outside [`research/`](research/) are licensed under the GNU General Public License v3.0 or later. See [`LICENSE`](LICENSE).
+- Everything under [`research/`](research/) is licensed under the Creative Commons Attribution 4.0 International license. See [`research/LICENSE`](research/LICENSE) and [`LICENSES/CC-BY-4.0.txt`](LICENSES/CC-BY-4.0.txt).
+
+Bundled license texts remain under their own upstream terms. Path-based
+project-content license assignments are recorded in [`REUSE.toml`](REUSE.toml).

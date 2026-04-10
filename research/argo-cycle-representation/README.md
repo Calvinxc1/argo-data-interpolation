@@ -7,5 +7,14 @@ For this topic, [literature-review.md](literature-review.md) is the canonical so
 ## Research Files
 
 - [literature-review.md](literature-review.md): source-backed review of interpolation methods, adaptive splines, and Argo QC/error context.
+- [source-acquisition-tracker.md](source-acquisition-tracker.md): topic-root tracker for local-source verification caveats and any remaining acquisition exceptions.
 - [notes/README.md](notes/README.md): index of topic working notes, including framing, method comparison, uncertainty, experiments, and operationalization.
 - [notebooks/README.md](notebooks/README.md): index of prototype notebook artifacts for the current spline workflow, comparative validation against exact interpolants, uncertainty, and diagnostics.
+
+## License
+
+This folder is part of the [`research/`](../README.md) subtree and is
+licensed under the Creative Commons Attribution 4.0 International
+license unless otherwise noted. See [`../LICENSE`](../LICENSE). The
+non-research parts of the repository remain under the GNU General Public
+License v3.0 or later as described in [`../../README.md`](../../README.md).

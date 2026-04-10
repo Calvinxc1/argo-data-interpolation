@@ -9,6 +9,7 @@ For this topic, [literature-review.md](literature-review.md) is the canonical li
 ## Research Files
 
 - [literature-review.md](literature-review.md): canonical topic literature review, covering sound-speed equations, Argo-derived acoustic climatologies, interpolation methods, uncertainty, acoustic applications, machine learning, and Argo program context.
+- [source-acquisition-tracker.md](source-acquisition-tracker.md): topic-root tracker for unresolved bibliography entries, acquisition blockers, and local full-text follow-up.
 - [notes/README.md](notes/README.md): index of topic working notes on the Jana replication path and broader operational framing.
 - [notebooks/README.md](notebooks/README.md): index of notebook artifacts for this topic, including the Jana replication notebook.
 
@@ -17,3 +18,11 @@ For this topic, [literature-review.md](literature-review.md) is the canonical li
 - The Jana et al. Bay of Bengal replication path is the most mature part of this topic and is supported by a local full-text source copy.
 - The broader literature review has been drafted from the topic citation inventory, but most of those citations still need full-text verification and bibliography cleanup.
 - Operational framing, tooling gaps, and extension ideas remain in working notes until the corresponding primary sources are collected and verified.
+
+## License
+
+This folder is part of the [`research/`](../README.md) subtree and is
+licensed under the Creative Commons Attribution 4.0 International
+license unless otherwise noted. See [`../LICENSE`](../LICENSE). The
+non-research parts of the repository remain under the GNU General Public
+License v3.0 or later as described in [`../../README.md`](../../README.md).

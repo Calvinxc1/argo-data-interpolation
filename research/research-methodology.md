@@ -22,6 +22,8 @@ The synthesis performed in a literature review is still constrained by the liter
 
 Source-backed claims were included only when they could be supported by the cited material. When full-text access was available, those claims were checked directly against the original source. Page-specific citations were added after direct verification from the full text.
 
+When a local full-text source is non-English, this project keeps an accompanying Markdown file in the same `sources/` folder with the same filename stem as the source artifact and a best-effort translation or translation notes. That translation aid supports verification and later reuse, but it does not replace the original source as the underlying authority.
+
 For topic notes and notebooks, this verification requirement is not weaker than it is for literature reviews. The difference is document purpose, not citation discipline. Notes may contain inference, hypothesis, implementation assumptions, and research-planning commentary, but when they make source-backed claims those claims should use the same verified source base represented in the topic literature review.
 
 Not all sources were equally available at the same time. When full-text access was delayed or unavailable, citation metadata could still be retained in provisional form, but interpretive claims tied to those references were treated as subject to revision after full-text review.

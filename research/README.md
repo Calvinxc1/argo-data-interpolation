@@ -15,10 +15,17 @@ The shared review and verification approach for these documents is described in 
 Each topic-specific research folder is intended to use the same core structure:
 
 - `literature-review.md`: the canonical source-backed synthesis for that topic.
+- `source-acquisition-tracker.md`: optional topic-root tracker for unresolved local-source acquisition, verification caveats, and full-text follow-up.
 - `notes/`: optional folder for working notes, framing notes, implementation notes, operationalization notes, and other topic-specific working documents.
 - `notebooks/`: optional folder for exploratory or prototype notebooks documenting concrete experiments, diagnostics, and method behavior.
-- `sources/`: optional folder for local copies of papers, reports, manuals, and other reference materials.
+- `sources/`: optional folder for local copies of papers, reports, manuals, and other reference materials. When a local full-text source is non-English, include an accompanying same-stem Markdown file with the best available translation or translation notes.
 
 When `notes/` exists, it should include a `README.md` that indexes the notes in that folder. When `notebooks/` exists, it should include a `README.md` that indexes the notebooks in that folder.
 
 Source-backed claims in topic notes and notebooks should trace to sources already covered in that topic's `literature-review.md`. If a note or notebook needs a new source-backed claim, update the literature review first or in the same change.
+
+## License
+
+Unless otherwise noted, materials in this directory are licensed under
+the Creative Commons Attribution 4.0 International license. See
+[`LICENSE`](LICENSE) and [`../LICENSES/CC-BY-4.0.txt`](../LICENSES/CC-BY-4.0.txt).

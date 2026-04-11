@@ -25,9 +25,11 @@
 #     version: 2.7.6
 # ---
 # %% [markdown]
-# # Argo Cycle Representation Validation
+# # 02. Argo Cycle Representation Validation
 #
-# This notebook evaluates the current spline-based cycle representation against exact-interpolant baselines on a shared interleaved k-fold omitted-point reconstruction task. The goal is to separate reconstruction accuracy from artifact compactness and stability, and to make clear where the current spline artifact is strong versus weak. The baseline families used here map onto the interpolation literature summarized in the topic review: Akima as a local piecewise-cubic exact interpolant (Akima, 1970, pp. 2-5) and PCHIP-type methods as the shape-preserving family emphasized in the Argo interpolation literature (Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15).
+# Notebook 01 asked whether the custom spline method worked at all as a compact and uncertainty-aware profile representation. Notebook 02 asks the next question: how does that same custom method compare to more traditional exact-interpolant baselines on the same withheld-point reconstruction task?
+#
+# The goal here is to separate reconstruction accuracy from artifact compactness and stability, and to see whether the method-confirmation story from notebook 01 survives an apples-to-apples comparison. The baseline families map onto the interpolation literature summarized in the topic review: Akima as a local piecewise-cubic exact interpolant (Akima, 1970, pp. 2-5) and PCHIP-type methods as the shape-preserving family emphasized in the Argo interpolation literature (Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15).
 #
 # This notebook should be read alongside the topic notes:
 #
@@ -56,7 +58,9 @@ from lib.calc_rmse import calc_rmse
 # %% [markdown]
 # ## Benchmark Setup
 #
-# The next cells define the shared fold logic, baseline comparison helpers, and sampled profile set used throughout the notebook. The Akima and PCHIP helper functions are kept intentionally close to the spline validation pattern so that the comparison reflects representation differences rather than different split logic. That keeps the benchmark focused on a narrow question already motivated by the literature: exact interpolation versus compact vertical representation on the same within-profile reconstruction task (Akima, 1970, pp. 2-5; Barker & McDougall, 2020, pp. 1-2, 4-7; Yarger et al., 2022, pp. 11-12, 216-218).
+# The next cells define the shared fold logic, baseline comparison helpers, and sampled profile set used throughout the notebook. The Akima and PCHIP helper functions are kept intentionally close to the spline validation pattern so that the comparison reflects representation differences rather than different split logic.
+#
+# That keeps the benchmark focused on one narrow question already motivated by the literature: what happens when an exact interpolant and a compact stored representation are asked to solve the same within-profile reconstruction problem (Akima, 1970, pp. 2-5; Barker & McDougall, 2020, pp. 1-2, 4-7; Yarger et al., 2022, pp. 11-12, 216-218)?
 
 # %%
 def interleaved_fold_index(cycle_data: pd.DataFrame, folds: int) -> np.ndarray:
@@ -150,7 +154,7 @@ readings = readings.drop(columns=group_fields)
 # - `Akima1DInterpolator`, and
 # - `PchipInterpolator`.
 #
-# The fold assignment is intentionally matched to `calc_fold_error()` so the benchmark stays aligned with the current spline pipeline implementation. That makes this a fair test of one narrow question: how well does each method reconstruct omitted observed depths within a profile? In the reviewed literature, Akima and PCHIP-type methods belong to the exact-interpolation side of the problem, while Yarger et al. (2022, pp. 11-12, 216-218) treat continuous vertical representation as a distinct functional-data step.
+# The fold assignment is intentionally matched to `calc_fold_error()` so the benchmark stays aligned with the custom spline pipeline from notebook 01. That makes this a fair test of one narrow question: how well does each method reconstruct omitted observed depths within a profile? In the reviewed literature, Akima and PCHIP-type methods belong to the exact-interpolation side of the problem, while Yarger et al. (2022, pp. 11-12, 216-218) treat continuous vertical representation as a distinct functional-data step.
 #
 # This notebook should be interpreted alongside the topic notes rather than as a standalone framing document:
 #
@@ -158,7 +162,7 @@ readings = readings.drop(columns=group_fields)
 # - [Experiment Design Notes](../notes/experiment-design-notes.md): Akima and PCHIP are the practical Python baselines for this benchmark.
 # - [Framing Notes](../notes/framing-notes.md): the intended project framing is a compact, uncertainty-aware profile representation layer rather than a claim of best interpolation RMSE.
 #
-# In practical terms, this notebook can speak directly to omitted-point RMSE, artifact footprint, and footprint stability. It cannot by itself establish downstream acoustic utility, operational value of the uncertainty terms, or superiority as a prior layer once sparse local sensing is introduced.
+# In practical terms, this notebook can speak directly to omitted-point RMSE, artifact footprint, and footprint stability. It cannot by itself establish downstream acoustic utility, operational value of the uncertainty terms, or superiority as a prior layer once sparse local sensing is introduced. It also does not yet answer whether the custom spline machinery is the right non-exact spline family to carry forward; notebook 03 takes up that question directly.
 
 # %% [markdown]
 # ## Compact Spline Artifact Results
@@ -324,7 +328,7 @@ pchip_model_sizes.loc[pchip_model_sizes['file'] < np.nanpercentile(pchip_model_s
 # %% [markdown]
 # ## Comparative Interpretation
 #
-# At the current settings, Akima and PCHIP behave very similarly on both omitted-point RMSE and interpolator footprint. The central comparison is therefore not Akima versus PCHIP, but exact interpolants versus the compact spline artifact.
+# At the current settings, Akima and PCHIP behave very similarly on both omitted-point RMSE and interpolator footprint. The central comparison is therefore not Akima versus PCHIP, but exact interpolants versus the custom compact spline artifact introduced in notebook 01.
 #
 # ### Empirical Takeaways
 #
@@ -373,7 +377,8 @@ pchip_model_sizes.loc[pchip_model_sizes['file'] < np.nanpercentile(pchip_model_s
 #
 # - the current spline pipeline is **not** the strongest pure interpolation method under this validation task,
 # - but it does appear to offer a substantially smaller and more predictable artifact,
-# - so the best next step is not more RMSE-only tuning, but testing whether that compact and stable artifact is valuable enough for the intended prior-layer or operational-encoding use case.
+# - so notebook 01's feasibility result survives comparison as a real tradeoff rather than collapsing immediately,
+# - and the next question becomes whether this custom spline implementation actually earns its complexity relative to simpler spline-family alternatives.
 
 # %% [markdown]
 # ## Framing References

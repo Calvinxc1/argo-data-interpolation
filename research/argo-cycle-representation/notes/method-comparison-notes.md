@@ -1,105 +1,119 @@
 # Method Comparison Notes: Argo Cycle Representation
 
-These notes compare the current vertical representation pipeline to the main interpolation and representation references discussed in [../literature-review.md](../literature-review.md). They are intended as working interpretation and comparison notes rather than as a standalone source-backed review. Where local benchmark numbers or artifact-size estimates appear, they should be read as project context and cross-checked against the validation notebook rather than treated as literature claims.
+These notes compare the main method families now present in the `argo-cycle-representation` topic: exact interpolants, the historical custom curvature-adaptive spline prototype, and the simpler native spline-family alternatives that became central in notebook 03. This file is a working interpretation note, not a standalone source-backed review. Source-backed method descriptions belong in [../literature-review.md](../literature-review.md).
 
-Implementation caveat: several passages below describe the curvature-adaptive least-squares spline prototype that motivated the original method framing. That prototype should now be treated as historical method-development context unless the validation notebook demonstrates robust performance. See [curvature-adaptive-spline-negative-result.md](curvature-adaptive-spline-negative-result.md) for the negative-result framing and the distinction between that prototype and FITPACK smoothing splines through `scipy.interpolate.make_splrep`.
+## How to read the comparisons
 
-## Barker and McDougall (2020): MRST-PCHIP comparison
+The project now has a staged method story:
 
-### What they are solving vs. what this pipeline solves
+1. notebook 01 established that the custom curvature-adaptive least-squares spline was a real, working compact-representation prototype,
+2. notebook 02 showed that this prototype gives up omitted-point RMSE relative to exact interpolants but produces a meaningfully smaller and more stable stored artifact,
+3. notebook 03 showed that the broader spline direction still matters, but the custom implementation may not be the most useful way to pursue it.
 
-Barker and McDougall are solving a different problem. Their goal is to interpolate between observed data points on a single profile, producing values at arbitrary intermediate pressures while preserving physically realistic water-mass structure. The profile is assumed to be fully retained in memory. Nothing is compressed or discarded.
+So the comparison question is no longer "did the custom spline work at all?" It did. The useful question is what each method family is actually good for, and which branch remains worth carrying forward.
 
-This pipeline is solving a representation problem. The goal is to produce a compact, queryable model of the vertical structure of each profile that can replace the raw observations entirely. The pipeline is not designed to pass through every observation. It is designed to capture the large-scale structure faithfully while discarding fine-scale noise, and to do so with a minimal number of parameters.
+## Exact interpolants versus compact representations
 
-These are related but distinct problems. MRST-PCHIP cannot be used for compression because it requires the full original profile to be stored. This pipeline cannot be used as a drop-in replacement for MRST-PCHIP in contexts requiring exact reproduction of observed values.
+### MRST-PCHIP and related exact methods
 
-### The Gibbs ringing problem
+Barker and McDougall (2020) solve an interpolation problem. Their concern is reconstructing values between observed profile levels while preserving physically realistic structure, especially in SA-CT space. The full observed profile remains part of the object being queried.
 
-The source-backed spline-ringing discussion is summarized in [../literature-review.md](../literature-review.md). The comparison point for this pipeline is narrower: because the LSQ spline is not constrained to pass through every observation, it should be less exposed to the exact-interpolation overshoot mechanism discussed there.
+That matters because exact interpolants and compact representations are not trying to optimize the same thing.
 
-The LSQ spline in this pipeline should be less prone to this problem. It minimizes squared error across all observations without being constrained to pass through any of them. At a sharp thermocline transition, the spline should tend to find the best-fit smooth curve through the neighborhood of points rather than being forced through each one individually. Adding more knots in regions of high curvature, which curvature-based detection does automatically, should provide additional local flexibility to represent sharp features without oscillation.
+- Exact interpolants such as PCHIP, MR-PCHIP, and MRST-PCHIP prioritize reconstruction fidelity between retained observations.
+- Compact spline artifacts prioritize storing a smaller queryable object that summarizes profile structure without retaining every original point.
 
-### Noise sensitivity
+Notebook 02 now makes this tradeoff concrete: exact interpolants win on omitted-point RMSE, while the custom compact artifact wins on artifact size and footprint stability.
 
-Because MRST-PCHIP interpolates exactly, every observation is treated as ground truth. A sensor noise spike, an internal wave heave artifact, or a fine-scale salinity intrusion that happens to fall at a sampling depth is honored by the interpolant as real ocean structure. The effect propagates into adjacent intervals and cannot be removed without re-running the interpolation on cleaned data.
+### What exact interpolants still do better
 
-This pipeline is designed to reduce noise sensitivity at two separate stages.
+The strongest exact-interpolant advantage is straightforward: they are better aligned with the task "predict the omitted observed value from the remaining observed values." That is exactly why PCHIP remains the stronger comparator when the target metric is withheld-point reconstruction RMSE.
 
-First, the Savitzky-Golay smoothing pass before knot detection separates the noise signal from the structural signal before any fitting occurs. Noise spikes should be much less likely to generate curvature peaks on the smoothed profile, so knots should be less likely to be placed at noise artifacts.
+This is also why notebook 03 keeps PCHIP in view even after the custom spline comparison. PCHIP still occupies the low-RMSE end of the tradeoff frontier.
 
-Second, the LSQ solve minimizes squared error across all observations simultaneously. A single noisy point tends to be averaged down by its neighbors in the fit rather than pinned through. The resulting spline should represent the statistical center of the observation cloud around each pressure level rather than the exact value at any one of them.
+### What compact representations still do differently
 
-The practical consequence is that this pipeline represents the large-scale gradient through a noisy thermocline by averaging across neighboring observations rather than honoring each sample exactly. Because MRST-PCHIP is still an exact interpolant, it may remain more sensitive to noisy samples than a least-squares representation, even though Barker and McDougall (2020) designed it to reduce overshoot and anomalous water-mass artifacts relative to earlier methods. This noise-sensitivity comparison is currently a hypothesis and should be tested directly rather than assumed.
+Notebook 02 supports a narrower but still meaningful claim for compact representations:
 
-### The knot placement distinction
+- they can produce materially smaller serialized artifacts,
+- their footprint may vary less across profiles,
+- they can carry explicit reconstruction and sensor-error metadata as part of the stored object,
+- they remain queryable after the raw profile is discarded.
 
-MRST-PCHIP has no equivalent to knot placement. Every observation is a breakpoint and contributes equally to the interpolant structure regardless of whether it falls in a physically informative region.
+Those advantages do not make them superior interpolants. They make them plausible candidates for a different systems role.
 
-This pipeline places knots where the profile is genuinely bending, using the second derivative of the smoothed profile as a physically motivated signal. The thermocline, where curvature is highest, receives the most knots. The flat deep ocean, where curvature is near zero, receives few or none. This means the model's degrees of freedom are concentrated where they earn the most representation fidelity, which is more efficient and more targeted to regions of high profile curvature than uniform breakpoint placement.
+## The custom curvature-adaptive spline prototype
 
-### Summary of comparative advantages
+### What the prototype established
 
-| Property | MRST-PCHIP | This pipeline |
-|---|---|---|
-| Passes through every observation | Yes (by design) | No |
-| Noise sensitivity | Expected higher | Designed to be lower |
-| Gibbs ringing at sharp features | Greatly reduced relative to cubic splines | Not imposed by exact interpolation |
-| Compresses profile | No | Yes, via a compact spline artifact |
-| Queryable at arbitrary pressure | Yes, requires full profile in memory | Yes, from stored spline only |
-| Physically motivated structure | SA-CT diagram preservation | Curvature-based knot placement |
-| Interpolation-method uncertainty quantification | Not provided in the method paper | Pipeline-specific depth-varying estimate from pressure error propagation |
+The custom curvature-adaptive spline remains important in the research story because it demonstrated three things:
 
-### Important caveat for honest presentation
+1. a per-cycle compact spline artifact can be made to work coherently on Argo data,
+2. a non-exact fit can yield interpretable uncertainty fields and plausible residual structure,
+3. a compact artifact can survive a comparison against exact interpolants as a real tradeoff rather than collapsing immediately.
 
-MRST-PCHIP optimizes explicitly for SA-CT diagram fidelity, preserving water-mass structure in thermohaline space. This pipeline does not optimize for this. Equivalent RMSE on held-out pressure levels does not guarantee equivalent water-mass fidelity. Any comparison presented in a manuscript or presentation should be explicit about what the RMSE comparison covers (reconstruction accuracy at withheld pressure levels) and what it does not cover (SA-CT diagram structure preservation). A reviewer familiar with Barker and McDougall (2020) will ask about this distinction.
+Notebook 01 and notebook 02 are enough to preserve that branch as a serious exploration rather than a false start.
 
-## Li et al. (2005): cross-domain validation of the core technique
+### What the prototype did not establish
 
-The source-backed summary of Li et al. (2005) is in [../literature-review.md](../literature-review.md). The note-level use here is interpretive: the paper functions as a cross-domain analogue for curvature-adaptive least-squares spline fitting rather than as direct oceanographic prior art.
+The custom method did not establish that curvature-guided knot placement is the best way to pursue compact representation. That stronger claim is exactly what notebook 03 puts pressure on.
 
-### The structural isomorphism with this pipeline
+After notebook 03, the main open issue is not whether the custom spline has any merit. It does. The issue is whether its extra machinery buys enough over simpler native spline alternatives to justify remaining the center of the project.
 
-| Li et al. (2005) | This pipeline |
-|---|---|
-| Dense noisy 3D point cloud from laser scanner | Discrete noisy pressure-temperature observations from Argo CTD |
-| High-curvature surface regions (edges, corners) | Thermocline and halocline transitions |
-| Flat smooth surface regions | Deep ocean and mixed layer |
-| Lowpass filter on discrete curvature | Savitzky-Golay pre-smoothing pass |
-| Integral-based knot placement | `find_peaks` on second derivative of smoothed profile |
-| LSQ spline fitting | `make_lsq_spline` on uniform resampled grid |
-| Compact parametric curve representation | Compact queryable spline model per cycle |
+### Relation to Li et al. (2005)
 
-Two independent research groups, working in entirely different domains with different motivations and data types, appear to have arrived at essentially the same algorithmic solution. This suggests that the underlying mathematical problem may be the same: noisy data sampled from an unknown smooth function with mixed flat and sharp-gradient structure, where the goal is a compact representation faithful to the large-scale structure without contamination by noise.
+Li et al. (2005) remains a useful cross-domain analogue for why the custom prototype was a reasonable branch to explore:
 
-Li et al. (2005) provides a strong cross-domain analogue suggesting that curvature-adaptive LSQ spline fitting is a natural answer to this class of problem. The four failure modes they identified in prior CAD methods also map closely onto the failure modes of Reiniger-Ross, cubic splines, and exact-interpolation methods in oceanographic interpolation, though that mapping is an interpretive comparison rather than a claim made by Li et al. themselves.
+- noisy observations,
+- mixed flat and high-curvature structure,
+- adaptive knot allocation,
+- least-squares fitting instead of exact interpolation.
 
-## Reiniger-Ross and Akima: relationship to this pipeline
+That analogue supports the plausibility of the prototype. It does not by itself support keeping the prototype as the live project default once simpler alternatives appear to cover the same tradeoff more directly.
 
-The source-backed descriptions of Reiniger-Ross and Akima are summarized in [../literature-review.md](../literature-review.md). The comparison point here is how those exact interpolants differ from a compact least-squares representation.
+## Native spline-family alternatives
 
-Both Reiniger-Ross and Akima are exact interpolants and can be expected to share the same fundamental noise-sensitivity risk as PCHIP. None of them escape the exact-interpolation constraint that makes this risk difficult to avoid.
+Notebook 03 changed the method-comparison landscape by separating two questions that had previously been entangled:
 
-Akima has a philosophical similarity to this pipeline in that both use local reasoning rather than global constraints. But the distinction is fundamental. Akima asks: given that I must pass through every point, what is the smoothest local way to do so? This pipeline asks: given all these points, what is the best compact model of the underlying structure? These are different questions with different answers.
+1. is a non-exact spline-family representation still interesting?
+2. does that require the custom curvature-adaptive implementation?
 
-## Yarger et al. (2022): vertical representation step only
+The answer now appears to be:
 
-This section covers only the vertical representation component of Yarger et al. (2022). The lit review summarizes the source-backed description of that step, including the fixed equispaced-knot design, global smoothing-parameter search, and the authors' own future-work note on adaptivity. The comparison here is limited to what those choices imply for the current pipeline.
+- yes to the first question,
+- probably no to the second.
 
-### Where this pipeline improves on their vertical step
+That is the most important comparison outcome to preserve in this note.
 
-Their 200 equispaced knots over 2000 dbar equals one knot every 10 dbar, regardless of what the water column is doing. This pipeline, by contrast, places 9 to 16 knots total (modal approximately 9) with curvature-guided placement, concentrating degrees of freedom where d2T/dP2 is large.
+### Why the native spline path matters
 
-Their smoothing parameter selection collapses all components into a single 1D GCV search with fixed ratios. This pipeline instead selects independently per-profile and per-variable based on the actual curvature signal of that cycle, which should make it more adaptive to individual float behavior and ocean regime.
+The native spline path keeps the broad spline-family value proposition alive:
 
-Their representation is not a standalone artifact. Querying their model at an arbitrary pressure requires the surrounding spatial model, the locally estimated FPC basis, and the score predictions. This pipeline instead stores only `(t, c, k)` plus scalar `cycle_rmse`, approximately 280 bytes, queryable with no surrounding context.
+- continuous queryable representation,
+- explicit fidelity-versus-footprint control through a smoothing parameter,
+- compatibility with the uncertainty-aware representation story,
+- substantially less method-specific machinery to justify.
 
-Their uncertainty is spatiotemporal, derived from the kriging covariance at the spatial modeling stage. Their framework achieves good aggregate coverage but is reported to be weaker at 20 to 200 dbar, precisely the thermocline region where this pipeline's pressure-propagated error term (`|dT/dP| x 2.4`) is largest and may be most physically meaningful.
+If those properties survive while the custom method does not clearly outperform them, then the native spline path becomes the cleaner research direction.
 
-### Framing
+## Yarger et al. (2022) and the representation problem
 
-Yarger et al. (2022) recognized the same fundamental insight: profiles should be treated as continuous functions of depth rather than fixed-level vectors. Their framework built this insight into a spatiotemporal kriging system. My reading is that this pipeline is an engineering completion of that insight at the vertical level, making the single-profile spline representation step adaptive, compressed, and physically grounded in its uncertainty decomposition. The two approaches are complementary.
+Yarger et al. remain important because they provide the clearest reviewed example of treating Argo profiles as continuous functions rather than fixed-level vectors. That larger framing still survives the custom-method decision.
 
-### RMSE comparability: vertical fitting vs. spatiotemporal prediction
+What changed is the local interpretation of how this project extends that idea:
 
-Direct RMSE comparison between Yarger et al.'s spatiotemporal predictions and this pipeline's within-profile reconstruction residuals is methodologically invalid because the two procedures measure different tasks. That quantitative distinction belongs primarily in the validation notebook; the comparison point relevant here is narrower: Yarger's error metrics combine spatial prediction difficulty with vertical representation, while this pipeline's local benchmarks isolate the vertical representation step.
+- earlier, the project could plausibly be read as pushing Yarger's vertical step toward custom profile-adaptive knot placement;
+- now, the stronger reading is that the project is exploring compact single-profile representation and uncertainty outside the full spatiotemporal framework, while remaining open about which spline implementation best serves that role.
+
+So Yarger still supports the representation direction. Notebook 03 mainly weakens the case for tying that direction specifically to the custom curvature-adaptive implementation.
+
+## Current takeaway
+
+The comparison story is now:
+
+- exact interpolants remain the right reference class for pure reconstruction accuracy,
+- the custom curvature-adaptive spline remains a valid and informative historical prototype,
+- the broader spline-family direction still matters because compact tunable representations remain interesting,
+- the current research center of gravity has shifted from custom knot heuristics toward simpler native spline methods plus uncertainty-aware profile encoding.
+
+That is the comparison frame the rest of the topic should now assume unless a future notebook reopens the custom method on new evidence.

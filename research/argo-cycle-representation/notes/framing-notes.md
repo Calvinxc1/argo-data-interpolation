@@ -1,6 +1,6 @@
 # Framing Notes: Argo Cycle Representation
 
-These working notes capture project positioning, claim boundaries, and implementation-oriented framing for the current vertical representation work. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). This file is the canonical place for the topic's high-level pitch and claim boundaries; more concrete audience and product concepts belong in [operationalization-notes.md](operationalization-notes.md).
+These working notes capture project positioning, claim boundaries, and implementation-oriented framing for the broader vertical representation direction now defined by the notebook sequence. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). This file is the canonical place for the topic's high-level pitch and claim boundaries; more concrete audience and product concepts belong in [operationalization-notes.md](operationalization-notes.md).
 
 ## Project framing refinement
 
@@ -46,9 +46,9 @@ These are project requirements, not current validated results:
 
 **A compact, uncertainty-aware Argo profile encoding layer designed to provide efficient baseline ocean-structure priors for downstream workflows.**
 
-## Working framing for the current vertical method
+## Working framing for the current vertical direction
 
-The current implementation is best understood as a compact, queryable reconstruction artifact for a single Argo cycle rather than as an exact interpolant. That framing matters because several of its practical strengths come from deliberately not reproducing every observed point.
+The current research direction is best understood as a compact, queryable reconstruction artifact for a single Argo cycle rather than as an exact interpolant. That framing matters because several of its practical strengths come from deliberately not reproducing every observed point.
 
 For the current representation direction, the most important working differentiators are:
 
@@ -72,7 +72,7 @@ The method's uncertainty output is one of its more important distinctions relati
 
 ### Error attribution
 
-The intended uncertainty decomposition is meant to stay semantically legible. For the current vertical artifact, the relevant categories are:
+The intended uncertainty decomposition is meant to stay semantically legible. For the vertical artifact under discussion, the relevant categories are:
 
 - measurement uncertainty tied to the input sensors
 - reconstruction uncertainty tied to the fitted representation
@@ -89,12 +89,20 @@ The earlier curvature-adaptive LSQ prototype used smoothing before knot detectio
 
 ### The Li et al. (2022) framing
 
-The literature review already summarizes Li et al. (2022) and the quantified downstream sensitivity of climate estimates to interpolation choice. The project-facing point here is narrower: that result shows why vertical representation quality matters, but it does not transfer any quantitative advantage from MRST-PCHIP to the current pipeline.
+The literature review already summarizes Li et al. (2022) and the quantified downstream sensitivity of climate estimates to interpolation choice. The project-facing point here is narrower: that result shows why vertical representation quality matters, but it does not transfer any quantitative advantage from MRST-PCHIP to the current representation direction.
 
 ### The equivalence argument
 
-If the planned cross-validation comparison demonstrates that this pipeline produces reconstruction RMSE equivalent to MRST-PCHIP on the same profiles, then the following claim would be defensible: this pipeline matches the physical fidelity of the current community standard for vertical interpolation, which Li et al. (2022) established as the accuracy ceiling of observationally based ocean heat content estimation.
+Before notebook 03, one possible project argument was that a compact non-exact representation might eventually match MRST-PCHIP-level reconstruction accuracy while also adding compactness and uncertainty metadata. That is still a useful thought experiment for framing what a very strong result would look like.
+
+After notebook 03, however, that should no longer be read as the immediate target for the historical custom spline branch. The more realistic framing is that exact-interpolant baselines such as PCHIP remain the stronger choice for pure reconstruction accuracy, while spline-family methods are being carried forward for different reasons.
 
 ### The additional value beyond equivalence
 
-Equivalence in reconstruction accuracy combined with superiority in other dimensions would be the complete argument. Compression, noise robustness, uncertainty quantification, and standalone queryability all need to be measured against exact-interpolant baselines rather than assumed from the original curvature-adaptive design. The negative-result framing matters here: if the curvature-adaptive LSQ prototype fails to justify its complexity, the same value argument can still be tested for FITPACK smoothing splines or another compact non-exact representation.
+The more defensible value argument now does not require equivalence in RMSE. It requires clarity about the tradeoff:
+
+- exact interpolants remain stronger at withheld-point reconstruction,
+- compact spline-family artifacts may still be valuable because they are smaller, tunable, uncertainty-aware, and easier to use as stored profile encodings,
+- the active question is whether those properties matter enough for the intended downstream role.
+
+Compression, uncertainty quantification, and standalone queryability therefore still need to be measured against exact-interpolant baselines, but they no longer need to be narrated as if the custom curvature-adaptive prototype is still the likely vehicle for that value story.

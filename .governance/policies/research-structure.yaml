@@ -14,6 +14,13 @@ rules:
   - Prefer multiple purpose-specific note files over one omnibus notes file when content spans distinct themes.
   - If notebooks exists, include notebooks/README.md as the index for notebook artifacts.
   - Notebook filenames should describe the experiment or diagnostic they contain.
+  - Research topics may keep notebook-support code under notebooks/lib/ when that code exists only to support notebook reproducibility, benchmarking, plotting, or research-only method recreation.
+  - Keep notebook-support code scoped to the topic that uses it; do not place research-only notebook code under src/.
+  - Prefer small importable Python modules under notebooks/lib/ over large notebook code cells when doing so improves notebook readability and reproducibility.
+  - When notebooks/lib/ exists, document its purpose in notebooks/README.md and treat it as research support code rather than canonical narrative output.
+  - Research topics may keep local notebook artifacts under notebooks/data/ when those files exist only to speed up local exploratory or reproducibility workflows.
+  - Treat notebooks/data/ as local cache or artifact retention for notebook processes rather than as a canonical research record or shared source of truth.
+  - Do not rely on notebooks/data/ as the only durable expression of a result that needs to be shared; summarize durable outcomes in the notebook, notes, or other tracked research artifacts.
   - Use sources for local reference material and do not commit contents unless explicitly directed.
   - When local full-text article copies are kept under sources, treat PDF as the canonical format for resolved source acquisition; do not count HTML captures as resolved full-text copies.
   - When a local full-text source under sources is non-English, include an accompanying Markdown file in the same folder with the same stem as the source file containing the best available translation or translation notes for that source.

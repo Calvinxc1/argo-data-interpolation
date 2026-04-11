@@ -5,9 +5,9 @@ This note tracks which bibliography entries in [literature-review.md](literature
 ## Summary
 
 - Last updated: 2026-04-10
-- References in bibliography: `146`
-- References with linked local PDF copies: `126`
-- References resolved via canonical non-article web pages: `2`
+- References in bibliography: `148`
+- References with linked local PDF copies: `127`
+- References resolved via canonical non-article web pages: `4`
 - References still missing local PDF full-text material: `18`
 - Missing full-text media-type breakdown: `13` journal articles, `3` conference or presentation publications, `1` book, `1` special publication/report.
 - Local `.pdf` files remain the required resolved format for article and book sources; non-article web-native resources may resolve through a stable canonical landing page.

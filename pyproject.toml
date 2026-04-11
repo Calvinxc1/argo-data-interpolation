@@ -36,6 +36,7 @@ dev = [
 research = [
     "argopy>=1.4.0",
     "matplotlib>=3.10.8",
+    "pydantic>=2.12.5",
     "seaborn>=0.13.2",
     "tqdm>=4.67.3",
 ]

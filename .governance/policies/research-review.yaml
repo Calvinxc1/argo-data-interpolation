@@ -5,6 +5,8 @@ rules:
   - In multi-step review chains, do not edit later artifacts without explicit instruction.
   - For citation audits, verify metadata, then full text if available, then page numbers, then classify unsupported wording, then propose or implement edits.
   - Check cross-document consistency across lit reviews, notes, notebooks, and bibliographies while respecting each artifact's purpose.
+  - For literature-review audits, also check that the document stands alone, has an organizing question or framing scope, uses section-to-section synthesis rather than a flat source list, and closes with a calibrated literature-derived gap when the topic warrants one.
+  - During literature-review audits, apply the boundary test: any sentence that depends on local experiments, model fitting, or new data analysis belongs outside the literature review.
   - Use review-status notes for provisional literature-review references.
   - If a source is provisional in a literature review, related notes and notebooks should generally carry that provisional status too.
   - If research review process changes materially, update research/research-methodology.md in the same change.

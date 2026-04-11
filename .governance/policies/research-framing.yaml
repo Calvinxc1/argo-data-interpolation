@@ -1,6 +1,11 @@
 id: research_framing
 when: [research_framing]
 rules:
+  - In literature reviews, distinguish direct source summary, source-derived synthesis, and literature-derived gap statements; all three are allowed when claim calibration is explicit.
+  - A literature-derived gap statement should describe what the reviewed literature does not address; it should not introduce new results, new methods, or unverified project claims.
+  - Distinguish a literature-derived gap from a project opportunity: the former belongs in the literature review and is framed as what the reviewed sources do not cover, while the latter belongs in notes and is framed as what the project might do in response.
+  - Organize literature reviews so the section order reflects the problem structure evidenced by the literature, not just a flat list of sources.
+  - A useful boundary test for literature reviews is this: if a sentence could only have been written after running an experiment, building a model, or analyzing new data, it does not belong there; if it could have been written by someone who read the source set carefully and thought hard about it, it does.
   - In notes, label source-backed summary, inference, hypothesis, implementation assumption, recommendation, and future validation work distinctly.
   - Use modality markers when needed to preserve uncertainty provenance.
   - In notebooks, do not claim downstream validity from local diagnostics unless the notebook evaluates the downstream task.

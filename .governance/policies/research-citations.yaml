@@ -5,6 +5,9 @@ rules:
   - Do not force lit reviews, notes, and notebooks into the same voice.
   - Verify source-backed claims against original articles when full text is available.
   - Prefer local research sources copies over web summaries for verification and page references.
+  - Count an article or book source as resolved full text only when the local copy is a PDF; do not treat HTML article-page captures as full-text substitutes.
+  - For non-English local full-text sources, keep an accompanying same-stem Markdown file in sources with the best available translation or translation notes, and use that translation aid as part of the verification record.
+  - For non-article web-native resources such as datasets or documentation pages, a stable canonical landing page may count as resolved when no article-style full-text artifact exists.
   - Add page numbers only after full-text verification.
   - If full text is unavailable, mark the citation or section as pending full-text review.
   - Treat DOI mismatches as hard citation errors and fix citation metadata and in-text references together.

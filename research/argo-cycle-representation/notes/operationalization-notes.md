@@ -1,6 +1,8 @@
 # Operationalization Notes: Argo Cycle Representation
 
-Working notes on how the current cycle-representation work may be framed for an operational or product-facing audience, especially for acoustics-sensitive subsea workflows. This document is intentionally distinct from the literature review and other topic notes: it captures positioning, audience framing, and proposal-level product concepts rather than source-backed synthesis. Source-backed claims for this topic should trace to [../literature-review.md](../literature-review.md).
+Working notes on how the current cycle-representation work may be framed for an operational or product-facing audience, especially for acoustics-sensitive subsea workflows. This document is intentionally distinct from the literature review and other topic notes: it captures audience framing, workflow concepts, and proposal-level product ideas rather than source-backed synthesis. Source-backed claims for this topic should trace to [../literature-review.md](../literature-review.md). The core project pitch and claim boundaries live in [framing-notes.md](framing-notes.md); this file assumes that framing and extends it into user-facing concepts.
+
+This note is mostly local project framing. Broader workflow language below should be read as proposal-level positioning unless it is explicitly tied back to the lit review.
 
 ---
 
@@ -8,31 +10,23 @@ Working notes on how the current cycle-representation work may be framed for an 
 
 The most promising non-academic audience identified so far is subsea operations and underwater acoustics rather than oceanographic interpolation as an end in itself.
 
-This project should not be positioned as a new general Argo interpolation method or as an acoustic range prediction solution. The stronger framing is:
+The operational question is not "why should this audience care about Argo interpolation?" but "what operational pain can better water-column estimates help address?" In this note, the bridge from profile representation to acoustics-sensitive use is a local framing choice rather than a claim established within the current Argo-cycle lit review. The more specific workflow labels used here, including sonar interpretation, acoustic positioning, survey context, and mission planning, are local audience-framing targets rather than established claims from the current source set.
 
-**A compact, uncertainty-aware Argo-derived vertical profile or baseline prior for near-real-time acoustic range support and related operational oceanography workflows.**
-
-The operational question is not "why should this audience care about Argo interpolation?" but "what operational pain can better water-column estimates help address?" The clearest bridge is acoustics-sensitive work where temperature, salinity, and pressure structure affect sound-speed structure and therefore sonar interpretation, acoustic positioning, survey context, and mission planning.
-
-The strongest current framing is:
-
-**Argo-informed profile representation can provide a regional or background baseline or prior on water-column structure that helps interpret sonar behavior, especially when fused with local observations and other onboard data.**
+The strongest current working systems hypothesis is that an Argo-informed profile representation can provide a regional or background baseline on water-column structure that helps interpret sonar behavior, especially when fused with local observations and other onboard data.
 
 This is a weaker but more defensible claim than presenting Argo as local tactical truth.
-
-Candidate operational anchors for later literature-review coverage include public reporting around real-time Argo use in Canadian DND or Ocean Navigator workflows for model assessment and acoustic range support, with NOAA-style acoustic propagation support as a secondary anchor. Those references should be cited explicitly in source-backed documents only after they are verified and added to the literature review.
 
 ### Why acoustics is the strongest wedge
 
 Underwater acoustics remains the clearest UI-facing wedge for three reasons.
 
-First, CTD-like profile information is directly relevant to sound-speed structure in the water column. Second, sound-speed structure directly affects sonar behavior and related acoustic systems. Third, this connection is much easier to explain to an operational audience than a purely abstract claim about interpolation quality.
+The audience-positioning claim is that a water-column-to-acoustics bridge is easier to explain to operational users than a purely abstract claim about interpolation quality. That is a local communication judgment, not a literature-backed result in this topic.
 
 The working causal chain is:
 
-**Argo measures temperature, salinity, and pressure -> those variables determine water-column structure and derived sound-speed structure -> acoustic performance and interpretation depend on that structure -> better interpolation or reconstruction makes that structure more usable operationally**
+**Argo measures temperature, salinity, and pressure -> those variables determine water-column structure and derived sound-speed structure -> acoustic performance and interpretation depend on that structure -> better interpolation or reconstruction may make that structure more usable operationally**
 
-This is also the cleanest business-facing bridge between Argo-derived environmental information and real subsea operations. It supports a framing where the output is not "a better interpolation method" and not a replacement for end-to-end acoustic modeling, but an uncertainty-aware environmental context or baseline-prior layer for acoustics-sensitive workflows.
+This is also the cleanest business-facing bridge between Argo-derived environmental information and real subsea operations. It supports a local framing where the output is not "a better interpolation method" and not a replacement for end-to-end acoustic modeling, but an uncertainty-aware environmental context for acoustics-sensitive workflows.
 
 ---
 
@@ -40,7 +34,7 @@ This is also the cleanest business-facing bridge between Argo-derived environmen
 
 ### Cold-start initialization
 
-Before enough local measurements accumulate, an Argo-based spatiotemporal estimate can provide a structured starting point for water-column state estimation. This is useful for early mission planning, first-pass sonar interpretation context, and initialization of downstream environmental models.
+Working systems concept: before enough local measurements accumulate, an Argo-based spatiotemporal estimate could provide a structured starting point for water-column state estimation. The examples here, including early mission planning, first-pass sonar interpretation context, and initialization of downstream environmental models, are proposal-level use cases rather than source-backed current-practice claims.
 
 ### Broad prior plus local refinement
 
@@ -88,25 +82,9 @@ The most useful emphasis points are:
 - error diagnostics
 - robustness to noise and outliers
 - configurable operating modes along an accuracy/efficiency tradeoff
-- suitability for fusion with sparse local sensing and model outputs
+- suitability for fusion with sparse local sensing and model outputs as a project design target
 
 The intent is not to claim best-possible offline reconstruction at any cost, but fit-for-purpose reconstruction under storage, compute, and interpretability constraints.
-
----
-
-## Strategic caution points
-
-The strongest caution points from the discussion are:
-
-- do not claim Argo replaces good local sensing
-- do not present Argo as exact local tactical truth
-- do not present the work as state-of-the-art acoustic prediction
-- do not present the work as a replacement for gold-standard ocean or acoustic modeling
-- do not present the work as the general best interpolation method
-- do not oversell forecasting beyond short-horizon freshness or maintenance concepts
-- do not collapse multiple uncertainty sources into an undifferentiated "model uncertainty" bucket
-
-These remain proposal-level framing constraints, not validated product claims.
 
 ---
 
@@ -114,7 +92,7 @@ These remain proposal-level framing constraints, not validated product claims.
 
 ### Re-center around near-real-time operational relevance
 
-Keep delayed-mode Argo as the scientific benchmark dataset, but treat near-real-time Argo as the more relevant substrate for operational usefulness. Delayed-mode establishes scientific credibility; near-real-time is closer to the actual setting where an uncertainty-aware prior would matter before expert correction is complete.
+Keep delayed-mode Argo as the scientific benchmark dataset, but treat near-real-time Argo as the more relevant substrate for operational usefulness. The lit review now supports the narrower point that real-time versus delayed-mode Argo matters operationally in assimilation settings; the product recommendation here is the local implication drawn from that literature.
 
 ### Frame the vertical method as productizable profile estimation
 
@@ -130,4 +108,4 @@ The longer-term system concept should stay oriented around queryable priors: loc
 
 ### Keep acoustics as the first operational bridge
 
-Acoustics remains the strongest current bridge to an operational audience, especially in sonar interpretation, survey context, and broader environmental understanding for subsea work. Unless a stronger use case emerges, it should remain the first applied framing rather than being diluted into a generic ocean-data pitch.
+Acoustics remains the strongest current bridge to an operational audience. The specific use-case labels here, including sonar interpretation and survey context, are still working framing choices rather than source-backed current-practice claims. Unless a stronger use case emerges, acoustics should remain the first applied framing rather than being diluted into a generic ocean-data pitch.

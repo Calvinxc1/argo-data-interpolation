@@ -78,7 +78,6 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-playground.ipynb
 
 # IPython
 profile_default/
@@ -166,3 +165,13 @@ uv.lock
 
 # Local research source copies
 **/sources/
+
+# Allow tracked research-only notebook support modules
+!research/**/notebooks/lib/
+!research/**/notebooks/lib/**
+
+# Ignore notebook-local data directories under research topics
+research/**/notebooks/data/
+
+#
+/data/

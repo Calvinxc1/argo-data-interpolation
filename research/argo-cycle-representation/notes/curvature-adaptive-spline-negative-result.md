@@ -74,6 +74,10 @@ That distinction should be made clear:
 
 ## Recommended notebook role
 
-The baseline notebook should not depend on the curvature-adaptive prototype. It should prove that the current package APIs work end to end on representative Argo cycle data.
+With the current notebook sequence, the curvature-adaptive prototype now has a clearer place:
 
-The validation notebook is the right place to preserve the failed method. It can use the curvature-adaptive prototype to explain the evolution from a physically motivated custom method toward a simpler, more reproducible comparison suite.
+- notebook 01 preserves it as a serious working prototype and method-confirmation artifact,
+- notebook 02 tests it against exact-interpolant baselines and establishes the actual tradeoff,
+- notebook 03 is where the project decides that the broader spline direction survives more convincingly through simpler native spline-family methods.
+
+That sequence is preferable to pretending the custom method never mattered. The point of the negative-result framing is not to erase the prototype; it is to show honestly that it was explored seriously and then set aside for a cleaner direction.

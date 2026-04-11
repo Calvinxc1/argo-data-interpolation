@@ -27,22 +27,22 @@
 # %% [markdown]
 # # 03. Cycle Representation Comparisons
 #
-# This notebook is a follow-on to notebook 02. The goal here is not to introduce another custom spline technique, but to reduce the question to the core model families that still matter: linear interpolation, PCHIP, and SciPy's native spline path. Those choices match the method classes emphasized in the topic literature review: linear interpolation as the simplest baseline, shape-preserving PCHIP-type methods as the main Argo interpolation comparator, and continuous spline representations as the natural family for compact functional encoding (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15; Yarger et al., 2022, pp. 11-12, 216-218).
+# Notebook 02 established the tradeoff: the custom spline artifact is meaningfully smaller than exact interpolants, but weaker on withheld-point RMSE. Notebook 03 asks whether that tradeoff actually requires the custom curvature-adaptive implementation, or whether simpler traditional / native spline options already cover the same ground more convincingly.
 #
-# The motivating question is practical: once the custom notebook-02 spline approach is set aside, how do the simpler core models compare on omitted-point error and artifact footprint, and what does that imply for the broader research direction?
+# The comparison here is therefore reduced to the core model families that still matter: linear interpolation, PCHIP, and SciPy's native spline path. Those choices match the method classes emphasized in the topic literature review: linear interpolation as the simplest baseline, shape-preserving PCHIP-type methods as the main Argo interpolation comparator, and continuous spline representations as the natural family for compact functional encoding (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15; Yarger et al., 2022, pp. 11-12, 216-218).
 
 # %% [markdown]
 # ## Scope and Research Role
 #
-# This notebook should be read as an exploratory research comparison, not as a claim of a new interpolation method.
+# This notebook should be read as the decision notebook in the sequence rather than as another method-introduction notebook.
 #
-# - The comparison is intended to sit next to notebook 02, using the same cycle-level comparison logic in a simpler model space.
-# - The main purpose is to test whether the old custom spline path was buying anything that SciPy's native spline implementation does not already provide.
+# - The comparison is intended to sit directly after notebook 02, using the same general cycle-level logic in a simpler model space.
+# - The main purpose is to test whether the custom spline path was buying anything that SciPy's native spline implementation does not already provide.
 # - The broader project takeaway is expected to be about uncertainty-aware compact representation, not about inventing a new spline family. That emphasis is consistent with the Argo QC/error context and with Yarger et al.'s framing of vertical profile representation as part of a larger inferential workflow rather than as interpolation alone (Wong et al., 2025, pp. 43, 47, 50, 55-56, 84; Yarger et al., 2022, pp. 11-12, 216-218).
 #
 # So the central interpretive questions are:
 #
-# 1. Is the old custom notebook-02 direction materially outperformed by the native spline path?
+# 1. Does the native spline path dominate the custom spline direction on simplicity and performance?
 # 2. Does PCHIP still sit on the low-RMSE end of the tradeoff?
 # 3. If spline methods are weaker on RMSE, do they still earn their place through tunability and smaller artifacts?
 
@@ -102,7 +102,7 @@ ds = get_data(box)
 # - `SplineAdapter` with default settings: native SciPy spline path without additional smoothing
 # - `SplineAdapter` with heuristic `s`: the same native spline family, but with explicit smoothing used as a footprint / fidelity control
 #
-# This is the key shift from the earlier custom-knot direction. Linear interpolation and PCHIP-type methods are the most relevant exact baselines from the reviewed oceanographic literature, while spline smoothing connects more naturally to the continuous-representation direction described by Yarger et al. (2022, pp. 11-12, 216-218) (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7). The notebook is therefore no longer asking whether a custom spline construction is interesting in its own right. It is asking whether the native spline family already gives the only part of that story that still matters: a tunable representation tradeoff.
+# This is the key shift from notebooks 01 and 02. Linear interpolation and PCHIP-type methods are the most relevant exact baselines from the reviewed oceanographic literature, while spline smoothing connects more naturally to the continuous-representation direction described by Yarger et al. (2022, pp. 11-12, 216-218) (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7). The question is no longer whether the custom spline can be made to work; notebooks 01 and 02 already answered that. The question is whether the native spline family already captures the only part of that story that remains compelling.
 
 # %%
 settings = ModelSettings(
@@ -138,7 +138,7 @@ def build_smooth_settings(
 # - omitted-point model error from the package fold logic
 # - artifact footprint in memory and serialized form
 #
-# That split matters because the research question has changed. If PCHIP wins on RMSE but spline methods can be tuned into substantially smaller artifacts, then the spline story becomes one of controlled approximation and later uncertainty quantification, not one of best raw interpolation accuracy.
+# That split matters because this notebook is trying to settle the custom-method question. If PCHIP wins on RMSE but native spline methods can be tuned into substantially smaller artifacts, then the custom spline story loses most of its remaining rationale and the broader spline story becomes one of controlled approximation and later uncertainty quantification.
 
 # %%
 model_errors = {}
@@ -223,14 +223,14 @@ pd.concat([
 # %% [markdown]
 # ## Exploratory Conclusion
 #
-# The intended research use of this notebook is to support a narrowed conclusion:
+# This notebook is the point where the sequence makes its decision:
 #
-# - the old custom notebook-02 spline direction is not interesting as a standalone technique if SciPy's native spline implementation already captures the same part of the tradeoff more simply,
+# - the old custom spline direction is not compelling as a standalone technique if SciPy's native spline implementation already captures the same part of the tradeoff more simply,
 # - PCHIP remains the stronger choice when the target is pure reconstruction RMSE,
 # - spline methods remain interesting because the `s` parameter gives a direct handle on fidelity versus footprint,
 # - that makes the spline family relevant as a compact, tunable representation layer whose next research step is uncertainty quantification, not further technique invention.
 #
-# So this notebook trends away from method novelty and toward a more useful question: if the chosen spline family is knowingly weaker on RMSE than PCHIP, how should that approximation be exposed, controlled, and quantified for downstream use?
+# In other words, notebook 03 closes the loop opened by notebooks 01 and 02. The custom spline was a useful exploratory method, but the more durable research direction is the simpler native spline family plus explicit uncertainty work.
 
 # %% [markdown]
 # ## Framing References

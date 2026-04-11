@@ -1,58 +1,105 @@
 # Uncertainty Notes: Argo Cycle Representation
 
-These notes cover uncertainty decomposition, sensor-error conventions, and the query-time storage or memory implications of the current vertical representation pipeline. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). The storage and computational estimates below are local analysis of the current pipeline and comparison implementations, not claims from the literature.
+These notes cover uncertainty decomposition, sensor-error conventions, and the storage/query implications of the method families discussed in this topic. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). The quantitative interpretations below are local project analysis rather than literature claims.
 
-## Query-time storage and memory implications
+## Why uncertainty still matters after notebook 03
 
-Local computational-analysis note: this section estimates storage and query-time implications of different representations for the current project setup. It is intended as project analysis, not as a literature summary.
+Notebook 03 narrows the active method direction away from the custom curvature-adaptive spline and toward simpler native spline-family methods. That does not make the uncertainty story less important. It makes it more central.
 
-Every interpolating method (Reiniger-Ross, Akima, PCHIP, MRST-PCHIP) shares a structural property: the full profile must be retained in memory at query time because the interpolant is defined by the positions of the observations. This pipeline does not share this requirement. In this pipeline design, once the spline is fit, the raw data can be discarded entirely.
+The custom prototype originally bundled together three ideas:
 
-**Reiniger-Ross:** Fit cost: none. Direct interpolation with no fitting step. Memory at query time: full profile retained, roughly 10 to 30 KB per cycle as floating-point arrays.
+1. compact representation,
+2. non-exact spline fitting,
+3. explicit per-profile uncertainty output.
 
-**Akima:** Fit cost: O(n), computes slopes at every point using five nearest neighbors, then constructs cubic coefficients per interval. Memory: original observations plus polynomial coefficients per interval, roughly four to five floats per interval. Full pressure grid must be retained.
+Notebook 03 weakens the case for keeping the custom fitting machinery. It does not weaken the case for carrying forward a compact representation whose approximation error is made visible rather than hidden.
 
-**PCHIP:** Fit cost: O(n), slope computation and cubic coefficients per interval. Memory: same structure as Akima.
+So the uncertainty question is now broader than the historical custom method:
 
-**MRST-PCHIP:** Fit cost: O(17n), sixteen PCHIP passes plus a final mapping pass. Memory: full SA and CT arrays required to reconstruct the interpolation coordinate system. No compression possible.
+- what parts of the uncertainty story belong to the representation problem itself,
+- what parts were specific to the custom prototype,
+- and how should those pieces survive if the project centers on a simpler spline-family implementation?
 
-**This pipeline:** Fit cost: two Savitzky-Golay filter passes plus peak detection plus one LSQ solve, O(n x k^2) where k is knot count (5 to 11). Memory at query time: approximately 280 bytes per variable per cycle versus 10 to 30 KB for any interpolating method. Compression ratio roughly 40 to 100 to 1.
+## Sensor-error conventions from the Argo sources
 
-| Method | Fit cost | Query memory | Compresses? |
-|---|---|---|---|
-| Reiniger-Ross | None | Full profile (~10-30 KB) | No |
-| Akima | O(n) | Full profile + coefficients | No |
-| PCHIP | O(n) | Full profile + coefficients | No |
-| MRST-PCHIP | O(17n) | Full SA + CT arrays | No |
-| This pipeline | O(n) + LSQ | ~280 bytes per variable | Yes, ~40-100x |
+The source-backed sensor and QC conventions are summarized in [../literature-review.md](../literature-review.md). The main implications for this topic remain:
 
-The memory argument is particularly sharp. Once any interpolating method's raw profile is discarded, the interpolant no longer exists. Once this pipeline's spline is stored, the raw profile can be discarded permanently and the full queryable model is preserved in approximately 280 bytes.
+- for standard delayed-mode SBE profiles at 0 to 2000 dbar, `2.4` dbar is the relevant residual pressure uncertainty after drift correction,
+- `0.002` C remains the canonical temperature accuracy term,
+- delayed-mode salinity uncertainty is adjustment-dependent with a `0.01` PSU floor rather than a depth-varying source-provided field,
+- suspected TNPD microleaker profiles with `PRES_ADJUSTED_ERROR = 20` dbar should be excluded from routine use rather than treated as ordinary delayed-mode profiles.
 
-## Uncertainty quantification as a differentiator
+Those source terms are stable across the method comparisons. What changes is how the project chooses to combine them with representation error.
 
-The literature-facing part of this distinction is summarized in [../literature-review.md](../literature-review.md): the reviewed interpolation methods do not provide standalone per-profile uncertainty, and Yarger et al. attach uncertainty to a broader spatiotemporal functional-kriging system rather than to a stored vertical artifact for a single profile. The note-level question here is what uncertainty decomposition the current pipeline should expose in response.
+## The historical custom-prototype uncertainty model
 
-Local design interpretation: this pipeline is intended to produce a depth-varying uncertainty estimate for an individual profile's vertical representation, grounded in three physical sources of error. The numeric source terms below use values summarized in the lit review; the way they are combined here is a local modeling choice.
+Notebook 01 used a local uncertainty construction built from three components:
 
-The spline reconstruction residual (`cycle_rmse`) captures how well the compressed representation fits the raw observations. Constant across depths for a given cycle.
+1. a per-cycle reconstruction residual term,
+2. a fixed instrument/error term,
+3. a pressure-gradient-propagated term.
 
-The sensor noise floor (0.002 C for temperature, 0.01 PSU for salinity) captures the irreducible measurement uncertainty from the SBE-41 CTD. Also constant across depths.
+That construction remains useful as a prototype because it made the uncertainty fields interpretable:
 
-The pressure sensor error propagated through the local temperature gradient (`|dT/dP| x 2.4`) is the depth-varying component. In the thermocline where `dT/dP` can reach 0.1 C/dbar, a 2.4 dbar pressure uncertainty contributes up to 0.24 C of temperature uncertainty. In the flat deep ocean where `dT/dP` approaches zero, this term vanishes.
+- reconstruction error represented how lossy the stored artifact was,
+- sensor terms represented upstream measurement limits,
+- the pressure-gradient term made uncertainty widen where the water column was structurally difficult.
 
-The result is that total uncertainty is largest precisely where the ocean is most variable and hardest to represent accurately, and smallest where the profile is most stable. This follows directly from the physics of the measurement.
+This is still a good explanation of why the prototype looked scientifically legible. It should now be read as the uncertainty story attached to the historical custom branch, not automatically as the final uncertainty design for the project.
 
-## Sensor-error implications for this pipeline
+## What survives beyond the custom prototype
 
-The source-backed sensor and QC conventions are summarized in [../literature-review.md](../literature-review.md). The implications for the current implementation are narrower:
+Even after the method shift in notebook 03, several uncertainty principles still appear worth keeping:
 
-- for standard delayed-mode SBE profiles at 0 to 2000 dbar, `2.4` dbar is the relevant residual pressure uncertainty after drift correction
-- the salinity uncertainty described by OWC and delayed-mode QC is profile- or segment-level, so any depth-varying uncertainty term in this pipeline is a local modeling layer rather than a source-provided field
-- suspected TNPD microleaker profiles with `PRES_ADJUSTED_ERROR = 20` dbar should be excluded from routine use rather than treated as ordinary delayed-mode profiles
+- compact non-exact profile representations should expose approximation error rather than pretending to be exact,
+- uncertainty should widen in regions where local profile structure makes pressure or fit errors matter more,
+- uncertainty should remain queryable as part of the stored artifact rather than treated as an external afterthought,
+- sensor-error terms should remain tied to Argo QC conventions rather than free-floating tuning constants.
 
-### Local data-loading assumptions
+Those principles belong to the broader representation problem, not only to the custom spline implementation.
 
-Implementation note: if the local data-loading layer aliases delayed-mode adjusted salinity into the working salinity field, the `DATA_MODE` column remains the key indicator. Verify the behavior of the specific client library in use before relying on that aliasing rule operationally. Guard:
+## Exact interpolants and uncertainty
+
+The literature reviewed here does not provide a standalone per-profile uncertainty model for methods such as PCHIP, Akima, or MRST-PCHIP. That distinction still matters.
+
+Exact interpolants can be stronger on omitted-point RMSE while still leaving an open systems question:
+
+- if a method is exact at retained points or near-exact on withheld-point reconstruction,
+- but produces no compact artifact-level uncertainty field,
+- then it may still be a weaker fit for the specific representation role this project is targeting.
+
+This is one reason notebook 03 does not simply end the project with "PCHIP wins." PCHIP wins a narrower metric contest. The broader representation-and-uncertainty question remains.
+
+## Storage and query implications
+
+The storage story also needs to be split into historical and current layers.
+
+### Historical custom prototype
+
+Notebook 02 showed that the custom compact artifact can be materially smaller and more stable in footprint than the exact-interpolant baselines. That result remains worth keeping because it established the existence of a real storage/query tradeoff.
+
+### Current direction
+
+After notebook 03, the more important storage question is no longer "how compact was the custom artifact?" It is "what compactness and footprint behavior can be obtained from simpler native spline-family representations as `s` changes?"
+
+So older footprint figures tied to the custom method should now be treated as evidence that compact artifacts are possible, not as the final storage benchmark for the topic.
+
+## Current uncertainty work that still matters
+
+Given the current state of the topic, the highest-value next uncertainty tasks are:
+
+1. decide which parts of the notebook 01 uncertainty decomposition should transfer directly to a native spline-family artifact,
+2. test whether uncertainty widens appropriately as spline smoothing increases and RMSE worsens,
+3. separate approximation uncertainty from upstream sensor-error terms more explicitly,
+4. evaluate whether the uncertainty outputs remain useful once the custom method is no longer the main artifact.
+
+That is now a better match to the notebook sequence than treating the notebook 01 uncertainty construction as the settled final design.
+
+## Local implementation guards
+
+### Data-loading assumptions
+
+Implementation note: if the local data-loading layer aliases delayed-mode adjusted salinity into the working salinity field, the `DATA_MODE` column remains the key indicator. Verify the behavior of the specific client library in use before relying on that rule operationally.
 
 ```python
 print(data["DATA_MODE"].value_counts())

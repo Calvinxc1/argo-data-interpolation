@@ -25,20 +25,20 @@
 #     version: 3.11.13
 # ---
 # %% [markdown]
-# #ArgoCycleRepresentation:ResearchNotebook
+# # 01. Argo Cycle Representation Baseline
 #
-# Thisnotebookdevelopsacompact,queryablesplinerepresentationforindividualArgodepthprofiles.
+# This notebook establishes the baseline case for a custom curvature-adaptive least-squares spline representation of individual Argo profiles.
 #
-# **Corequestion**:Canwecompresseachprofile(~80observationspercycleformostArgofloats)intoasmoothmodelthatcaptureslarge-scaleverticalstructure,providesuncertaintyestimatesatarbitrarypressures,andservesasinputtospatio-temporalmodeling?
+# **Core question**: can a per-cycle spline artifact be made compact, queryable, and uncertainty-aware while still reproducing the large-scale vertical structure of observed profiles well enough to be useful?
 #
-# **Approach**:AdaptiveB-splinefittingwithcurvature-guidedknotplacementinformedbyLietal.(2005),LSQratherthanexactinterpolationasaprojectdesignchoiceaimedatnoiserobustness,anddepth-varyinguncertaintyfromsensorspecsandpressure-propagatedgradients(Wongetal.,2025,pp.55-56).
+# **Approach**: adaptive B-spline fitting with curvature-guided knot placement informed by Li et al. (2005), least-squares fitting rather than exact interpolation, and a local uncertainty construction based on model residuals plus Argo delayed-mode sensor conventions (Wong et al., 2025, pp. 43, 47, 50, 55-56, 84).
 #
-# **Context**:ThisbuildsonYargeretal.(2022,pp.11-12)'sfunctionalrepresentationapproachbutuses9-16adaptiveknotspercycleversus200equispacedknots.UnlikeexactinterpolantslikeMRST-PCHIP(Barker&McDougall,2020,pp.1-2),thisoptimizesforcompactrepresentationratherthanSA-CTdiagrampreservation.
+# **Context**: this sits closer to Yarger et al. (2022, pp. 11-12, 216-218) than to exact interpolants such as MRST-PCHIP, because the design target is a stored functional representation of a profile rather than exact reproduction of every retained observation.
 #
-# **Scope**:Thisnotebookdemonstratesthemethodon469cyclesfromonesubtropicalregion(2011,NorthAtlantic).Itestablishesproof-of-conceptandbaselinevalidationmetricsforthecurrentsplineartifact.ComparativebenchmarkingagainstAkima/PCHIPnowlivesinthecompanionvalidationnotebook;regionalgeneralizationanddeeperfailure-modeanalysisremainfuturework.
+# **Scope**: this notebook is intentionally method-internal. Its job is to show that the custom spline idea can be fit, queried, and inspected coherently on a real Argo sample before asking how it compares to other approaches. Direct benchmarking against Akima and PCHIP is deferred to notebook 02.
 
 # %% [markdown]
-# ##1.Dependencies
+# ## 1. Dependencies
 
 # %%
 import numpy as np
@@ -54,11 +54,11 @@ from lib import ModelError, SensorError, CycleError, CycleModel, CycleSettings
 from lib import build_model, calc_fold_error
 
 # %% [markdown]
-# ##2.DataAcquisition
+# ## 2. Data Acquisition
 #
-# RequestArgoprofilesfromaboundedregionandtimewindow.Thissliceprovidesareproducibleworkingdatasetwhiletuninginterpolationparameters.
+# Request Argo profiles from a bounded region and time window. This slice provides a reproducible working dataset for method development and internal validation.
 #
-# **Regionalcontext**:Thissubtropicalbox(20-30°N,75-45°W)isusedhereasapracticalstartingpointforlocalmethoddevelopmentratherthanasaliterature-backedclaimabouttheeasiestormostrepresentativeArgoregime.Performanceinmoredifficultsettingssuchasdeepwintermixedlayers,equatorialinversions,andpolarhaloclinesremainsfuturevalidationwork.
+# **Regional context**: this subtropical box (20-30°N, 75-45°W) is used here as a practical starting point for local method development rather than as a literature-backed claim about the easiest or most representative Argo regime. Performance in more difficult settings such as deep winter mixed layers, equatorial inversions, and polar haloclines remains future validation work.
 
 # %%
 box = [
@@ -71,12 +71,12 @@ f = ArgoDataFetcher().region(box).load()
 data = f.data.to_dataframe()
 
 # %% [markdown]
-# ##3.ProfileStructure
+# ## 3. Profile Structure
 #
-# Transformflatobservationrowsintocycle-indexedprofiles:
-# -Uniquecycleidentifier(`PLATFORM_CYCLE`)
-# -Cyclemetadata(position,time)
-# -Pressure-sortedreadingsformodelfitting
+# Transform flat observation rows into cycle-indexed profiles:
+# - unique cycle identifier (`PLATFORM_CYCLE`)
+# - cycle metadata (position, time)
+# - pressure-sorted readings for model fitting
 
 # %%
 group_col = 'PLATFORM_CYCLE'
@@ -94,30 +94,30 @@ readings.insert(0, group_col, readings[group_fields[0]].astype(str) + '-' + read
 readings = readings.drop(columns=group_fields)
 
 # %% [markdown]
-# ##4.Cycle-LevelModelFitting
+# ## 4. Cycle-Level Model Fitting
 #
-# Foreachprofile:
-# 1.Estimatevalidationerrorvia5-foldcross-validation
-# 2.Fittemperatureandsalinitysplinemodels
-# 3.Packagemodelswitherrorestimatesin`SplineModel`objects
+# For each profile:
+# 1. estimate validation error via 5-fold cross-validation
+# 2. fit temperature and salinity spline models
+# 3. package the resulting models with uncertainty metadata in `CycleModel` objects
 #
-# Theresult:acompactlibrarywhereyouprovideacycleIDandpressure,andgetbackinterpolatedvalueswithuncertainty.
+# The immediate result is a compact per-cycle artifact that can be queried by pressure rather than a method comparison claim.
 #
-# ###MethodOverview
+# ### Method Overview
 #
-# Oceanprofileshavemixedstructure:thermoclinesbendsharply,deeplayersareflat.Ratherthanspreadingknotsuniformly,placethemwherecurvatureishighest—moreinthethermocline,fewerintheabyss.Thisfollowscurvature-adaptivesplinefittingprinciplesfromLietal.(2005,pp.791-794),usedhereasacross-domainmethodologicalanalogueratherthandirectoceanographicpriorart.
+# The working intuition is that Argo profiles have mixed structure: thermoclines bend sharply, while deep layers are often comparatively smooth. Rather than spreading knots uniformly, the custom method places more flexibility where curvature is highest and fewer degrees of freedom in flatter regions. That follows curvature-adaptive spline ideas from Li et al. (2005, pp. 791-794), used here as a cross-domain methodological analogue rather than direct oceanographic prior art.
 #
-# Useleast-squaresfittingratherthanexactinterpolation.TraditionalexactinterpolantssuchasMR-PCHIPandMRST-PCHIPareconstructedtoreconstructvaluesbetweenretainedobservationswhilelimitingovershootandpreservingphysicallyrealisticstructure,nottoproduceacompactstoredartifact(Barker&McDougall,2020,pp.1-2,4-7,14-15).Inthisnotebook,LSQfittingisaprojectdesignchoiceintendedtorepresentthebroaderprofilestructurewithoutreproducingeverypointexactly.
+# Least-squares fitting is used rather than exact interpolation. Exact interpolants such as MR-PCHIP and MRST-PCHIP are designed to reconstruct values between retained observations while limiting overshoot and preserving physically realistic structure (Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15). This notebook asks a different question: can a non-exact fit still produce a coherent stored profile representation with sensible uncertainty behavior?
 #
-# Uncertaintycombinesmodelerror,aninstrument/errorterm,andpressure-gradientpropagation.Fortemperature,theinstrumenttermisfixedat0.002°C.Forsalinity,thisnotebookdoesnotuseasingleuniversalconstant,becauseArgodelayed-modesalinityuncertaintyistreatedasadjustment-dependentwithaminimumfloorratherthanoneexactvalueeverywhere(Wongetal.,2025,pp.50,55-56,84;Wongetal.,2023,p.9).Instead,itusesthe95thpercentileofeachcycle’s`PSAL_ERROR`values.Asaresult,thislocaluncertaintyconstructionislargestwhereverticalgradientsaresteepest.
+# Uncertainty combines model error, an instrument/error term, and pressure-gradient propagation. For temperature, the instrument term is fixed at 0.002°C. For salinity, this notebook does not use a single universal constant because delayed-mode salinity uncertainty is treated as adjustment-dependent with a minimum floor rather than one exact value everywhere (Wong et al., 2025, pp. 50, 55-56, 84; Wong et al., 2023, p. 9). Instead, it uses the 95th percentile of each cycle's `PSAL_ERROR` values. As a result, the local uncertainty construction is largest where vertical gradients are steepest.
 #
-# Thismethoduses9-16knotspercycle(median~9)versusYargeretal.'s(2022,pp.11-12)200equispacedknots.
+# In this local sample, the custom method typically uses 9-16 knots per cycle (median about 9), compared with the 200 equispaced knots used in Yarger et al.'s (2022, pp. 11-12) vertical smoother.
 #
-# ###ParameterChoices
+# ### Parameter Choices
 #
-# The`SplineSettings`usedhere(`prominence=0.25,window=10,spacing=5.0,peak_dist=20,folds=5`)wereselectedthroughinformalexperimentationonasubsetofprofiles.Thesevaluesarelikelyregion-specificandnotnecessarilyoptimal.
+# The `CycleSettings` used here (`prominence=0.25`, `window=10`, `spacing=5.0`, `peak_dist=20`, `folds=5`) were selected through informal experimentation on a subset of profiles. These values should be read as working prototype settings rather than as a globally tuned optimum.
 #
-# Parameterscanbetunedtoachievetighterfitsifneeded,thoughthisincreasesknotcountandcompromisesstorageefficiency.Thetrade-offbetweenrepresentationfidelityandmodelcompactnessisapplication-dependent.Systematicparametertuningandsensitivityanalysisareplannedfuturework.
+# That limitation is acceptable for notebook 01 because the goal here is feasibility: fit the method, inspect the resulting artifact, and see whether the internal diagnostics are coherent enough to justify a broader comparison.
 
 # %%
 settings = CycleSettings(
@@ -157,9 +157,9 @@ for cycle_number, cycle_data in tqdm(readings.groupby('PLATFORM_CYCLE')):
     cycle_models[cycle_number] = cycle_model
 
 # %% [markdown]
-# ##5a.Single-CycleInspection
+# ## 5a. Single-Cycle Inspection
 #
-# Selectonecyclefordetailedexamination.Doestheinterpolatedprofilelookphysicallyreasonablepoint-by-point,notjustinaggregate?
+# Select one cycle for detailed examination. Before comparing this method to anything else, the first check is whether the fitted profile and attached uncertainty behave sensibly on an individual example.
 
 # %%
 # cycle_number = np.random.choice(list(cycle_models.keys()))
@@ -172,13 +172,13 @@ cycle_model = cycle_models[cycle_number]
 cycle_interp = cycle_model.interpolate(cycle_data['PRES'])
 
 # %% [markdown]
-# ##5b.UncertaintyEnvelopeConstruction
+# ## 5b. Uncertainty Envelope Construction
 #
-# Constructplottingbandsfromper-pointerrorterms.Use2σasareadableapproximationofalikelyrangearoundeachestimate(notaformalconfidenceinterval).
+# Construct plotting bands from per-point error terms. Use 2σ as a readable approximation of a likely range around each estimate, not as a formal calibrated confidence interval.
 #
-# **Depth-varyinguncertainty**:Theuncertaintyenvelopewidensinthethermoclinewhere|dT/dP|islarge,reflectingthefactthatafixedpressureuncertainty(2.4dbar)contributesmoretotemperatureuncertaintywheregradientsaresteep.IntheflatdeepoceanwheredT/dP→0,pressure-propagatederrorvanishesandonlythefixedinstrument/errortermandmodelresidualsremain.Thepressureandtemperaturesourcetermsusedinthisprototypecomefromthedelayed-modeArgoQCconventionssummarizedinWongetal.(2025,pp.43,47,50,84).
+# **Depth-varying uncertainty**: the envelope widens in the thermocline where `|dT/dP|` is large, reflecting the fact that a fixed pressure uncertainty of 2.4 dbar contributes more to temperature uncertainty where gradients are steep. In the flat deep ocean where `dT/dP -> 0`, the pressure-propagated term vanishes and only the fixed instrument/error term plus model residuals remain. The pressure and temperature source terms used here come from the delayed-mode Argo QC conventions summarized in Wong et al. (2025, pp. 43, 47, 50, 84).
 #
-# Thethreeerrorterms(modelRMSE,afixedinstrument/errorterm,andpressure-propagatedgradient)arecombinedasroot-sum-square(RSS)foreachquery.Thistreatsthemasindependentcontributions,whichisasimplifyingassumptioninthecurrentprototype.
+# The three error terms are combined as root-sum-square (RSS) for each query. That independence assumption is a simplification, but it is enough for this notebook's goal of testing whether the method yields uncertainty fields that are at least qualitatively interpretable.
 
 # %%
 sd_offset = 2
@@ -189,9 +189,9 @@ cycle_interp['sal_low'] = (cycle_interp['salinity'] - (sd_offset * cycle_interp[
 cycle_interp['sal_high'] = (cycle_interp['salinity'] + (sd_offset * cycle_interp['sal_error']))
 
 # %% [markdown]
-# ##5c.VisualDiagnostic
+# ## 5c. Visual Diagnostic
 #
-# Interpolatedcurveswith2σenvelopesvia`fill_betweenx`.Pressureincreasesdownward.Wherebandswiden,themodelsignalsgreaterlocaluncertainty.
+# Plot the interpolated curves with 2σ envelopes. Pressure increases downward. Where the bands widen, the method is signaling greater local uncertainty rather than hiding structurally difficult regions behind a single global RMSE number.
 
 # %%
 fig, ax = plt.subplots(ncols=2, figsize=(12, 6))
@@ -223,16 +223,16 @@ ax[1].legend(["Interpolated", "St Error", "Actual"])
 fig.tight_layout()
 
 # %% [markdown]
-# ###Interpretation
+# ### Interpretation
 #
-# Observedprofilefollowsinterpolatedprofilecloselyacrossdepth.Mostpointsfallinsidetheplotted2σband,suggestingthatthecurrentuncertaintyconstructionisinformativeonthisexamplewithoutbeingobviouslyinflated.
+# On this example, the fitted curve follows the observed profile closely across depth, and the uncertainty band widens in the same regions where the profile is structurally more complex. That is the baseline result notebook 01 needs: the custom method appears internally coherent on a single-cycle inspection rather than obviously pathological.
 
 # %% [markdown]
-# ##6a.Cross-CycleValidation:RMSEDistributions
+# ## 6a. Cross-Cycle Validation: RMSE Distributions
 #
-# Ifthefittingprocedureisstable,validationRMSEshouldclusterinalow-errorregime.Areweconsistentlyaccurate,oronlyaccurateoneasycycles?
+# Single-profile inspection is necessary but not sufficient. The next question is whether the method behaves consistently across the sampled cycles or only looks reasonable on a hand-picked example.
 #
-# **Note**:Thesevaluesquantifywithin-profilereconstructionerrorfrom5-foldcross-validation,notspatio-temporalpredictionerror.Publishedbenchmarksforthisspecifictask(verticalrepresentationaccuracy)arescarceintheliterature.
+# **Note**: these values quantify within-profile reconstruction error from 5-fold cross-validation, not spatiotemporal prediction error. At this stage they are being used as internal method diagnostics, not as a claim of superiority over other interpolants.
 
 # %%
 model_error = pd.DataFrame([model.error.model for model in cycle_models.values()])
@@ -262,20 +262,20 @@ ax[1].set(
 fig.tight_layout()
 
 # %% [markdown]
-# ###DistributionInterpretation
+# ### Distribution Interpretation
 #
-# BothRMSEdistributionsarestronglyright-skewed:mostcyclesfitwell,withasmallertailofdifficultoutliers.Thisisexpectedforoceanprofiledata.Thecentraltendency(mediantemperatureRMSE0.146°C,salinity0.025PSU)isreasonableforcurrentobjectives.High-errortailcasesaretargetedfollow-uptasks.
+# Both RMSE distributions are strongly right-skewed: most cycles fit reasonably well, with a smaller tail of difficult outliers. For notebook 01, that is enough to support a feasibility claim. The method is not failing everywhere; it is working on many profiles while leaving a visible tail that needs follow-up.
 #
-# **Openquestion**:Therighttail(somecycleswithRMSE>0.35°C)deservesinvestigation.Potentialcausesincludeprofileswithstrongsubsurfaceinversions,fine-scalelayering,orsparsesamplingincomplexregions.Identifyingandhandlinghigh-errorcasesisapriorityformakingthismethodproduction-ready.
+# **Open question**: the right tail deserves investigation. Potential causes include profiles with strong subsurface inversions, fine-scale layering, or sparse sampling in structurally difficult regions. Notebook 02 will determine how serious that tail is relative to exact-interpolant baselines.
 
 # %% [markdown]
-# ##6b.ResidualStructurebyDepth
+# ## 6b. Residual Structure by Depth
 #
-# ValidationRMSEtellsusaverageerror,butnotwhereitoccurs.Doresidualsshowsystematicdepthpatterns?
+# Aggregate RMSE says how much error there is on average, but not where it occurs. A more useful internal diagnostic is whether the residuals line up with oceanographic complexity rather than appearing arbitrary.
 #
-# **Question**:Doeserrorcorrelatewithoceanographiccomplexity?Ifadaptiveknotplacementisworking,we'dexpectreasonableerrorsincomplexregions(sharpthermocline,inversions,fine-scaleintrusions)thataveragenearzero,thoughlikelystillelevatedcomparedtosimplerregimes(deepocean,homogeneousmixedlayer).Errorsshouldreflectgenuinemodelingdifficulty,notuniformdistribution.
+# **Question**: if curvature-adaptive knot placement is doing something meaningful, do the larger residuals appear in structurally difficult regions such as the thermocline and inversion layers, while simpler deep-water regions remain easier to fit?
 #
-# Note:Thesearepuremodelreconstructionresiduals(0.175°CRMSE).Totalreporteduncertaintyislarger,addingsensorerrorandpressure-propagatedgradienttermsthatvarywithdepth.
+# Note: these are model reconstruction residuals only. The total reported uncertainty used elsewhere in the notebook is larger because it also includes sensor and pressure-propagated terms.
 
 # %%
 error_records = []
@@ -322,52 +322,50 @@ ax[1].set(
 fig.tight_layout()
 
 # %% [markdown]
-# ###Interpretation
+# ### Interpretation
 #
-# Thehexbinplotsrevealcleardepth-structuredpatterns.Residualsarenotuniformlydistributed—errorvariessystematicallywithdepth.Critically,aggregatecentraltendencyremainsnearzero(meantemperatureerror2.7×10⁻¹⁶°C,salinity-6.0×10⁻¹⁶PSU),confirmingthatthereconstructionresidualsarecenterednearzerointhisprototypesetting,withnoobviousaggregatebiasinthefittedprofiles.
+# The residual plots show depth-structured behavior rather than obvious global bias: aggregate central tendency remains near zero, while the larger spread appears in the same depth ranges where profile structure is more complex. That is the kind of pattern the custom method was meant to produce.
 #
-# Visualinspectionsuggestserrordensitynarrowsinthedeepocean(below~1500dbar),consistentwiththeexpectationthatstable,low-gradientregionsareeasiertomodel.Thethermoclineregionshowswidererrorspread,asexpectedforcomplexhigh-gradientstructure.
-#
-# Thisdepth-errorcorrelationsuggestsadaptiveknotplacementisconcentratingeffortappropriately:allocatingflexibilitywherethewatercolumnisgenuinelycomplexwhilestayingsparseinsimplerregimes.Formalquantification—stratifyingresidualsbylocalgradientstrength—isdeferredtofutureworkbutremainsapriorityforvalidatingthattheobservedpatternsmatchoceanographicexpectations.
+# This does not prove that the custom spline is the best available approach. It does show that the method behaves like a plausible profile representation rather than an arbitrary compression scheme, which is the threshold notebook 01 is meant to test.
 
 # %% [markdown]
-# ##7.MethodScopeandCurrentLimitations
+# ## 7. Method Scope and Current Limitations
 #
-# **Whatthisnotebookdemonstrates:**
-# -Proof-of-conceptforadaptivesplinerepresentationofArgoprofiles
-# -Validationframeworkvia5-foldcross-validation
-# -Uncertaintyquantificationcombiningsensorspecsandmodelerror
-# -Near-zeroaggregatereconstructionbiasinthisprototypedataset
+# **What this notebook demonstrates**
+# - proof of concept for a custom adaptive spline representation of Argo profiles
+# - a working per-cycle artifact with queryable uncertainty fields
+# - internal cross-validation and residual diagnostics across many cycles
+# - enough coherence to justify benchmarking the method against more traditional interpolants
 #
-# **WhatthisnotebookdoesNOTaddress(yet):**
-# -**Comparativebenchmarking**:AseparatevalidationnotebooknowcomparesthecurrentsplineartifacttoAkimaandPCHIPonthesameinterleavedomitted-pointbenchmark.Thatcomparisonshouldbeusedwheninterpretingwhether0.175°CRMSEisstrongorweakrelativetoexactinterpolants.
-# -**Failuremodes**:Thehigh-errortail(somecycles>0.35°CRMSE)isunexplained.Whatprofilesbreakthismethod?
-# -**Regionalgeneralization**:Onlytestedononesubtropicalbox.Doesthisworkinpolarregions?Equatorialupwellingzones?Deepwintermixedlayers?
-# -**SA-CTpreservation**:UnlikeMRST-PCHIP(Barker&McDougall,2020,pp.1-2),thismethoddoesn'toptimizeforwater-massstructure.Trade-offsarenotquantified.
-# -**Parametersensitivity**:Currentsettingswereinformallytuned.Howsensitiveareresultstothesechoices?
-# -**Practicaldeployment**:Computationalcost,workflowintegration,andreproducibilitydetailsarenotcovered.
+# **What this notebook does not establish**
+# - whether this method is stronger or weaker than Akima, PCHIP, or other baselines
+# - how the high-error tail compares to simpler exact-interpolant methods
+# - whether the uncertainty construction is calibrated rather than just interpretable
+# - whether the method generalizes beyond this one regional sample
+# - whether the curvature-adaptive machinery is worth its complexity
 #
-# **Intendeduse**:Thisisaworkingprototypeforexploringcompactprofilerepresentation.Usecautiously,validateonyourowndata,andexpectrefinement.Notyetsuitableasablack-boxproductiontool.
+# **Intended use**: notebook 01 should be read as a method-confirmation notebook. It shows that the custom spline idea is viable enough to deserve comparison, not that it has already won that comparison.
 
 # %% [markdown]
-# ##References
+# ## References
 #
-# **Referencestatusnote**:Allreferenceslistedherewerecheckedagainstlocalfull-textcopies.TheLietal.(2005)comparisonisstillacross-domainmethodologicalanalogyratherthananoceanographicsourceclaim.
+# **Reference status note**: all references listed here were checked against local full-text copies. The Li et al. (2005) comparison remains a cross-domain methodological analogue rather than an oceanographic source claim.
 #
-# -Barker,P.M.,&McDougall,T.J.(2020).Twointerpolationmethodsusingmultiply-rotatedpiecewisecubicHermiteinterpolatingpolynomials.*JournalofAtmosphericandOceanicTechnology,37*(4),605-619.https://doi.org/10.1175/JTECH-D-19-0211.1
-# -Li,W.,Xu,S.,Zhao,G.,&Goh,L.P.(2005).AdaptiveknotplacementinB-splinecurveapproximation.*Computer-AidedDesign,37*(8),791-797.https://doi.org/10.1016/j.cad.2004.09.008
-# -Thielmann,A.,Kneib,T.,&Säfken,B.(2025).Enhancingadaptivesplineregression:Anevolutionaryapproachtooptimalknotplacementandsmoothingparameterselection.*JournalofComputationalandGraphicalStatistics,34*(4),1397-1409.https://doi.org/10.1080/10618600.2025.2450458
-# -Wong,A.P.S.,Keeley,R.,Carval,T.,&theArgoDataManagementTeam.(2025).*ArgoQualityControlManualforCTDandTrajectoryData*(Version3.9).https://doi.org/10.13155/33951
-# -Yarger,D.,Stoev,S.,&Hsing,T.(2022).Afunctional-dataapproachtotheArgodata.*TheAnnalsofAppliedStatistics,16*(1),216-246.https://doi.org/10.1214/21-AOAS1477
+# - Barker, P. M., & McDougall, T. J. (2020). *Two interpolation methods using multiply-rotated piecewise cubic Hermite interpolating polynomials.* Journal of Atmospheric and Oceanic Technology, 37(4), 605-619. https://doi.org/10.1175/JTECH-D-19-0211.1
+# - Li, W., Xu, S., Zhao, G., & Goh, L. P. (2005). *Adaptive knot placement in B-spline curve approximation.* Computer-Aided Design, 37(8), 791-797. https://doi.org/10.1016/j.cad.2004.09.008
+# - Thielmann, A., Kneib, T., & Saefken, B. (2025). *Enhancing adaptive spline regression: An evolutionary approach to optimal knot placement and smoothing parameter selection.* Journal of Computational and Graphical Statistics, 34(4), 1397-1409. https://doi.org/10.1080/10618600.2025.2450458
+# - Wong, A. P. S., Keeley, R., Carval, T., & the Argo Data Management Team. (2025). *Argo Quality Control Manual for CTD and Trajectory Data* (Version 3.9). https://doi.org/10.13155/33951
+# - Yarger, D., Stoev, S., & Hsing, T. (2022). *A functional-data approach to the Argo data.* The Annals of Applied Statistics, 16(1), 216-246. https://doi.org/10.1214/21-AOAS1477
 #
-# ##NextSteps
+# ## Next Steps
 #
-# Thisnotebookestablishesbaselineperformanceforadaptivecycle-levelrepresentation.Immediatefollow-onworkincludes:
+# Notebook 01 leaves the custom method in a specific place: plausible, working, and worth benchmarking, but not yet justified beyond that.
 #
-# 1.**Post-benchmarkanalysis**:ConsolidateAkima/PCHIPcomparisonresults,addcompactness/stabilityinterpretation,andextendthecomparisontoadditionalbaselinesonlyiftheyaddressadistinctmethodologicalquestion
-# 2.**Failureanalysis**:Characterizethehigh-errortail—what'sdifferentaboutdifficultprofiles?
-# 3.**Regionalvalidation**:TestonSouthernOcean,equatorialPacific,andArcticdata
-# 4.**SA-CTdiagnosis**:Quantifywater-masspreservationtrade-offsvs.MRST-PCHIP
-# 5.**Parameteroptimization**:SystematicgridsearchorBayesianoptimizationfor`SplineSettings`
+# Immediate follow-on work:
 #
-# Thebroadergoal:integratethesesplinemodelsintospatio-temporalinterpolationworkflows,wherecompactqueryablerepresentationswithuncertaintybecomeinputstokrigingorGP-basedspatialprediction.
+# 1. benchmark the method against Akima and PCHIP on the same withheld-point task
+# 2. characterize the high-error tail and identify where the custom approach breaks down
+# 3. test whether the uncertainty fields remain useful when the fit becomes less accurate
+# 4. check whether the method's compactness and queryability survive broader comparisons
+#
+# Those questions are the bridge to notebook 02.

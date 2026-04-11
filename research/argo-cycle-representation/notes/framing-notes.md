@@ -1,6 +1,6 @@
 # Framing Notes: Argo Cycle Representation
 
-These working notes capture project positioning, claim boundaries, and implementation-oriented framing for the current vertical representation work. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). Candidate future sources are noted explicitly as pending literature-review inclusion rather than treated as established support.
+These working notes capture project positioning, claim boundaries, and implementation-oriented framing for the broader vertical representation direction now defined by the notebook sequence. Source-backed claims in this file should trace to [../literature-review.md](../literature-review.md). This file is the canonical place for the topic's high-level pitch and claim boundaries; more concrete audience and product concepts belong in [operationalization-notes.md](operationalization-notes.md).
 
 ## Project framing refinement
 
@@ -8,18 +8,9 @@ This project should not be framed as a new general Argo interpolation method or 
 
 The tighter working framing is:
 
-**A compact, uncertainty-aware Argo-derived vertical profile or baseline prior for near-real-time acoustic range support and related operational oceanography workflows.**
+**A compact, uncertainty-aware Argo-derived vertical profile representation for downstream oceanographic workflows, with acoustics-sensitive use cases as one current target.**
 
-This framing reflects a systems position rather than a claim of algorithmic dominance. The strongest use case is upstream support: a compact vertical representation that can provide an efficient environmental baseline or prior layer for mission-specific acoustic workflows and adjacent operational oceanography use cases.
-
-### Candidate operational anchors to move into the literature review
-
-Potential operational anchors for later source-backed treatment include public reporting around:
-
-- Canadian Argo national reporting on real-time Argo profile use by DND scientists, operational oceanographers, and sonar operators, including Ocean Navigator-based workflows
-- NOAA-facing descriptions of Argo support for acoustic propagation modeling through near-real-time temperature and salinity profiles
-
-Until those sources are reviewed and added to the literature review, they should remain acquisition targets or framing cues rather than cited support in source-backed writing.
+This framing reflects a systems position rather than a claim of algorithmic dominance. The strongest general use case is upstream support: a compact vertical representation that can provide an efficient environmental baseline or prior layer for downstream workflows without claiming to replace full ocean or acoustic models.
 
 ### What this implies for positioning
 
@@ -33,9 +24,9 @@ The strongest positioning is not "replace the acoustic model" or "win against go
 
 Good framing language to reuse:
 
-- acoustic decision-support infrastructure
-- baseline or prior layer for mission-specific ocean acoustic workflows
-- compact uncertainty-aware vertical profile representation for real-time Argo-supported acoustic operations
+- environmental prior layer for downstream workflows
+- compact uncertainty-aware vertical profile representation
+- queryable profile artifact for operational oceanography or acoustics-adjacent use cases
 
 ### What to avoid claiming
 
@@ -53,19 +44,19 @@ These are project requirements, not current validated results:
 
 ### Working one-line pitch
 
-**A compact, uncertainty-aware Argo profile encoding layer for near-real-time acoustic decision support, designed to provide efficient baseline ocean structure priors for mission-specific workflows.**
+**A compact, uncertainty-aware Argo profile encoding layer designed to provide efficient baseline ocean-structure priors for downstream workflows.**
 
-## Working framing for the current vertical method
+## Working framing for the current vertical direction
 
-The current implementation is best understood as a compact, queryable reconstruction artifact for a single Argo cycle rather than as an exact interpolant. That framing matters because several of its practical strengths come from deliberately not reproducing every observed point.
+The current research direction is best understood as a compact, queryable reconstruction artifact for a single Argo cycle rather than as an exact interpolant. That framing matters because several of its practical strengths come from deliberately not reproducing every observed point.
 
-For the current pipeline, the most important working differentiators are:
+For the current representation direction, the most important working differentiators are:
 
 - compact representation rather than retention of the raw observation grid
 - tunability across accuracy and efficiency regimes
 - depth-varying uncertainty terms rather than point estimates alone
 - explicit error attribution across named uncertainty components
-- robustness to noisy or outlying observations through smoothing plus LSQ fitting
+- possible robustness to noisy or outlying observations through non-exact smoothing fits
 
 This is an implementation-oriented interpretation of the method, not a claim established directly by the published literature.
 
@@ -81,7 +72,7 @@ The method's uncertainty output is one of its more important distinctions relati
 
 ### Error attribution
 
-The intended uncertainty decomposition is meant to stay semantically legible. For the current vertical artifact, the relevant categories are:
+The intended uncertainty decomposition is meant to stay semantically legible. For the vertical artifact under discussion, the relevant categories are:
 
 - measurement uncertainty tied to the input sensors
 - reconstruction uncertainty tied to the fitted representation
@@ -92,20 +83,26 @@ For the present vertical-only pipeline, the first two are implemented concerns a
 
 ### Robustness interpretation
 
-The combination of smoothing before knot detection and LSQ fitting rather than exact interpolation suggests better robustness to local spikes and outliers than exact interpolants. That conclusion is still an implementation-level expectation until the comparison experiments are run directly. The relevant validation path is the planned noise-injection and spike-injection benchmark work rather than verbal comparison alone.
+The earlier curvature-adaptive LSQ prototype used smoothing before knot detection and least-squares fitting rather than exact interpolation. That design suggested better robustness to local spikes and outliers than exact interpolants, but the prototype should now be treated as a negative result unless validation demonstrates otherwise. The current validation path should compare the historical prototype, FITPACK smoothing splines, linear interpolation, and PCHIP directly through noise-injection, spike-injection, and holdout-reconstruction benchmarks rather than relying on verbal comparison alone. See [curvature-adaptive-spline-negative-result.md](curvature-adaptive-spline-negative-result.md).
 
 ## Evidence of the value of this work
 
 ### The Li et al. (2022) framing
 
-Li et al. (2022) established that MRST-PCHIP is the most accurate vertical interpolation method currently available, recovering ocean heat content estimates 14% larger than those produced by linear interpolation over the 1956-2020 historical record. The absolute magnitude of that gap is 40 Zeta Joules, with a corresponding thermosteric sea level rise correction of 0.55 mm/yr.
-
-Critically, the 14% figure is the gap between linear interpolation and MRST-PCHIP. It does not apply as a claim for this pipeline over MRST-PCHIP. Li et al. (2022) establishes vertical interpolation accuracy as a climate-relevant problem with quantified downstream consequences, which motivates getting profile representation right.
+The literature review already summarizes Li et al. (2022) and the quantified downstream sensitivity of climate estimates to interpolation choice. The project-facing point here is narrower: that result shows why vertical representation quality matters, but it does not transfer any quantitative advantage from MRST-PCHIP to the current representation direction.
 
 ### The equivalence argument
 
-If the planned cross-validation comparison demonstrates that this pipeline produces reconstruction RMSE equivalent to MRST-PCHIP on the same profiles, then the following claim would be defensible: this pipeline matches the physical fidelity of the current community standard for vertical interpolation, which Li et al. (2022) established as the accuracy ceiling of observationally based ocean heat content estimation.
+Before notebook 03, one possible project argument was that a compact non-exact representation might eventually match MRST-PCHIP-level reconstruction accuracy while also adding compactness and uncertainty metadata. That is still a useful thought experiment for framing what a very strong result would look like.
+
+After notebook 03, however, that should no longer be read as the immediate target for the historical custom spline branch. The more realistic framing is that exact-interpolant baselines such as PCHIP remain the stronger choice for pure reconstruction accuracy, while spline-family methods are being carried forward for different reasons.
 
 ### The additional value beyond equivalence
 
-Equivalence in reconstruction accuracy combined with superiority in other dimensions is the complete argument. Compression: 40 to 100x reduction in storage per profile per variable, with no retained raw data required at query time. Noise robustness: LSQ fitting averages over observations rather than honoring each one exactly, unlike all interpolating methods. Uncertainty quantification: depth-varying, physically decomposed, queryable from the stored artifact alone. Standalone queryability: arbitrary pressure queries from stored coefficients only, no original profile needed.
+The more defensible value argument now does not require equivalence in RMSE. It requires clarity about the tradeoff:
+
+- exact interpolants remain stronger at withheld-point reconstruction,
+- compact spline-family artifacts may still be valuable because they are smaller, tunable, uncertainty-aware, and easier to use as stored profile encodings,
+- the active question is whether those properties matter enough for the intended downstream role.
+
+Compression, uncertainty quantification, and standalone queryability therefore still need to be measured against exact-interpolant baselines, but they no longer need to be narrated as if the custom curvature-adaptive prototype is still the likely vehicle for that value story.

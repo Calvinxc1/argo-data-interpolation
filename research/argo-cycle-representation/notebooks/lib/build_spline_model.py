@@ -1,21 +1,14 @@
 from numpy.typing import ArrayLike
 from scipy.interpolate import make_lsq_spline
 
-from .calc_polyorder import calc_polyorder
 from .CycleSettings import CycleSettings
+from .calc_polyorder import calc_polyorder
 
 
-def build_spline_model(
-    uniform_pressure: ArrayLike,
-    smooth_uniform_readings: ArrayLike,
-    pressure_knot_vals: ArrayLike,
-    settings: CycleSettings,
-):
-    def build_t(
-        uniform_pressure: ArrayLike,
-        pressure_knot_vals: ArrayLike,
-        polyorder: int,
-    ) -> list[float]:
+def build_spline_model(uniform_pressure: ArrayLike, smooth_uniform_readings: ArrayLike,
+                       pressure_knot_vals: ArrayLike, settings: CycleSettings):
+
+    def build_t(uniform_pressure: ArrayLike, pressure_knot_vals: ArrayLike, polyorder: int) -> list[float]:
 
         t = [
             *[uniform_pressure.min()] * (polyorder + 1),

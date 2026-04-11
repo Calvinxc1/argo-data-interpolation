@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass(frozen=True, slots=True)
-class CycleSettings:
+class CycleSettings(BaseModel):
     prominence: float = 0.25
     window: int = 5
     spacing: float = 5.0

@@ -1,6 +1,6 @@
 # Research Methodology
 
-This document describes the source-review and verification approach used in the project's research documents, including literature reviews, topic notes, and source-backed notebook commentary.
+This document describes the source-review and verification approach used in the project's research documents, including literature reviews, topic notes, source-backed notebook commentary, notebook-support research code kept alongside notebooks, and local notebook artifact retention used to speed up reruns.
 
 ## Overview
 
@@ -12,15 +12,31 @@ Claims included in the final research documents were then checked manually again
 
 ## Topic Source of Truth
 
-Within each topic folder, `literature-review.md` is the canonical source-backed document for that topic. Topic notes and notebooks may interpret, synthesize, hypothesize, and plan, but any source-backed claim they make should trace to a source already covered in that topic literature review.
+Within each topic folder, `literature-review.md` is the canonical source-backed document for that topic. It is intended to stand on its own as a survey and synthesis of the reviewed literature, including a literature-derived account of the remaining gap when the topic warrants one. Topic notes and notebooks may interpret, hypothesize, and plan more freely, but any source-backed claim they make should trace to a source already covered in that topic literature review.
 
 In practice, that means notes and notebooks should not become parallel literature reviews. If a note or notebook requires a new source-backed claim not yet covered in the literature review, the literature review should be updated first or in the same change. Candidate future sources may still be mentioned in notes as acquisition targets or pending-review items, but they should not be presented there as established support until the topic literature review has been updated accordingly.
+
+When a topic keeps reusable notebook-support code under `notebooks/lib/`, that code is a research artifact for reproducibility and notebook hygiene rather than a source of authority on its own. The notebook or note that uses it remains responsible for presenting any source-backed claims with the same citation discipline required elsewhere in the topic.
+
+When a topic keeps local cached artifacts or intermediate files under `notebooks/data/`, those files are process aids rather than canonical research outputs. They may improve local rerun speed or preserve intermediate notebook state, but the durable interpretation of results still belongs in tracked notebooks, notes, or other research documents.
+
+The synthesis performed in a literature review is still constrained by the literature itself. A literature review may connect sources, compare method classes, and identify what the reviewed literature does or does not address, but it should not introduce new empirical findings, unverified project claims, or method performance claims that are not supported by the reviewed sources. A practical boundary test used in this project is: if a sentence could only have been written after running an experiment, building a model, or analyzing new data, it does not belong in the literature review; if it could have been written by someone who read the reviewed sources carefully and thought hard about them, it does. Relatedly, this project distinguishes a literature-derived gap from a project opportunity: the former is a statement about what the reviewed sources do not cover and belongs in the literature review, while the latter is a statement about how the project may respond and belongs in notes, notebooks, or other planning artifacts.
+
+## Notebook Artifact Policy
+
+Research notebooks under topic `notebooks/` folders are first-class research artifacts rather than disposable scratch work. The canonical runnable artifact remains the committed `.ipynb` file so that readers can open the notebook directly in Jupyter and inspect the saved narrative, code, and outputs together.
+
+To make those notebooks reviewable and searchable in version control, this project also keeps a paired Jupytext `.py` representation in percent format alongside each committed research notebook. The paired text file is a maintenance and review companion, not a replacement for the notebook artifact. Changes to research notebooks should therefore keep the `.ipynb` and its paired `.py` file in sync.
+
+This pairing policy applies to notebooks in the `research/**/notebooks/` subtree only. It does not imply that package code under `src/` should be developed inside notebooks, and it does not change the role of `literature-review.md` as the canonical source-backed artifact for each topic.
 
 ## Verification Approach
 
 Source-backed claims were included only when they could be supported by the cited material. When full-text access was available, those claims were checked directly against the original source. Page-specific citations were added after direct verification from the full text.
 
-For topic notes and notebooks, this verification requirement is not weaker than it is for literature reviews. The difference is document purpose, not citation discipline. Notes may contain inference, hypothesis, implementation assumptions, and research-planning commentary, but when they make source-backed claims those claims should use the same verified source base represented in the topic literature review.
+When a local full-text source is non-English, this project keeps an accompanying Markdown file in the same `sources/` folder with the same filename stem as the source artifact and a best-effort translation or translation notes. That translation aid supports verification and later reuse, but it does not replace the original source as the underlying authority.
+
+For topic notes, notebooks, notebook-support modules, and any interpretation derived from local notebook artifacts, this verification requirement is not weaker than it is for literature reviews. The difference is document purpose, not citation discipline. Notes may contain inference, hypothesis, implementation assumptions, and research-planning commentary, notebook-support code may implement local experiments or reproductions, and local notebook artifacts may retain intermediate state, but when any of those artifacts support source-backed claims those claims should use the same verified source base represented in the topic literature review.
 
 Not all sources were equally available at the same time. When full-text access was delayed or unavailable, citation metadata could still be retained in provisional form, but interpretive claims tied to those references were treated as subject to revision after full-text review.
 

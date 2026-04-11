@@ -3,14 +3,30 @@ when: [research_structure]
 rules:
   - Keep shared research-process documents at research root; keep topic materials inside topic folders.
   - Use lowercase hyphenated names by default.
-  - Standard topic structure is README.md, literature-review.md, optional notes, optional notebooks, optional sources.
+  - Standard topic structure is README.md, literature-review.md, optional source-acquisition-tracker.md, optional notes, optional notebooks, optional sources.
   - Keep literature-review.md at topic root as the canonical source-backed document.
+  - When a topic uses a source-acquisition tracker, keep source-acquisition-tracker.md at topic root rather than under notes.
+  - Literature reviews should stand on their own as coherent documents, not just as source inventories.
+  - A literature review may include direct source summary, source-derived synthesis across sources, and a literature-derived gap statement, provided each remains clearly about the reviewed literature rather than about new project results.
+  - When topic notes depend on a source-backed claim, that claim should be covered in the topic literature review, even if the note expands on it interpretively.
   - Keep general working notes under notes, not at topic root.
   - If notes exists, include notes/README.md as the index for note files.
   - Prefer multiple purpose-specific note files over one omnibus notes file when content spans distinct themes.
   - If notebooks exists, include notebooks/README.md as the index for notebook artifacts.
   - Notebook filenames should describe the experiment or diagnostic they contain.
+  - Research topics may keep notebook-support code under notebooks/lib/ when that code exists only to support notebook reproducibility, benchmarking, plotting, or research-only method recreation.
+  - Keep notebook-support code scoped to the topic that uses it; do not place research-only notebook code under src/.
+  - Prefer small importable Python modules under notebooks/lib/ over large notebook code cells when doing so improves notebook readability and reproducibility.
+  - When notebooks/lib/ exists, document its purpose in notebooks/README.md and treat it as research support code rather than canonical narrative output.
+  - Research topics may keep local notebook artifacts under notebooks/data/ when those files exist only to speed up local exploratory or reproducibility workflows.
+  - Treat notebooks/data/ as local cache or artifact retention for notebook processes rather than as a canonical research record or shared source of truth.
+  - Do not rely on notebooks/data/ as the only durable expression of a result that needs to be shared; summarize durable outcomes in the notebook, notes, or other tracked research artifacts.
+  - For notebooks under research topic notebooks/ folders, keep the committed .ipynb as the primary runnable artifact and maintain a paired Jupytext .py file in percent format alongside it for reviewability and search.
   - Use sources for local reference material and do not commit contents unless explicitly directed.
+  - When local full-text article copies are kept under sources, treat PDF as the canonical format for resolved source acquisition; do not count HTML captures as resolved full-text copies.
+  - When a local full-text source under sources is non-English, include an accompanying Markdown file in the same folder with the same stem as the source file containing the best available translation or translation notes for that source.
+  - For non-article web-native resources, prefer linking the canonical landing page in the literature review instead of storing HTML captures under sources.
+  - Name local files under sources as `<author-or-org>-<year>-<short_title>.<ext>`, using lowercase ASCII with hyphens between sections and underscores for spaces within a section when needed.
   - Include notebooks only when there is an actual prototype, experiment trail, or diagnostic artifact.
   - Treat topic notebooks as prototype artifacts, not canonical summaries.
   - Topic README.md should link to main research files and folder indexes, give brief descriptions, and note maturity when helpful.

@@ -37,13 +37,23 @@ class Model:
         model = cls(meta=model_meta, adapters=adapters, error=error, settings=settings)
         return model
 
-    def interpolate(self, pressure_data: ArrayLike) -> ModelData:
+    def interpolate(self, pressure_data: ArrayLike | float) -> ModelData:
+        if isinstance(pressure_data, float):
+            pressure_data = np.array([pressure_data])
+        else:
+            pressure_data = np.asarray(pressure_data, dtype=float)
+
         temp_data = self.adapters.temperature.interpolate(pressure_data)
         sal_data = self.adapters.salinity.interpolate(pressure_data)
         interp_data = ModelData(pressure=pressure_data, temperature=temp_data, salinity=sal_data)
         return interp_data
 
-    def interp_error(self, pressure_data: ArrayLike) -> ModelData:
+    def interp_error(self, pressure_data: ArrayLike | float) -> ModelData:
+        if isinstance(pressure_data, float):
+            pressure_data = np.array([pressure_data])
+        else:
+            pressure_data = np.asarray(pressure_data, dtype=float)
+
         temp_error = self._measure_error(self.error.pressure, self.error.temperature,
                                          self.adapters.temperature.gradient(pressure_data))
         sal_error = self._measure_error(self.error.pressure, self.error.salinity,

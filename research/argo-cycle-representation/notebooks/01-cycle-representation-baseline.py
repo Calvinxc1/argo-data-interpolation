@@ -24,6 +24,7 @@
 #     pygments_lexer: ipython3
 #     version: 3.11.13
 # ---
+
 # %% [markdown]
 # # 01. Argo Cycle Representation Baseline
 #
@@ -36,9 +37,13 @@
 # **Context**: this sits closer to Yarger et al. (2022, pp. 11-12, 216-218) than to exact interpolants such as MRST-PCHIP, because the design target is a stored functional representation of a profile rather than exact reproduction of every retained observation.
 #
 # **Scope**: this notebook is intentionally method-internal. Its job is to show that the custom spline idea can be fit, queried, and inspected coherently on a real Argo sample before asking how it compares to other approaches. Direct benchmarking against Akima and PCHIP is deferred to notebook 02.
+#
+#
 
 # %% [markdown]
 # ## 1. Dependencies
+#
+#
 
 # %%
 import numpy as np
@@ -47,11 +52,14 @@ import pandas as pd
 from tqdm.auto import tqdm
 from matplotlib import pyplot as plt
 import seaborn as sns
+from pathlib import Path
+import pickle
 
 # %%
 from lib import ModelError, SensorError, CycleError, CycleModel, CycleSettings
-
 from lib import build_model, calc_fold_error
+
+from argo_interp.data import get_data
 
 # %% [markdown]
 # ## 2. Data Acquisition
@@ -59,16 +67,35 @@ from lib import build_model, calc_fold_error
 # Request Argo profiles from a bounded region and time window. This slice provides a reproducible working dataset for method development and internal validation.
 #
 # **Regional context**: this subtropical box (20-30°N, 75-45°W) is used here as a practical starting point for local method development rather than as a literature-backed claim about the easiest or most representative Argo regime. Performance in more difficult settings such as deep winter mixed layers, equatorial inversions, and polar haloclines remains future validation work.
+#
+#
 
 # %%
-box = [
-    -75, -45, ## Longitude min/max
-    20, 30, ## Latitude min/max
-    0, 3000, ## Pressure/depth min/max
-    '2011-01', '2011-06', ## Datetime min/max
-]
-f = ArgoDataFetcher().region(box).load()
-data = f.data.to_dataframe()
+data_path = Path('./data')
+data_path.mkdir(exist_ok=True)
+
+data_file = data_path / 'argo_data.pkl'
+
+# %%
+override = False
+
+if data_file.exists() and not override:
+    with data_file.open('br') as f:
+        ds = pickle.load(f)
+else:
+    box = [
+        -75, -45, ## Longitude min/max
+        20, 30, ## Latitude min/max
+        0, 3000, ## Pressure/depth min/max
+        '2011-01', '2011-06', ## Datetime min/max
+    ]
+    ds = get_data(box, progress=True)
+
+    with data_file.open('bw') as f:
+        pickle.dump(ds, f)
+
+# %%
+data = ds.to_dataframe()
 
 # %% [markdown]
 # ## 3. Profile Structure
@@ -77,6 +104,8 @@ data = f.data.to_dataframe()
 # - unique cycle identifier (`PLATFORM_CYCLE`)
 # - cycle metadata (position, time)
 # - pressure-sorted readings for model fitting
+#
+#
 
 # %%
 group_col = 'PLATFORM_CYCLE'
@@ -118,6 +147,8 @@ readings = readings.drop(columns=group_fields)
 # The `CycleSettings` used here (`prominence=0.25`, `window=10`, `spacing=5.0`, `peak_dist=20`, `folds=5`) were selected through informal experimentation on a subset of profiles. These values should be read as working prototype settings rather than as a globally tuned optimum.
 #
 # That limitation is acceptable for notebook 01 because the goal here is feasibility: fit the method, inspect the resulting artifact, and see whether the internal diagnostics are coherent enough to justify a broader comparison.
+#
+#
 
 # %%
 settings = CycleSettings(
@@ -160,6 +191,8 @@ for cycle_number, cycle_data in tqdm(readings.groupby('PLATFORM_CYCLE')):
 # ## 5a. Single-Cycle Inspection
 #
 # Select one cycle for detailed examination. Before comparing this method to anything else, the first check is whether the fitted profile and attached uncertainty behave sensibly on an individual example.
+#
+#
 
 # %%
 # cycle_number = np.random.choice(list(cycle_models.keys()))
@@ -179,6 +212,8 @@ cycle_interp = cycle_model.interpolate(cycle_data['PRES'])
 # **Depth-varying uncertainty**: the envelope widens in the thermocline where `|dT/dP|` is large, reflecting the fact that a fixed pressure uncertainty of 2.4 dbar contributes more to temperature uncertainty where gradients are steep. In the flat deep ocean where `dT/dP -> 0`, the pressure-propagated term vanishes and only the fixed instrument/error term plus model residuals remain. The pressure and temperature source terms used here come from the delayed-mode Argo QC conventions summarized in Wong et al. (2025, pp. 43, 47, 50, 84).
 #
 # The three error terms are combined as root-sum-square (RSS) for each query. That independence assumption is a simplification, but it is enough for this notebook's goal of testing whether the method yields uncertainty fields that are at least qualitatively interpretable.
+#
+#
 
 # %%
 sd_offset = 2
@@ -192,6 +227,8 @@ cycle_interp['sal_high'] = (cycle_interp['salinity'] + (sd_offset * cycle_interp
 # ## 5c. Visual Diagnostic
 #
 # Plot the interpolated curves with 2σ envelopes. Pressure increases downward. Where the bands widen, the method is signaling greater local uncertainty rather than hiding structurally difficult regions behind a single global RMSE number.
+#
+#
 
 # %%
 fig, ax = plt.subplots(ncols=2, figsize=(12, 6))
@@ -226,6 +263,8 @@ fig.tight_layout()
 # ### Interpretation
 #
 # On this example, the fitted curve follows the observed profile closely across depth, and the uncertainty band widens in the same regions where the profile is structurally more complex. That is the baseline result notebook 01 needs: the custom method appears internally coherent on a single-cycle inspection rather than obviously pathological.
+#
+#
 
 # %% [markdown]
 # ## 6a. Cross-Cycle Validation: RMSE Distributions
@@ -233,6 +272,8 @@ fig.tight_layout()
 # Single-profile inspection is necessary but not sufficient. The next question is whether the method behaves consistently across the sampled cycles or only looks reasonable on a hand-picked example.
 #
 # **Note**: these values quantify within-profile reconstruction error from 5-fold cross-validation, not spatiotemporal prediction error. At this stage they are being used as internal method diagnostics, not as a claim of superiority over other interpolants.
+#
+#
 
 # %%
 model_error = pd.DataFrame([model.error.model for model in cycle_models.values()])
@@ -267,6 +308,8 @@ fig.tight_layout()
 # Both RMSE distributions are strongly right-skewed: most cycles fit reasonably well, with a smaller tail of difficult outliers. For notebook 01, that is enough to support a feasibility claim. The method is not failing everywhere; it is working on many profiles while leaving a visible tail that needs follow-up.
 #
 # **Open question**: the right tail deserves investigation. Potential causes include profiles with strong subsurface inversions, fine-scale layering, or sparse sampling in structurally difficult regions. Notebook 02 will determine how serious that tail is relative to exact-interpolant baselines.
+#
+#
 
 # %% [markdown]
 # ## 6b. Residual Structure by Depth
@@ -276,6 +319,8 @@ fig.tight_layout()
 # **Question**: if curvature-adaptive knot placement is doing something meaningful, do the larger residuals appear in structurally difficult regions such as the thermocline and inversion layers, while simpler deep-water regions remain easier to fit?
 #
 # Note: these are model reconstruction residuals only. The total reported uncertainty used elsewhere in the notebook is larger because it also includes sensor and pressure-propagated terms.
+#
+#
 
 # %%
 error_records = []
@@ -327,6 +372,8 @@ fig.tight_layout()
 # The residual plots show depth-structured behavior rather than obvious global bias: aggregate central tendency remains near zero, while the larger spread appears in the same depth ranges where profile structure is more complex. That is the kind of pattern the custom method was meant to produce.
 #
 # This does not prove that the custom spline is the best available approach. It does show that the method behaves like a plausible profile representation rather than an arbitrary compression scheme, which is the threshold notebook 01 is meant to test.
+#
+#
 
 # %% [markdown]
 # ## 7. Method Scope and Current Limitations
@@ -345,6 +392,8 @@ fig.tight_layout()
 # - whether the curvature-adaptive machinery is worth its complexity
 #
 # **Intended use**: notebook 01 should be read as a method-confirmation notebook. It shows that the custom spline idea is viable enough to deserve comparison, not that it has already won that comparison.
+#
+#
 
 # %% [markdown]
 # ## References
@@ -369,3 +418,4 @@ fig.tight_layout()
 # 4. check whether the method's compactness and queryability survive broader comparisons
 #
 # Those questions are the bridge to notebook 02.
+#

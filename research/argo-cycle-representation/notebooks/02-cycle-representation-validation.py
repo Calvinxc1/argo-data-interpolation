@@ -26,6 +26,13 @@
 # ---
 
 # %% [markdown]
+# # TODO: ModelMeta Notebook Follow-up
+#
+# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
+#
+# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
+#
+# %% [markdown]
 # # 02. Argo Cycle Representation Validation
 #
 # Notebook 01 asked whether the custom spline method worked at all as a compact and uncertainty-aware profile representation. Notebook 02 asks the next question: how does that same custom method compare to more traditional exact-interpolant baselines on the same withheld-point reconstruction task?

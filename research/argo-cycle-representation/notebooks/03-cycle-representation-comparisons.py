@@ -26,6 +26,13 @@
 # ---
 
 # %% [markdown]
+# # TODO: ModelMeta Notebook Follow-up
+#
+# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
+#
+# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
+#
+# %% [markdown]
 # # 03. Cycle Representation Comparisons
 #
 # Notebook 02 established the tradeoff: the custom spline artifact is meaningfully smaller than exact interpolants, but weaker on withheld-point RMSE. Notebook 03 asks whether that tradeoff actually requires the custom curvature-adaptive implementation, or whether simpler traditional / native spline options already cover the same ground more convincingly.
@@ -177,11 +184,12 @@ for (platform_number, cycle_number, direction), cycle_ds in tqdm(
     ds.groupby(['PLATFORM_NUMBER', 'CYCLE_NUMBER', 'DIRECTION']),
     total=cycles,
 ):
-    cycle_id = f"{int(platform_number)}|{int(cycle_number)}-{direction}"
     cycle_ds = cycle_ds.sortby('PRES')
 
     model_meta = ModelMeta(
-        cycle_id=cycle_id,
+        platform_number=str(int(platform_number)),
+        cycle_number=str(int(cycle_number)),
+        direction=direction,
         latitude=float(cycle_ds['LATITUDE'].values[0]),
         longitude=float(cycle_ds['LONGITUDE'].values[0]),
         timestamp=cycle_ds['TIME'].values[0],
@@ -190,6 +198,7 @@ for (platform_number, cycle_number, direction), cycle_ds in tqdm(
             float(cycle_ds['PRES'].max().item()),
         ),
     )
+    cycle_id = model_meta.cycle_id
 
     # Fitting requires strictly increasing pressures, so duplicate levels are collapsed first.
     model_data = ModelData(

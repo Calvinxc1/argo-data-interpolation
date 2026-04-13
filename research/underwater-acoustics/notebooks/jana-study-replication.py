@@ -26,6 +26,13 @@
 # ---
 
 # %% [markdown]
+# # TODO: ModelMeta Notebook Follow-up
+#
+# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
+#
+# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
+#
+# %% [markdown]
 # # Jana et al. (2022) replication notebook
 #
 # This notebook reconstructs the core Bay of Bengal workflow from Jana et al. (2022): pull Argo profiles over 2011-2020, retain the cycles that satisfy the paper's depth and QC rules, interpolate each profile onto a common 1 m grid, compute sound speed with the UNESCO-era `seawater` implementation, and compare the resulting figures against the published study.
@@ -150,7 +157,6 @@ for (platform_number, cycle_number, direction), cycle_ds in t:
     if pressure.max() < gsw.p_from_z(-500, latitude):
         continue
 
-    cycle_id = f"{int(platform_number)}-{int(cycle_number)}-{direction}"
     # Duplicate pressure rows are averaged so each cycle becomes one profile function.
     model_data = ModelData(
         pressure=pressure,
@@ -159,12 +165,15 @@ for (platform_number, cycle_number, direction), cycle_ds in t:
     ).clean_duplicates('mean')
 
     model_meta = ModelMeta(
-        cycle_id=cycle_id,
+        platform_number=str(int(platform_number)),
+        cycle_number=str(int(cycle_number)),
+        direction=direction,
         latitude=latitude,
         longitude=longitude,
         timestamp=timestamp,
         profile_pressure=(pressure.min(), pressure.max()),
     )
+    cycle_id = model_meta.cycle_id
 
     # Keep linear as the replication baseline and PCHIP as a sensitivity comparison.
     linear_model = Model.build(model_meta, model_data, LinearAdapter, settings)
@@ -904,3 +913,15 @@ plot_subdomain_figure('SW-BoB', 80.5, 86, 6, 12, chart_path / 'figure10_swbox.pn
 plot_subdomain_figure('AS', 93, 98, 8, 14, chart_path / 'figure11_as.png')
 
 # %%
+# %% [markdown]
+# ## TODO: Hold-one-float-out validation extension
+#
+# Jana et al. (2022) report gridded estimates and variability structure, but do not report predictive error metrics for a held-out validation task. A useful extension would be to evaluate a Jana-style local-kernel baseline against held-out float data.
+#
+# Proposed validation:
+# - hold out one float at a time by `PLATFORM_NUMBER` to avoid same-float leakage
+# - for each held-out cycle, predict temperature, salinity, and sound speed on the common depth grid using a Jana-style flat `2° x 2°` kernel built from the remaining retained archive
+# - compare predicted and observed profiles by depth
+# - aggregate RMSE / MAE by depth across all held-out floats
+#
+# This would turn the current replication into an explicit benchmark baseline for comparison against the package's spatio-temporal interpolation approach.

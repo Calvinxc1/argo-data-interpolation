@@ -26,6 +26,13 @@
 # ---
 
 # %% [markdown]
+# # TODO: ModelMeta Notebook Follow-up
+#
+# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
+#
+# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
+#
+# %% [markdown]
 # # 01. Argo Cycle Representation Baseline
 #
 # This notebook establishes the baseline case for a custom curvature-adaptive least-squares spline representation of individual Argo profiles.

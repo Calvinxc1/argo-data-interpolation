@@ -19,6 +19,9 @@ class ModelData:
         if len(self.temperature) != self.n_obs or len(self.salinity) != self.n_obs:
             raise ValueError("pressure, temperature, and salinity must have the same length")
 
+    def __len__(self) -> int:
+        return self.n_obs
+
     @property
     def n_obs(self) -> int:
         return len(self.pressure)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 from dataclasses import dataclass, field
 from typing import Iterator, Optional
@@ -77,6 +79,11 @@ class CycleModels:
                   if cycle_id in index.index}
 
         return type(self)(models=models)
+
+    def pop(self, cycle_id: str) -> Model:
+        model = self.models.pop(cycle_id)
+        self._meta_index = self._meta_index.drop(cycle_id)
+        return model
 
     def interpolate(self, pressure_data: ArrayLike) -> CycleData:
         pressure_data = pd.Series(pressure_data, name='pressure')

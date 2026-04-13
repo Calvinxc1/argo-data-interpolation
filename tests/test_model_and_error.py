@@ -130,7 +130,9 @@ def test_model_build_uses_cross_validated_errors_and_fitted_adapters() -> None:
 
 def _meta() -> ModelMeta:
     return ModelMeta(
-        cycle_id="cycle-1",
+        platform_number="5901234",
+        cycle_number="1",
+        direction="A",
         latitude=1.0,
         longitude=2.0,
         timestamp=np.datetime64("2026-01-01"),

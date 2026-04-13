@@ -7,6 +7,7 @@ The shared review and verification approach for these documents is described in 
 ## Current Research Topics
 
 - [argo-cycle-representation](argo-cycle-representation/README.md): research on cycle-level vertical profile representation, interpolation, uncertainty modeling, and compression for individual Argo float profiles.
+- [argo-mid-depth-currents](argo-mid-depth-currents/README.md): research on Argo-derived mid-depth current products and on whether they could support current-aware interpolation.
 - [spatio-temporal](spatio-temporal/README.md): research on broader spatio-temporal Argo modeling, including functional-data and kriging-based approaches built on vertical profile representations.
 - [underwater-acoustics](underwater-acoustics/README.md): research on downstream underwater-acoustics use cases, including sound-speed-profile workflows, the Jana et al. replication target, and operational framing for uncertainty-aware Argo interpolation.
 

@@ -4,7 +4,7 @@ This note tracks which bibliography entries in [literature-review.md](literature
 
 ## Summary
 
-- Last updated: 2026-04-14
+- Last updated: 2026-04-15
 - References in bibliography: `150`
 - References with linked local PDF copies: `129`
 - References resolved via canonical non-article web pages: `4`
@@ -74,7 +74,7 @@ This note tracks which bibliography entries in [literature-review.md](literature
 | # | Citation | Status | Source host | Last attempt | Notes |
 | --- | --- | --- | --- | --- | --- |
 | 14 | Iqbal, Khan, A. G. Bhaskara Rao, Y. Ashok Kumar, and T. V. S. Udaya Bhaskar. “Significance of Deep Argo Data in Computation of Sound Speed in Deep Oceanic Waters.” Underwater Acoustics Conference & Exhibition, 2019. | `metadata_only` | unknown | 2026-04-10 | A related later journal article is now stored locally as `sources/iqbal-2020-symmetrical_and_asymmetrical_rectifications_for_deeper_ocean_ctd_ssp_extrapolations.pdf`, but it is not the cited 2019 conference publication, so this conference citation still remains unresolved. |
-| 15 | Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. | `metadata_only` | unknown | 2026-04-06 | No DOI or stable official online host is present in the citation metadata used here; manual acquisition is required. |
+| 15 | Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. | `subscription_preview_only` | IEEE Xplore | 2026-04-15 | Official IEEE Xplore landing page identified at `https://ieeexplore.ieee.org/document/881241`, but no local PDF is stored and full text appears to remain access-controlled from the article host. |
 | 16 | Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814. | `blocked_pdf_endpoint` | AIP / JASA | 2026-04-06 | DOI resolves to the AIP Publishing / JASA article host, but CLI fetches terminate in a Cloudflare challenge page instead of article content. SFCC library appears to indicate a full-text copy is available, but the linked pages do not presently support actually retrieving it. This appears to be a meeting or presentation-style publication rather than a standard journal article. |
 
 ### Book

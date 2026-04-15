@@ -7,10 +7,10 @@ few cases, still need bibliographic completion.
 ## Summary
 
 - Last updated: `2026-04-14`
-- References currently tracked: `7`
+- References currently tracked: `9`
 - References with linked local PDF copies in this topic: `0`
-- References still pending local full-text acquisition: `7`
-- References with incomplete bibliography details: `1`
+- References still pending local full-text acquisition: `9`
+- References with incomplete bibliography details: `2`
 
 ## Status Legend
 
@@ -28,3 +28,5 @@ few cases, still need bibliographic completion.
 | 5 | Weddell Gyre paper on Argo-derived absolute geostrophic velocities from 50 to 2000 m, DOI region `10.1016/j.dsr2.2017.12.024` | `metadata_incomplete` | Full author list, title, and exact bibliographic details still need confirmation. |
 | 6 | Nilsson, J. A. U., Dobricic, S., Pinardi, N., Taillandier, V., and Poulain, P.-M. (2011). *On the assessment of Argo float trajectory assimilation in the Mediterranean Forecasting System.* Ocean Dynamics, 61(10), 1475 to 1490. DOI: `10.1007/s10236-011-0437-0` | `metadata_only` | Operational trajectory-assimilation reference for using Argo displacement information to improve modeled velocity fields. |
 | 7 | Park, J. J., Kim, K., King, B. A., and Riser, S. C. (2005). *An advanced method to estimate deep currents from profiling floats.* Journal of Atmospheric and Oceanic Technology, 22(8), 1294 to 1304. DOI: `10.1175/JTECH1748.1` | `metadata_only` | Key endpoint-extrapolation reference for separating surfacing and dive positions from sparse Argos fixes. |
+| 8 | Katsumata, K., and Yoshinari, H. (2010). *Uncertainties in global mapping of Argo drift data at the parking level.* Journal of Oceanography, 66, 553 to 569. DOI: `10.1007/s10872-010-0046-4` | `metadata_only` | Added to connect individual-float endpoint error analysis with uncertainty in mapped global parking-level velocity products. |
+| 9 | Hansen, D., et al. (2022). *ArgoSSM: A State-space Model of Ocean Floats Under Ice.* Supplied as arXiv:`2210.00118`, but the exact preprint metadata and author list still need direct verification in this repo. | `metadata_incomplete` | Added as a trajectory-inference edge case for missing float locations under ice; current verification path reaches dissertation and symposium material rather than the cited preprint itself. |

@@ -28,6 +28,8 @@ The planning summary identifies Xie and Zhu (2008) as the key error-analysis ref
 
 The same summary reports that Kalman-filter extrapolation reduced 1000 dbar velocity error to roughly 0.21 cm/s. If confirmed, that result matters because parking-depth velocity uncertainty is already a studied problem with a published decomposition, rather than something this project would need to define from scratch.
 
+Pending local full-text review in this repo, Katsumata and Yoshinari (2010) appear to extend that error discussion from individual-cycle estimation to mapped global parking-level products. In that framing, uncertainty is not only attached to the endpoint estimate of a single float cycle. It also enters through the objective mapping choices used to turn sparse trajectory-derived velocities into a global field. That makes Katsumata and Yoshinari a useful bridge between cycle-level error decomposition and any later attempt to benchmark against a mapped mid-depth current product.
+
 ## Ascent and Surface-Position Ambiguity
 
 Official Argo timing documentation now makes explicit that the end of ascent and the reported surface-position sequence are distinct events. In the cycle-timing vocabulary, `AET` marks the time when the float reaches the surface, while `FLT` and `LLT` mark the earliest and latest surface locations gathered during the surface interval, and `TST` marks the start of transmission. The same documentation notes that most floats profile on ascent rather than descent. Separate Argo program guidance adds the operational detail that profile measurements are collected during ascent and only transmitted after the float reaches the surface. For the majority of the modern fleet, the surface interval is typically 15 minutes to 1 hour; older Argos-based floats can remain at the surface for roughly 6 to 12 hours while obtaining positions and completing transmission.
@@ -64,6 +66,8 @@ The planning summary points to trajectory assimilation work, particularly in the
 
 This suggests that the strongest route into Argo-based current prediction may be assimilation-derived or dynamically referenced flow estimation rather than a purely empirical trajectory heuristic.
 
+The same broad point appears to extend to under-ice trajectory recovery, although the exact cited paper metadata still need verification in this repo. The Hansen `ArgoSSM` line, currently traceable here through dissertation and symposium materials rather than a directly checked arXiv record, treats missing float locations under ice as a Bayesian state-space inference problem. That is narrower than the present open-ocean parking-depth current question, but it still reinforces a useful methodological lesson: unresolved float positions are inferential objects with their own uncertainty model, not just missing bookkeeping fields.
+
 ## Literature-Derived Gap
 
 The cited current literature, as summarized here, appears to provide:
@@ -80,6 +84,7 @@ What it does not yet obviously provide is a simple, already validated recipe for
 The planning summary also identified two additional references worth chasing:
 
 - a Weddell Gyre paper using Argo-derived absolute geostrophic velocities from 50 to 2000 m
+- Hansen, D., et al. (2022). *ArgoSSM: A State-space Model of Ocean Floats Under Ice.* The citation was supplied as arXiv:`2210.00118`, but this repo has not yet directly verified the exact preprint metadata or final author list.
 
 The Weddell Gyre reference is likely important to the future current-prediction path, but its full bibliographic details and exact claims still need verification in this repo.
 
@@ -90,6 +95,7 @@ The Weddell Gyre reference is likely important to the future current-prediction 
 - Argo. *Argo cycle timing variables.* https://argo.ucsd.edu/how-do-floats-work/argo-cycle-timing-variables/
 - Argo. *How do floats work.* https://argo.ucsd.edu/how-do-floats-work/
 - Argo. *Telecommunications systems.* https://argo.ucsd.edu/how-do-floats-work/telecommunications-systems/
+- Katsumata, K., and Yoshinari, H. (2010). *Uncertainties in global mapping of Argo drift data at the parking level.* Journal of Oceanography, 66, 553 to 569. https://doi.org/10.1007/s10872-010-0046-4
 - Nilsson, J. A. U., Dobricic, S., Pinardi, N., Taillandier, V., and Poulain, P.-M. (2011). *On the assessment of Argo float trajectory assimilation in the Mediterranean Forecasting System.* Ocean Dynamics, 61(10), 1475 to 1490. https://doi.org/10.1007/s10236-011-0437-0
 - Park, J. J., Kim, K., King, B. A., and Riser, S. C. (2005). *An advanced method to estimate deep currents from profiling floats.* Journal of Atmospheric and Oceanic Technology, 22(8), 1294 to 1304. https://doi.org/10.1175/JTECH1748.1
 - Xie, J., and Zhu, J. (2008). *Estimation of the surface and mid-depth currents from Argo floats in the Pacific and error analysis.* Journal of Marine Systems, 73, 61 to 75. https://doi.org/10.1016/j.jmarsys.2007.09.001

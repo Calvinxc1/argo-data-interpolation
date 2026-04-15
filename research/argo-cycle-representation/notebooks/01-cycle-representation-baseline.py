@@ -26,13 +26,6 @@
 # ---
 
 # %% [markdown]
-# # TODO: ModelMeta Notebook Follow-up
-#
-# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
-#
-# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
-#
-# %% [markdown]
 # # 01. Argo Cycle Representation Baseline
 #
 # This notebook establishes the baseline case for a custom curvature-adaptive least-squares spline representation of individual Argo profiles.
@@ -45,11 +38,9 @@
 #
 # **Scope**: this notebook is intentionally method-internal. Its job is to show that the custom spline idea can be fit, queried, and inspected coherently on a real Argo sample before asking how it compares to other approaches. Direct benchmarking against Akima and PCHIP is deferred to notebook 02.
 #
-#
 
 # %% [markdown]
 # ## 1. Dependencies
-#
 #
 
 # %%
@@ -74,7 +65,6 @@ from argo_interp.data import get_data
 # Request Argo profiles from a bounded region and time window. This slice provides a reproducible working dataset for method development and internal validation.
 #
 # **Regional context**: this subtropical box (20-30°N, 75-45°W) is used here as a practical starting point for local method development rather than as a literature-backed claim about the easiest or most representative Argo regime. Performance in more difficult settings such as deep winter mixed layers, equatorial inversions, and polar haloclines remains future validation work.
-#
 #
 
 # %%
@@ -111,7 +101,6 @@ data = ds.to_dataframe()
 # - unique cycle identifier (`PLATFORM_CYCLE`)
 # - cycle metadata (position, time)
 # - pressure-sorted readings for model fitting
-#
 #
 
 # %%
@@ -154,7 +143,6 @@ readings = readings.drop(columns=group_fields)
 # The `CycleSettings` used here (`prominence=0.25`, `window=10`, `spacing=5.0`, `peak_dist=20`, `folds=5`) were selected through informal experimentation on a subset of profiles. These values should be read as working prototype settings rather than as a globally tuned optimum.
 #
 # That limitation is acceptable for notebook 01 because the goal here is feasibility: fit the method, inspect the resulting artifact, and see whether the internal diagnostics are coherent enough to justify a broader comparison.
-#
 #
 
 # %%
@@ -199,7 +187,6 @@ for cycle_number, cycle_data in tqdm(readings.groupby('PLATFORM_CYCLE')):
 #
 # Select one cycle for detailed examination. Before comparing this method to anything else, the first check is whether the fitted profile and attached uncertainty behave sensibly on an individual example.
 #
-#
 
 # %%
 # cycle_number = np.random.choice(list(cycle_models.keys()))
@@ -220,7 +207,6 @@ cycle_interp = cycle_model.interpolate(cycle_data['PRES'])
 #
 # The three error terms are combined as root-sum-square (RSS) for each query. That independence assumption is a simplification, but it is enough for this notebook's goal of testing whether the method yields uncertainty fields that are at least qualitatively interpretable.
 #
-#
 
 # %%
 sd_offset = 2
@@ -234,7 +220,6 @@ cycle_interp['sal_high'] = (cycle_interp['salinity'] + (sd_offset * cycle_interp
 # ## 5c. Visual Diagnostic
 #
 # Plot the interpolated curves with 2σ envelopes. Pressure increases downward. Where the bands widen, the method is signaling greater local uncertainty rather than hiding structurally difficult regions behind a single global RMSE number.
-#
 #
 
 # %%
@@ -271,7 +256,6 @@ fig.tight_layout()
 #
 # On this example, the fitted curve follows the observed profile closely across depth, and the uncertainty band widens in the same regions where the profile is structurally more complex. That is the baseline result notebook 01 needs: the custom method appears internally coherent on a single-cycle inspection rather than obviously pathological.
 #
-#
 
 # %% [markdown]
 # ## 6a. Cross-Cycle Validation: RMSE Distributions
@@ -279,7 +263,6 @@ fig.tight_layout()
 # Single-profile inspection is necessary but not sufficient. The next question is whether the method behaves consistently across the sampled cycles or only looks reasonable on a hand-picked example.
 #
 # **Note**: these values quantify within-profile reconstruction error from 5-fold cross-validation, not spatiotemporal prediction error. At this stage they are being used as internal method diagnostics, not as a claim of superiority over other interpolants.
-#
 #
 
 # %%
@@ -316,7 +299,6 @@ fig.tight_layout()
 #
 # **Open question**: the right tail deserves investigation. Potential causes include profiles with strong subsurface inversions, fine-scale layering, or sparse sampling in structurally difficult regions. Notebook 02 will determine how serious that tail is relative to exact-interpolant baselines.
 #
-#
 
 # %% [markdown]
 # ## 6b. Residual Structure by Depth
@@ -326,7 +308,6 @@ fig.tight_layout()
 # **Question**: if curvature-adaptive knot placement is doing something meaningful, do the larger residuals appear in structurally difficult regions such as the thermocline and inversion layers, while simpler deep-water regions remain easier to fit?
 #
 # Note: these are model reconstruction residuals only. The total reported uncertainty used elsewhere in the notebook is larger because it also includes sensor and pressure-propagated terms.
-#
 #
 
 # %%
@@ -380,7 +361,6 @@ fig.tight_layout()
 #
 # This does not prove that the custom spline is the best available approach. It does show that the method behaves like a plausible profile representation rather than an arbitrary compression scheme, which is the threshold notebook 01 is meant to test.
 #
-#
 
 # %% [markdown]
 # ## 7. Method Scope and Current Limitations
@@ -399,7 +379,6 @@ fig.tight_layout()
 # - whether the curvature-adaptive machinery is worth its complexity
 #
 # **Intended use**: notebook 01 should be read as a method-confirmation notebook. It shows that the custom spline idea is viable enough to deserve comparison, not that it has already won that comparison.
-#
 #
 
 # %% [markdown]
@@ -425,4 +404,3 @@ fig.tight_layout()
 # 4. check whether the method's compactness and queryability survive broader comparisons
 #
 # Those questions are the bridge to notebook 02.
-#

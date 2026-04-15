@@ -26,13 +26,6 @@
 # ---
 
 # %% [markdown]
-# # TODO: ModelMeta Notebook Follow-up
-#
-# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
-#
-# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
-#
-# %% [markdown]
 # # 02. Argo Cycle Representation Validation
 #
 # Notebook 01 asked whether the custom spline method worked at all as a compact and uncertainty-aware profile representation. Notebook 02 asks the next question: how does that same custom method compare to more traditional exact-interpolant baselines on the same withheld-point reconstruction task?
@@ -44,7 +37,6 @@
 # - [Method Comparison Notes](../notes/method-comparison-notes.md)
 # - [Experiment Design Notes](../notes/experiment-design-notes.md)
 # - [Framing Notes](../notes/framing-notes.md)
-#
 #
 
 # %%
@@ -64,7 +56,6 @@ from lib.calc_rmse import calc_rmse
 
 from argo_interp.data import get_data
 
-
 # %% [markdown]
 # ## Benchmark Setup
 #
@@ -72,14 +63,12 @@ from argo_interp.data import get_data
 #
 # That keeps the benchmark focused on one narrow question already motivated by the literature: what happens when an exact interpolant and a compact stored representation are asked to solve the same within-profile reconstruction problem (Akima, 1970, pp. 2-5; Barker & McDougall, 2020, pp. 1-2, 4-7; Yarger et al., 2022, pp. 11-12, 216-218)?
 #
-#
 
 # %%
 def interleaved_fold_index(cycle_data: pd.DataFrame, folds: int) -> np.ndarray:
     """Match calc_fold_error() interleaved validation fold assignment exactly."""
     fold_obs_idx = np.arange(1, len(cycle_data) - 1)
     return np.array([-1, *((fold_obs_idx - 1) % folds), -1])
-
 
 # %%
 def akima_kfold(cycle_data, folds=5):
@@ -108,7 +97,6 @@ def akima_kfold(cycle_data, folds=5):
     return temp_rmse, sal_rmse
 
 
-
 # %%
 def pchip_kfold(cycle_data, folds=5):
     cycle_data = cycle_data.sort_values('PRES').reset_index(drop=True)
@@ -134,7 +122,6 @@ def pchip_kfold(cycle_data, folds=5):
     temp_rmse /= valid_obs
     sal_rmse /= valid_obs
     return temp_rmse, sal_rmse
-
 
 
 # %%
@@ -198,13 +185,11 @@ readings = readings.drop(columns=group_fields)
 #
 # In practical terms, this notebook can speak directly to omitted-point RMSE, artifact footprint, and footprint stability. It cannot by itself establish downstream acoustic utility, operational value of the uncertainty terms, or superiority as a prior layer once sparse local sensing is introduced. It also does not yet answer whether the custom spline machinery is the right non-exact spline family to carry forward; notebook 03 takes up that question directly.
 #
-#
 
 # %% [markdown]
 # ## Compact Spline Artifact Results
 #
 # The next cells fit the current spline-based cycle artifact across the sampled profiles and summarize its reconstruction error and artifact footprint.
-#
 #
 
 # %%
@@ -279,13 +264,11 @@ pd.concat([
 #
 # So the memory and pickle-size numbers for this method reflect a richer artifact definition than a raw interpolator alone. That matters for interpretation: if the fuller spline artifact still remains smaller than the exact-interpolant baselines, the compactness result is conservative rather than inflated.
 #
-#
 
 # %% [markdown]
 # ## Akima Baseline Results
 #
 # The next cells evaluate `Akima1DInterpolator` under the same interleaved omitted-point validation logic and summarize both reconstruction error and interpolator footprint.
-#
 #
 
 # %%
@@ -332,7 +315,6 @@ cycle_data = readings.loc[readings['PLATFORM_CYCLE'] == cycle_number]
 # ## PCHIP Baseline Results
 #
 # The next cells evaluate `PchipInterpolator` under the same omitted-point validation logic. In practice, this serves as a second strong exact-interpolant comparator and helps show whether the footprint pattern is specific to Akima or characteristic of exact interpolants more generally.
-#
 #
 
 # %%
@@ -424,7 +406,6 @@ pchip_model_sizes.loc[pchip_model_sizes['file'] < np.nanpercentile(pchip_model_s
 # - so notebook 01's feasibility result survives comparison as a real tradeoff rather than collapsing immediately,
 # - and the next question becomes whether this custom spline implementation actually earns its complexity relative to simpler spline-family alternatives.
 #
-#
 
 # %% [markdown]
 # ## Framing References
@@ -434,4 +415,3 @@ pchip_model_sizes.loc[pchip_model_sizes['file'] < np.nanpercentile(pchip_model_s
 # - Yarger, D., Stoev, S., & Hsing, T. (2022). *A functional-data approach to the Argo data.* The Annals of Applied Statistics, 16(1), 216-246. https://doi.org/10.1214/21-AOAS1477
 #
 # These references are the main framing support for the method-class distinctions cited in this notebook. For broader topic context and the canonical source-backed synthesis, see [../literature-review.md](../literature-review.md).
-#

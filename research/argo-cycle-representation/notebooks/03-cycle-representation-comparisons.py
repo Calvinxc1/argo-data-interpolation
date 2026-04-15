@@ -26,19 +26,11 @@
 # ---
 
 # %% [markdown]
-# # TODO: ModelMeta Notebook Follow-up
-#
-# `ModelMeta` now expects `platform_number`, `cycle_number`, and `direction` as separate fields and derives `cycle_id` from them.
-#
-# This notebook likely still carries assumptions from the older cycle-id-driven setup, so it needs a follow-up pass to align the notebook logic and commentary with the refactor before treating it as settled.
-#
-# %% [markdown]
 # # 03. Cycle Representation Comparisons
 #
 # Notebook 02 established the tradeoff: the custom spline artifact is meaningfully smaller than exact interpolants, but weaker on withheld-point RMSE. Notebook 03 asks whether that tradeoff actually requires the custom curvature-adaptive implementation, or whether simpler traditional / native spline options already cover the same ground more convincingly.
 #
 # The comparison here is therefore reduced to the core model families that still matter: linear interpolation, PCHIP, and SciPy's native spline path. Those choices match the method classes emphasized in the topic literature review: linear interpolation as the simplest baseline, shape-preserving PCHIP-type methods as the main Argo interpolation comparator, and continuous spline representations as the natural family for compact functional encoding (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15; Yarger et al., 2022, pp. 11-12, 216-218).
-#
 #
 
 # %% [markdown]
@@ -55,7 +47,6 @@
 # 1. Does the native spline path dominate the custom spline direction on simplicity and performance?
 # 2. Does PCHIP still sit on the low-RMSE end of the tradeoff?
 # 3. If spline methods are weaker on RMSE, do they still earn their place through tunability and smaller artifacts?
-#
 #
 
 # %%
@@ -80,7 +71,6 @@ from argo_interp.cycle.model import Model
 #
 # In other words, this notebook helps decide what is worth quantifying uncertainty around, not how that uncertainty should ultimately be calibrated.
 #
-#
 
 # %%
 SENSOR_ACCURACY = {
@@ -95,7 +85,6 @@ SENSOR_ACCURACY = {
 # This uses the same 2011 regional cycle sample as notebook 02 so the comparison stays tied to the validation dataset rather than drifting to a different slice. The sample is still compact enough to compare the core model classes on many individual cycles without turning the notebook into a large batch benchmark.
 #
 # The important thing here is relative behavior across models on the same loop, not publishing these particular aggregate numbers as final topic results.
-#
 #
 
 # %%
@@ -134,14 +123,12 @@ else:
 #
 # This is the key shift from notebooks 01 and 02. Linear interpolation and PCHIP-type methods are the most relevant exact baselines from the reviewed oceanographic literature, while spline smoothing connects more naturally to the continuous-representation direction described by Yarger et al. (2022, pp. 11-12, 216-218) (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7). The question is no longer whether the custom spline can be made to work; notebooks 01 and 02 already answered that. The question is whether the native spline family already captures the only part of that story that remains compelling.
 #
-#
 
 # %%
 settings = ModelSettings(
     n_folds=5,
     sensor_accuracy=SensorAccuracy(**SENSOR_ACCURACY),
 )
-
 
 # %%
 def build_smooth_settings(
@@ -163,7 +150,6 @@ def build_smooth_settings(
         sensor_accuracy=settings.sensor_accuracy,
     )
 
-
 # %% [markdown]
 # ## Cycle Loop
 #
@@ -173,7 +159,6 @@ def build_smooth_settings(
 # - artifact footprint in memory and serialized form
 #
 # That split matters because this notebook is trying to settle the custom-method question. If PCHIP wins on RMSE but native spline methods can be tuned into substantially smaller artifacts, then the custom spline story loses most of its remaining rationale and the broader spline story becomes one of controlled approximation and later uncertainty quantification.
-#
 #
 
 # %%
@@ -251,7 +236,6 @@ model_errors = pd.DataFrame(model_errors).T
 # - Lower `memory_*` and `file_*` values mean a smaller stored artifact.
 # - The practical interpretation is whether accepting weaker RMSE than PCHIP buys enough compactness and tunability to justify carrying the spline family forward into the uncertainty-aware representation work.
 #
-#
 
 # %%
 pd.concat([
@@ -272,7 +256,6 @@ pd.concat([
 #
 # In other words, notebook 03 closes the loop opened by notebooks 01 and 02. The custom spline was a useful exploratory method, but the more durable research direction is the simpler native spline family plus explicit uncertainty work.
 #
-#
 
 # %% [markdown]
 # ## Framing References
@@ -283,4 +266,3 @@ pd.concat([
 # - Yarger, D., Stoev, S., & Hsing, T. (2022). *A functional-data approach to the Argo data.* The Annals of Applied Statistics, 16(1), 216-246. https://doi.org/10.1214/21-AOAS1477
 #
 # These references support the model-family framing used here: linear interpolation as a baseline, PCHIP-type methods as the shape-preserving comparator, Argo delayed-mode uncertainty conventions for the fixed sensor terms, and functional spline representation as the broader vertical-encoding context. For the canonical topic synthesis, see [../literature-review.md](../literature-review.md).
-#

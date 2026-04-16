@@ -164,6 +164,7 @@ cython_debug/
 uv.lock
 
 # Local research source copies
+**/sources
 **/sources/
 
 # Allow tracked research-only notebook support modules

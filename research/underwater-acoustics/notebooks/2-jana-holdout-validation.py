@@ -30,6 +30,8 @@
 #
 # This notebook turns the calibrated Jana et al. (2022) replication pipeline into an explicit held-out benchmark. The benchmark predictor deliberately stays close to the paper's spatial aggregation logic rather than reusing the weighted retained-cycle construction from `3-uncertainty-extension.ipynb`.
 #
+# It is the second notebook in the acoustics sequence. Notebook `1` settled the descriptive replication baseline; this notebook is the first predictive test built on that archive.
+#
 # The governing question here is narrow:
 # - if one float is held out entirely
 # - and the remaining retained archive is used as a flat Jana-style `2° x 2°` local retained-cycle kernel
@@ -253,6 +255,10 @@ print(f"Retained floats: {active_cycles_metadata['platform_number'].nunique():,}
 # - derive predicted sound speed from those predicted temperature and salinity profiles
 #
 # Cycles without enough retained-cycle support are skipped rather than imputed. The skip accounting matters because a flat local kernel is only meaningful where the retained archive is actually dense enough to support it.
+#
+# This is a deliberately conservative benchmark, not a claim that the flat kernel is the best predictor. It is defensible because it stays close to Jana et al.'s published spatial aggregation logic and therefore gives the later weighted notebooks a clear deterministic baseline to beat.
+#
+# The `min_cycles = 30` threshold is a local validation choice rather than a source-backed constant. It was chosen as a pragmatic support floor so the local mean is not driven by a handful of nearby cycles, and because it stays in the same rough minimum-support spirit as Jana's map-level coverage rules without pretending to reproduce them exactly.
 #
 
 # %%
@@ -610,8 +616,10 @@ for cycle_id in sample_profiles:
 # - it provides a simple baseline for later comparison against weighted retained-cycle or model-based approaches
 # - it makes the coverage-versus-skill tradeoff visible through retained-cycle-count diagnostics and skip patterns
 #
-# The most natural next comparisons would be:
-# - lowering or raising `min_cycles`
-# - adding a seasonal cycle restriction while keeping the kernel flat
-# - comparing this flat-kernel benchmark against the weighted retained-cycle reconstruction logic from `3-uncertainty-extension.ipynb`
-# - repeating the same benchmark with PCHIP or other profile interpolation choices while keeping the holdout protocol fixed
+# The next notebook in the sequence, `3-uncertainty-extension.ipynb`, changes only one major thing: the predictor. It keeps the same strict retained archive and the same hold-one-float-out frame, but replaces the flat local mean with a weighted retained-cycle construction.
+#
+# That makes the comparison intentionally clean:
+# - notebook `2` asks what the flat Jana-style kernel can do on its own
+# - notebook `3` asks whether modest spatial, seasonal, and interannual weighting improves that same held-out task
+#
+# More exploratory variants, such as changing `min_cycles`, adding seasonal hard filters, or repeating the same benchmark with PCHIP, remain secondary until that baseline-versus-weighted comparison is clear.

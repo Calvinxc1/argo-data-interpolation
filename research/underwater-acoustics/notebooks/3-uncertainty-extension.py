@@ -36,6 +36,8 @@
 #
 # The difference is the predictor. Here, nearby retained cycles are combined with simple spatial, seasonal, and broader interannual weights instead of the flat unweighted Jana-style local mean used in the benchmark notebook.
 #
+# It is the third notebook in the acoustics sequence. Notebook `2` established the strict flat-kernel benchmark; this notebook is the first controlled attempt to improve that benchmark without changing the retained archive itself.
+#
 # ## Comparison target
 #
 # This notebook should be read as the weighted retained-cycle counterpart to `2-jana-holdout-validation.ipynb`:
@@ -240,6 +242,12 @@ print(f"Retained floats: {active_cycles_metadata['platform_number'].nunique():,}
 # - broader interannual time separation
 #
 # The weighted average is computed directly on the retained-cycle profiles already placed on the common depth grid.
+#
+# The weighting function intentionally uses only the exponential numerator of a Gaussian-style kernel. The normalizing constant is omitted because these terms are used only as relative weights and are rescaled again before prediction; carrying the denominator would add computation without changing the relative ranking of cycles or the normalized weighted mean when each component uses a fixed variance.
+#
+# The bandwidth choices in `HoldoutConfig` are heuristic starting values, not source-backed constants. The `dist_stdev_cutoff`, `week_stdev_cutoff`, and `annual_stdev_years` settings were chosen with common-sense tapering in mind so weights decay across the local box and across seasonal and interannual separation, but they should be treated as provisional hyperparameters rather than as validated scientific defaults.
+#
+# A proper sensitivity analysis over these settings is an obvious next step, but it is deferred here because each full holdout run is expensive enough that a naive sweep would be wasteful. The defensible next move is a planned sensitivity design rather than ad hoc retuning.
 #
 
 # %%
@@ -657,7 +665,13 @@ for cycle_id in sample_profiles:
 #
 # This notebook now answers the same held-out benchmark question as `2-jana-holdout-validation.ipynb`, but with a weighted retained-cycle predictor instead of a flat local mean.
 #
-# The most direct next comparison is no longer conceptual. It is empirical:
-# - compare this notebook's depthwise RMSE / MAE / bias against the flat Jana benchmark
+# The immediate comparison is empirical:
+# - compare this notebook's depthwise RMSE / MAE / bias against the flat Jana benchmark from notebook `2`
 # - inspect whether the weighted predictor improves specific depth ranges or only certain coverage regimes
-# - decide whether the extra weighting complexity is justified before moving on to a more model-based extension
+# - decide whether the extra weighting complexity is justified when the archive remains strictly pruned
+#
+# The next notebook in the sequence, `4-uncertainty-extension-all-cycles.ipynb`, changes a different lever. It keeps the weighted local-window idea from this notebook, but relaxes the archive-retention rules so partially sampled cycles can contribute where they have real depth support.
+#
+# That makes notebook `4` a complementary test rather than a replacement:
+# - notebook `3` asks whether weighting helps under the strict Jana-style retained archive
+# - notebook `4` asks whether the same weighted idea benefits from keeping more partial local support

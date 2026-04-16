@@ -28,7 +28,8 @@ The most defensible extension path is:
 
 1. Reproduce the Jana baseline outputs as closely as practical.
 2. Replace the deterministic profile gridding step with PCHIP and/or smoothing-spline variants that emit per-level uncertainty estimates.
-3. Quantify how those uncertainty estimates affect derived sound-speed structure, sonic layer depth identification, and any downstream acoustic diagnostic added in the extension study.
+3. Compare those alternatives against the deterministic baseline through explicit validation rather than descriptive reconstruction alone.
+4. Quantify how those uncertainty estimates affect derived sound-speed structure, sonic layer depth identification, and any downstream acoustic diagnostic added in the extension study.
 
 ## Recommendation
 
@@ -37,6 +38,7 @@ The replication should keep one strong baseline path that stays as close as poss
 The current project story is strongest if it shows two things separately:
 
 - changing the interpolation method changes the gridded sound-speed structure in physically meaningful regions such as sharp gradients and sonic-layer-relevant depths
+- those alternative interpolation paths can be compared against the deterministic baseline through a clear validation task rather than only through side-by-side descriptive figures
 - attaching uncertainty at the interpolation stage gives the downstream acoustic workflow information it did not previously have
 
 ## Replication Method Notes

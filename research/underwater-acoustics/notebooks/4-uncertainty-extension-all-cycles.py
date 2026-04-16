@@ -30,6 +30,8 @@
 #
 # This notebook keeps the same hold-one-float-out validation frame used by `2-jana-holdout-validation.ipynb` and `3-uncertainty-extension.ipynb`, but it relaxes the archive-retention logic instead of removing the local moving window.
 #
+# It is the fourth notebook in the acoustics sequence. Notebook `3` tested whether weighting helps under the strict retained archive; this notebook tests whether the same weighted local-window idea benefits from a less aggressively pruned local archive.
+#
 # In this version:
 # - the held-out float is still excluded completely
 # - nearby retained cycles are still selected with a flat local moving window
@@ -232,6 +234,14 @@ print(f"Retained floats after relaxed archive build: {active_cycles_metadata['pl
 # - the prediction is formed depth by depth using only locally available support
 #
 # If the held-out cycle has sampled a depth where none of the nearby cycles provide support, that depth is dropped from scoring and counted explicitly.
+#
+# As in notebook `3`, the weighting function uses only the exponential numerator of a Gaussian-style kernel. The omitted normalizing constant would be wasted computation here because the weights are used only relatively and are renormalized by the weighted-average step; it would not change which cycles get emphasized when each component uses a fixed variance term.
+#
+# The bandwidth choices in `HoldoutConfig` are still heuristic. They are reasonable starting values for a local spatio-temporal taper, but they are not evidence-backed defaults and should be read as transparent modeling choices rather than settled parameter estimates.
+#
+# This notebook changes one additional design choice: `min_cycles = 1`. That is acceptable here only because the relaxed-archive experiment is explicitly about depthwise local support. The goal is not to claim that a single supporting cycle is a stable prediction, but to expose where partial profiles provide some support, where they provide none, and how many held-out depths still have to be dropped.
+#
+# A full sensitivity analysis over kernel width, support thresholds, and temporal bandwidths remains future work. Because the holdout pass is computationally expensive, that analysis should be planned as a targeted experiment rather than a broad brute-force sweep.
 #
 
 # %%
@@ -702,3 +712,9 @@ for cycle_id in sample_profiles:
 # - strict weighted local window versus relaxed weighted local window skill by depth
 # - whether thermocline errors improve when partial profiles are retained locally
 # - whether dropped-depth counts reveal where local support still collapses despite the relaxed archive
+#
+# Read as a sequence, the four notebooks now separate the main questions cleanly:
+# - notebook `1`: can the Jana workflow be replicated transparently enough to serve as a baseline?
+# - notebook `2`: how strong is the flat Jana-style kernel as a held-out predictor?
+# - notebook `3`: does weighted local aggregation beat that flat benchmark under the same strict archive?
+# - notebook `4`: does the weighted approach improve further when partial local support is allowed back into the archive?

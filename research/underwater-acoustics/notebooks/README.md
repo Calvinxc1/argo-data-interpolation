@@ -4,12 +4,14 @@ This folder indexes prototype notebooks for the `underwater-acoustics` topic. Th
 
 Committed notebooks in this folder are paired with Jupytext `.py` files in percent format. The `.ipynb` remains the primary runnable research artifact; the paired `.py` file exists to make notebook content easier to diff, review, and search in version control.
 
-## Files
+## Sequence
 
-- [1-jana-study-replication.ipynb](1-jana-study-replication.ipynb) and [1-jana-study-replication.py](1-jana-study-replication.py): replication notebook for Jana et al. (2022), covering Argo data pull and filtering, profile interpolation, sound-speed calculation, and the figure-reproduction workflow through the current subdomain composites.
-- [2-jana-holdout-validation.ipynb](2-jana-holdout-validation.ipynb) and [2-jana-holdout-validation.py](2-jana-holdout-validation.py): hold-one-float-out benchmark notebook that evaluates a Jana-style flat `2° x 2°` retained-cycle kernel predictor on the retained Bay of Bengal archive and aggregates profile error by depth.
-- [3-uncertainty-extension.ipynb](3-uncertainty-extension.ipynb) and [3-uncertainty-extension.py](3-uncertainty-extension.py): weighted hold-one-float-out comparison notebook that uses the same retained archive and validation protocol as the Jana benchmark, but replaces the flat retained-cycle mean with a weighted retained-cycle predictor inside the same spatial kernel.
-- [4-uncertainty-extension-all-cycles.ipynb](4-uncertainty-extension-all-cycles.ipynb) and [4-uncertainty-extension-all-cycles.py](4-uncertainty-extension-all-cycles.py): weighted hold-one-float-out comparison notebook that keeps the same local moving window as notebook `3`, but relaxes archive-retention rules so partially sampled cycles can contribute where they provide actual depth support, with explicit dropped-depth accounting.
+These notebooks are intended to be read as a four-step progression:
+
+1. [1-jana-study-replication.ipynb](1-jana-study-replication.ipynb) and [1-jana-study-replication.py](1-jana-study-replication.py): establish the calibrated Jana et al. (2022) replication baseline, from archive pull through the reproduced domain, map, and subdomain figures.
+2. [2-jana-holdout-validation.ipynb](2-jana-holdout-validation.ipynb) and [2-jana-holdout-validation.py](2-jana-holdout-validation.py): turn that descriptive replication into an explicit held-out benchmark by evaluating a flat Jana-style `2° x 2°` retained-cycle kernel predictor by depth.
+3. [3-uncertainty-extension.ipynb](3-uncertainty-extension.ipynb) and [3-uncertainty-extension.py](3-uncertainty-extension.py): keep the same strict retained archive and holdout protocol, but replace the flat local mean with a weighted retained-cycle predictor to test whether modest spatio-temporal weighting improves skill.
+4. [4-uncertainty-extension-all-cycles.ipynb](4-uncertainty-extension-all-cycles.ipynb) and [4-uncertainty-extension-all-cycles.py](4-uncertainty-extension-all-cycles.py): keep the weighted local-window idea from notebook `3`, but relax the archive-pruning rules so partially sampled cycles can contribute where they have real depth support.
 
 ## License
 

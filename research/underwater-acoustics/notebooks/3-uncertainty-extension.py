@@ -48,7 +48,6 @@
 #
 
 # %%
-import pickle
 from dataclasses import dataclass
 from datetime import timedelta as td
 from pathlib import Path
@@ -63,16 +62,17 @@ import seawater as sw
 from tqdm.auto import tqdm
 
 # %%
-from argo_interp.data import data_filter
+from argo_interp.data import data_filter, get_data
 from argo_interp.cycle.adapter import LinearAdapter
 from argo_interp.cycle.model import Model
 from argo_interp.cycle.domain import ModelData, ModelMeta
 from argo_interp.cycle.config import ModelSettings, ModelKwargs
 
 # %% [markdown]
-# ## 1. Load the cached Bay of Bengal archive used by the Jana replication
+# ## 1. Pull the Bay of Bengal Argo archive directly
 #
-# The notebook reuses the same local cached archive as the Jana replication and validation notebooks. If the cached file is unavailable, run `1-jana-study-replication.ipynb` first.
+# This notebook now performs its own Argo pull so it can be run independently of
+# the earlier notebooks while still reconstructing the same starting archive.
 #
 
 # %%
@@ -81,24 +81,13 @@ data_path = notebook_dir / "data"
 chart_path = data_path / "charts"
 chart_path.mkdir(exist_ok=True, parents=True)
 
-archive_candidates = [
-    data_path / "jana_replication-argo_data.pkl",
-    data_path / "argo_data.pkl",
-    data_path / "uncertainty_extension-argo_data.pkl",
+box = [
+    80, 99,
+    6, 23,
+    0, 750,
+    "2011-01-01", "2020-12-31",
 ]
-
-data_file = next((path for path in archive_candidates if path.exists()), None)
-if data_file is None:
-    raise FileNotFoundError(
-        "Could not find a cached Bay of Bengal archive under "
-        "`research/underwater-acoustics/notebooks/data/`. "
-        "Run `1-jana-study-replication.ipynb` first."
-    )
-
-with data_file.open("br") as f:
-    ds = pickle.load(f)
-
-print(f"Loaded archive from: {data_file}")
+ds = get_data(box, progress=True)
 
 # %% [markdown]
 # ## 2. Rebuild the same calibrated Jana retained archive
@@ -356,124 +345,85 @@ print(f"Platforms scheduled for evaluation: {len(platform_numbers):,}")
 # %% [markdown]
 # ## 4. Run the weighted hold-one-float-out evaluation
 #
-# The result cache matches the structure used in the Jana benchmark notebook so the two notebooks can be compared directly.
+# This notebook evaluates directly from the rebuilt archive so the weighted-model
+# diagnostics always correspond to the current run.
 #
 
 # %%
-results_file = data_path / "uncertainty_extension_validation.pkl"
-override = False
+cycle_metrics_records = []
+residuals_long_records = []
+diagnostics_records = []
+sample_profiles = {}
 
-if results_file.exists() and not override:
-    with results_file.open("br") as f:
-        cached = pickle.load(f)
-    cycle_metrics = cached["cycle_metrics"]
-    depth_metrics = cached["depth_metrics"]
-    residuals_long = cached["residuals_long"]
-    diagnostics = cached["diagnostics"]
-    sample_profiles = cached["sample_profiles"]
+evaluated_cycles = active_cycles_metadata[active_cycles_metadata["platform_number"].isin(platform_numbers)].index
+t = tqdm(evaluated_cycles, total=len(evaluated_cycles))
+for cycle_id in t:
+    predicts, diag, weights = predict_cycle_weighted(
+        cycle_id=cycle_id,
+        cycle_metadata=active_cycles_metadata,
+        temp_grid=temp_active_profiles,
+        sal_grid=sal_active_profiles,
+        pressure_grid=pres_active_profiles,
+        cfg=config,
+    )
+    diagnostics_records.append(diag)
 
-    # Migrate older cached results from the earlier donor-based naming.
-    if "donor_count" in cycle_metrics.columns and "retained_cycle_count" not in cycle_metrics.columns:
-        cycle_metrics = cycle_metrics.rename(columns={"donor_count": "retained_cycle_count"})
-    if "donor_count" in diagnostics.columns and "retained_cycle_count" not in diagnostics.columns:
-        diagnostics = diagnostics.rename(columns={"donor_count": "retained_cycle_count"})
-    if "status" in diagnostics.columns:
-        diagnostics["status"] = diagnostics["status"].replace({"insufficient_donors": "insufficient_cycles"})
-    if "donor_count" in residuals_long.columns and "retained_cycle_count" not in residuals_long.columns:
-        residuals_long = residuals_long.rename(columns={"donor_count": "retained_cycle_count"})
+    if predicts is None:
+        continue
 
-    for sample in sample_profiles.values():
-        if "diagnostics" not in sample:
-            continue
-        diag = sample["diagnostics"]
-        if "donor_count" in diag and "retained_cycle_count" not in diag:
-            diag["retained_cycle_count"] = diag.pop("donor_count")
-        if diag.get("status") == "insufficient_donors":
-            diag["status"] = "insufficient_cycles"
-else:
-    cycle_metrics_records = []
-    residuals_long_records = []
-    diagnostics_records = []
-    sample_profiles = {}
+    actuals = pd.concat([
+        temp_active_profiles[cycle_id].rename("temperature"),
+        sal_active_profiles[cycle_id].rename("salinity"),
+        sound_speed_profiles[cycle_id].rename("sound_speed"),
+    ], axis=1)
 
-    evaluated_cycles = active_cycles_metadata[active_cycles_metadata["platform_number"].isin(platform_numbers)].index
-    t = tqdm(evaluated_cycles, total=len(evaluated_cycles))
-    for cycle_id in t:
-        predicts, diag, weights = predict_cycle_weighted(
-            cycle_id=cycle_id,
-            cycle_metadata=active_cycles_metadata,
-            temp_grid=temp_active_profiles,
-            sal_grid=sal_active_profiles,
-            pressure_grid=pres_active_profiles,
-            cfg=config,
-        )
-        diagnostics_records.append(diag)
+    residuals = predicts - actuals
+    cycle_metrics_records.append({
+        "cycle_id": cycle_id,
+        "platform_number": diag["platform_number"],
+        "retained_cycle_count": diag["retained_cycle_count"],
+        "temperature_rmse": np.sqrt((residuals["temperature"] ** 2).mean()),
+        "temperature_mae": residuals["temperature"].abs().mean(),
+        "temperature_bias": residuals["temperature"].mean(),
+        "salinity_rmse": np.sqrt((residuals["salinity"] ** 2).mean()),
+        "salinity_mae": residuals["salinity"].abs().mean(),
+        "salinity_bias": residuals["salinity"].mean(),
+        "sound_speed_rmse": np.sqrt((residuals["sound_speed"] ** 2).mean()),
+        "sound_speed_mae": residuals["sound_speed"].abs().mean(),
+        "sound_speed_bias": residuals["sound_speed"].mean(),
+    })
 
-        if predicts is None:
-            continue
-
-        actuals = pd.concat([
-            temp_active_profiles[cycle_id].rename("temperature"),
-            sal_active_profiles[cycle_id].rename("salinity"),
-            sound_speed_profiles[cycle_id].rename("sound_speed"),
-        ], axis=1)
-
-        residuals = predicts - actuals
-        cycle_metrics_records.append({
+    for measure in ["temperature", "salinity", "sound_speed"]:
+        residuals_long_records.append(pd.DataFrame({
             "cycle_id": cycle_id,
             "platform_number": diag["platform_number"],
-            "retained_cycle_count": diag["retained_cycle_count"],
-            "temperature_rmse": np.sqrt((residuals["temperature"] ** 2).mean()),
-            "temperature_mae": residuals["temperature"].abs().mean(),
-            "temperature_bias": residuals["temperature"].mean(),
-            "salinity_rmse": np.sqrt((residuals["salinity"] ** 2).mean()),
-            "salinity_mae": residuals["salinity"].abs().mean(),
-            "salinity_bias": residuals["salinity"].mean(),
-            "sound_speed_rmse": np.sqrt((residuals["sound_speed"] ** 2).mean()),
-            "sound_speed_mae": residuals["sound_speed"].abs().mean(),
-            "sound_speed_bias": residuals["sound_speed"].mean(),
-        })
+            "depth": residuals.index,
+            "measure": measure,
+            "residual": residuals[measure].values,
+            "abs_error": residuals[measure].abs().values,
+            "sq_error": residuals[measure].pow(2).values,
+        }))
 
-        for measure in ["temperature", "salinity", "sound_speed"]:
-            residuals_long_records.append(pd.DataFrame({
-                "cycle_id": cycle_id,
-                "platform_number": diag["platform_number"],
-                "depth": residuals.index,
-                "measure": measure,
-                "residual": residuals[measure].values,
-                "abs_error": residuals[measure].abs().values,
-                "sq_error": residuals[measure].pow(2).values,
-            }))
+    if len(sample_profiles) < 4:
+        sample_profiles[cycle_id] = {
+            "predicts": predicts,
+            "actuals": actuals,
+            "diagnostics": diag,
+            "weights": weights,
+        }
 
-        if len(sample_profiles) < 4:
-            sample_profiles[cycle_id] = {
-                "predicts": predicts,
-                "actuals": actuals,
-                "diagnostics": diag,
-                "weights": weights,
-            }
+    t.set_postfix(evaluated=len(cycle_metrics_records), skipped=len(diagnostics_records) - len(cycle_metrics_records))
 
-        t.set_postfix(evaluated=len(cycle_metrics_records), skipped=len(diagnostics_records) - len(cycle_metrics_records))
+cycle_metrics = pd.DataFrame.from_records(cycle_metrics_records).set_index("cycle_id")
+diagnostics = pd.DataFrame.from_records(diagnostics_records).set_index("cycle_id")
+residuals_long = pd.concat(residuals_long_records, axis=0, ignore_index=True)
 
-    cycle_metrics = pd.DataFrame.from_records(cycle_metrics_records).set_index("cycle_id")
-    diagnostics = pd.DataFrame.from_records(diagnostics_records).set_index("cycle_id")
-    residuals_long = pd.concat(residuals_long_records, axis=0, ignore_index=True)
-
-    depth_metrics = residuals_long.groupby(["measure", "depth"]).agg(
-        bias=("residual", "mean"),
-        mae=("abs_error", "mean"),
-        rmse=("sq_error", lambda x: np.sqrt(np.mean(x))),
-        n_cycles=("cycle_id", "nunique"),
-    ).reset_index()
-
-    with results_file.open("bw") as f:
-        pickle.dump({
-            "cycle_metrics": cycle_metrics,
-            "depth_metrics": depth_metrics,
-            "residuals_long": residuals_long,
-            "diagnostics": diagnostics,
-            "sample_profiles": sample_profiles,
-        }, f)
+depth_metrics = residuals_long.groupby(["measure", "depth"]).agg(
+    bias=("residual", "mean"),
+    mae=("abs_error", "mean"),
+    rmse=("sq_error", lambda x: np.sqrt(np.mean(x))),
+    n_cycles=("cycle_id", "nunique"),
+).reset_index()
 
 # %% [markdown]
 # ## 5. Coverage and retained-cycle-support diagnostics

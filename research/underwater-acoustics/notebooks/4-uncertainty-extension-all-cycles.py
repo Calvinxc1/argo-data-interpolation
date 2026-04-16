@@ -57,7 +57,6 @@
 #
 
 # %%
-import pickle
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -71,16 +70,17 @@ import seawater as sw
 from tqdm.auto import tqdm
 
 # %%
-from argo_interp.data import data_filter
+from argo_interp.data import data_filter, get_data
 from argo_interp.cycle.adapter import LinearAdapter
 from argo_interp.cycle.config import ModelKwargs, ModelSettings
 from argo_interp.cycle.domain import ModelData, ModelMeta
 from argo_interp.cycle.model import Model
 
 # %% [markdown]
-# ## 1. Load the cached Bay of Bengal archive used by the Jana replication
+# ## 1. Pull the Bay of Bengal Argo archive directly
 #
-# The notebook reuses the same local cached archive as the other validation notebooks. If the cached file is unavailable, run `1-jana-study-replication.ipynb` first.
+# This notebook now performs its own Argo pull so it can be run independently of
+# the earlier notebooks while preserving the same spatial-temporal source box.
 #
 
 # %%
@@ -89,24 +89,13 @@ data_path = notebook_dir / "data"
 chart_path = data_path / "charts"
 chart_path.mkdir(exist_ok=True, parents=True)
 
-archive_candidates = [
-    data_path / "jana_replication-argo_data.pkl",
-    data_path / "argo_data.pkl",
-    data_path / "uncertainty_extension-argo_data.pkl",
+box = [
+    80, 99,
+    6, 23,
+    0, 750,
+    "2011-01-01", "2020-12-31",
 ]
-
-data_file = next((path for path in archive_candidates if path.exists()), None)
-if data_file is None:
-    raise FileNotFoundError(
-        "Could not find a cached Bay of Bengal archive under "
-        "`research/underwater-acoustics/notebooks/data/`. "
-        "Run `1-jana-study-replication.ipynb` first."
-    )
-
-with data_file.open("br") as f:
-    ds = pickle.load(f)
-
-print(f"Loaded archive from: {data_file}")
+ds = get_data(box, progress=True)
 
 # %% [markdown]
 # ## 2. Build a relaxed weighted-validation archive
@@ -385,113 +374,94 @@ print(f"Platforms scheduled for evaluation: {len(platform_numbers):,}")
 # %% [markdown]
 # ## 4. Run the relaxed-archive hold-one-float-out evaluation
 #
-# The cache stores both the cycle-level diagnostics and the depthwise residual tables. The key new diagnostic is the number of held-out depths dropped because no nearby cycle can support them.
+# This notebook evaluates directly from the rebuilt relaxed archive. The key
+# diagnostic remains the number of held-out depths dropped because no nearby
+# cycle can support them.
 #
 
 # %%
-results_file = data_path / "uncertainty_extension_all_cycles_validation.pkl"
-override = False
+cycle_metrics_records = []
+residuals_long_records = []
+diagnostics_records = []
+sample_profiles = {}
 
-if results_file.exists() and not override:
-    with results_file.open("br") as f:
-        cached = pickle.load(f)
-    cycle_metrics = cached["cycle_metrics"]
-    depth_metrics = cached["depth_metrics"]
-    residuals_long = cached["residuals_long"]
-    diagnostics = cached["diagnostics"]
-    sample_profiles = cached["sample_profiles"]
-else:
-    cycle_metrics_records = []
-    residuals_long_records = []
-    diagnostics_records = []
-    sample_profiles = {}
+evaluated_cycles = active_cycles_metadata[active_cycles_metadata["platform_number"].isin(platform_numbers)].index
+t = tqdm(evaluated_cycles, total=len(evaluated_cycles))
+for cycle_id in t:
+    predicts, diag, weights = predict_cycle_relaxed_archive(
+        cycle_id=cycle_id,
+        cycle_metadata=active_cycles_metadata,
+        temp_grid=temp_active_profiles,
+        sal_grid=sal_active_profiles,
+        pressure_grid=pres_active_profiles,
+        cfg=config,
+    )
+    diagnostics_records.append(diag)
 
-    evaluated_cycles = active_cycles_metadata[active_cycles_metadata["platform_number"].isin(platform_numbers)].index
-    t = tqdm(evaluated_cycles, total=len(evaluated_cycles))
-    for cycle_id in t:
-        predicts, diag, weights = predict_cycle_relaxed_archive(
-            cycle_id=cycle_id,
-            cycle_metadata=active_cycles_metadata,
-            temp_grid=temp_active_profiles,
-            sal_grid=sal_active_profiles,
-            pressure_grid=pres_active_profiles,
-            cfg=config,
-        )
-        diagnostics_records.append(diag)
+    if predicts is None:
+        continue
 
-        if predicts is None:
-            continue
+    actuals = pd.concat([
+        temp_active_profiles[cycle_id].rename("temperature"),
+        sal_active_profiles[cycle_id].rename("salinity"),
+        sound_speed_profiles[cycle_id].rename("sound_speed"),
+    ], axis=1)
 
-        actuals = pd.concat([
-            temp_active_profiles[cycle_id].rename("temperature"),
-            sal_active_profiles[cycle_id].rename("salinity"),
-            sound_speed_profiles[cycle_id].rename("sound_speed"),
-        ], axis=1)
+    residuals = predicts - actuals
+    cycle_metrics_records.append({
+        "cycle_id": cycle_id,
+        "platform_number": diag["platform_number"],
+        "retained_cycle_count": diag["retained_cycle_count"],
+        "effective_cycle_count": diag["effective_cycle_count"],
+        "target_depth_count": diag["target_depth_count"],
+        "scored_depth_count": diag["scored_depth_count"],
+        "dropped_depth_count": diag["dropped_depth_count"],
+        "temperature_rmse": np.sqrt(np.nanmean(residuals["temperature"] ** 2)),
+        "temperature_mae": residuals["temperature"].abs().mean(),
+        "temperature_bias": residuals["temperature"].mean(),
+        "salinity_rmse": np.sqrt(np.nanmean(residuals["salinity"] ** 2)),
+        "salinity_mae": residuals["salinity"].abs().mean(),
+        "salinity_bias": residuals["salinity"].mean(),
+        "sound_speed_rmse": np.sqrt(np.nanmean(residuals["sound_speed"] ** 2)),
+        "sound_speed_mae": residuals["sound_speed"].abs().mean(),
+        "sound_speed_bias": residuals["sound_speed"].mean(),
+    })
 
-        residuals = predicts - actuals
-        cycle_metrics_records.append({
+    for measure in ["temperature", "salinity", "sound_speed"]:
+        measure_residuals = residuals[measure].dropna()
+        residuals_long_records.append(pd.DataFrame({
             "cycle_id": cycle_id,
             "platform_number": diag["platform_number"],
-            "retained_cycle_count": diag["retained_cycle_count"],
-            "effective_cycle_count": diag["effective_cycle_count"],
-            "target_depth_count": diag["target_depth_count"],
-            "scored_depth_count": diag["scored_depth_count"],
-            "dropped_depth_count": diag["dropped_depth_count"],
-            "temperature_rmse": np.sqrt(np.nanmean(residuals["temperature"] ** 2)),
-            "temperature_mae": residuals["temperature"].abs().mean(),
-            "temperature_bias": residuals["temperature"].mean(),
-            "salinity_rmse": np.sqrt(np.nanmean(residuals["salinity"] ** 2)),
-            "salinity_mae": residuals["salinity"].abs().mean(),
-            "salinity_bias": residuals["salinity"].mean(),
-            "sound_speed_rmse": np.sqrt(np.nanmean(residuals["sound_speed"] ** 2)),
-            "sound_speed_mae": residuals["sound_speed"].abs().mean(),
-            "sound_speed_bias": residuals["sound_speed"].mean(),
-        })
+            "depth": measure_residuals.index,
+            "measure": measure,
+            "residual": measure_residuals.values,
+            "abs_error": measure_residuals.abs().values,
+            "sq_error": measure_residuals.pow(2).values,
+        }))
 
-        for measure in ["temperature", "salinity", "sound_speed"]:
-            measure_residuals = residuals[measure].dropna()
-            residuals_long_records.append(pd.DataFrame({
-                "cycle_id": cycle_id,
-                "platform_number": diag["platform_number"],
-                "depth": measure_residuals.index,
-                "measure": measure,
-                "residual": measure_residuals.values,
-                "abs_error": measure_residuals.abs().values,
-                "sq_error": measure_residuals.pow(2).values,
-            }))
+    if len(sample_profiles) < 4:
+        sample_profiles[cycle_id] = {
+            "predicts": predicts,
+            "actuals": actuals,
+            "diagnostics": diag,
+            "weights": weights,
+        }
 
-        if len(sample_profiles) < 4:
-            sample_profiles[cycle_id] = {
-                "predicts": predicts,
-                "actuals": actuals,
-                "diagnostics": diag,
-                "weights": weights,
-            }
+    t.set_postfix(
+        evaluated=len(cycle_metrics_records),
+        dropped_depths=sum(record["dropped_depth_count"] for record in cycle_metrics_records),
+    )
 
-        t.set_postfix(
-            evaluated=len(cycle_metrics_records),
-            dropped_depths=sum(record["dropped_depth_count"] for record in cycle_metrics_records),
-        )
+cycle_metrics = pd.DataFrame.from_records(cycle_metrics_records).set_index("cycle_id")
+diagnostics = pd.DataFrame.from_records(diagnostics_records).set_index("cycle_id")
+residuals_long = pd.concat(residuals_long_records, axis=0, ignore_index=True)
 
-    cycle_metrics = pd.DataFrame.from_records(cycle_metrics_records).set_index("cycle_id")
-    diagnostics = pd.DataFrame.from_records(diagnostics_records).set_index("cycle_id")
-    residuals_long = pd.concat(residuals_long_records, axis=0, ignore_index=True)
-
-    depth_metrics = residuals_long.groupby(["measure", "depth"]).agg(
-        bias=("residual", "mean"),
-        mae=("abs_error", "mean"),
-        rmse=("sq_error", lambda x: np.sqrt(np.mean(x))),
-        n_cycles=("cycle_id", "nunique"),
-    ).reset_index()
-
-    with results_file.open("bw") as f:
-        pickle.dump({
-            "cycle_metrics": cycle_metrics,
-            "depth_metrics": depth_metrics,
-            "residuals_long": residuals_long,
-            "diagnostics": diagnostics,
-            "sample_profiles": sample_profiles,
-        }, f)
+depth_metrics = residuals_long.groupby(["measure", "depth"]).agg(
+    bias=("residual", "mean"),
+    mae=("abs_error", "mean"),
+    rmse=("sq_error", lambda x: np.sqrt(np.mean(x))),
+    n_cycles=("cycle_id", "nunique"),
+).reset_index()
 
 # %% [markdown]
 # ## 5. Local-support and dropped-depth diagnostics

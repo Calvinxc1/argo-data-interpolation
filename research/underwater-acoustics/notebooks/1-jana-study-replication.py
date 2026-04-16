@@ -55,7 +55,6 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 import gsw
-import pickle
 from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -76,32 +75,23 @@ from argo_interp.cycle.config import ModelSettings, ModelKwargs
 data_path = Path('./data')
 data_path.mkdir(exist_ok=True)
 
-data_file = data_path / 'argo_data.pkl'
-
 # %% [markdown]
 # ## 1. Pull the Bay of Bengal Argo archive
 #
 # Jana et al. analyze Argo profiles from the Bay of Bengal and adjacent Andaman Sea over 2011-01-01 through 2020-12-31. The pull here uses a 0-750 dbar buffer rather than stopping exactly at 500 dbar so a profile that genuinely reaches the target depth is not truncated before the retention test is applied.
 #
 # Jana et al. cite the Coriolis/Ifremer Argo feed (`ftp://ftp.ifremer.fr/ifremer/argo/geo/indian_ocean`) as their source. The best historical interpretation is that they worked from a 2021-2022-era Coriolis/GDAC `geo` archive state, but the paper does not provide a dated snapshot, DOI, or precise access date that would let that source state be reconstructed exactly. This notebook therefore uses the `argopy` standard product as the closest practical available route to that source in the current replication environment and calibrates the retained archive against the paper's reported counts and figures. A dated GDAC snapshot or recovered local mirror would be preferable if it becomes available.
+#
+# The acoustics notebooks are now written to run independently. This notebook therefore performs its own Argo pull directly instead of relying on a saved archive from another notebook run.
 
 # %%
-override = False
-
-if data_file.exists() and not override:
-    with data_file.open('br') as f:
-        ds = pickle.load(f)
-else:
-    box = [
-        80, 99, ## Longitude min/max
-        6, 23, ## Latitude min/max
-        0, 750, ## Pressure min/max
-        '2011-01-01', '2020-12-31', ## Datetime min/max
-    ]
-    ds = get_data(box, progress=True)
-
-    with data_file.open('bw') as f:
-        pickle.dump(ds, f)
+box = [
+    80, 99, ## Longitude min/max
+    6, 23, ## Latitude min/max
+    0, 750, ## Pressure min/max
+    '2011-01-01', '2020-12-31', ## Datetime min/max
+]
+ds = get_data(box, progress=True)
 
 # %% [markdown]
 # ## 2. Apply Jana-style QC and prepare the profile-fitting settings

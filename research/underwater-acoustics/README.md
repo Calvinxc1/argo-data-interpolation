@@ -11,13 +11,13 @@ For this topic, [literature-review.md](literature-review.md) is the canonical li
 - [literature-review.md](literature-review.md): canonical topic literature review, now centered on the methodological gap that profile-level interpolation choices are under-documented and weakly validated in Argo-to-sound-speed workflows.
 - [source-acquisition-tracker.md](source-acquisition-tracker.md): tracker for the remaining unresolved bibliography items and acquisition blockers.
 - [notes/README.md](notes/README.md): index of topic working notes, including the Jana replication rationale, project-framing implications, and broader operational framing.
-- [notebooks/README.md](notebooks/README.md): index of the four-step notebook sequence from calibrated Jana replication through held-out baseline and weighted-extension validation.
+- [notebooks/README.md](notebooks/README.md): index of the five-step notebook sequence from calibrated Jana replication through held-out baseline, weighted-extension validation, and deterministic model-build handoff for later uncertainty work.
 
 ## Current Maturity
 
 - The Jana et al. Bay of Bengal replication and validation sequence is the most mature empirical part of this topic.
 - The literature review is now a source-backed synthesis rather than a Jana-only draft, with the remaining unresolved sources tracked explicitly in the acquisition tracker.
-- The notes and notebooks now tell a consistent progression: literature gap, replication baseline, comparative validation, weighted extensions, and operational translation.
+- The notes and notebooks now tell a consistent progression: literature gap, replication baseline, comparative validation, weighted extensions, deterministic model build, and operational translation.
 - Operational framing, tooling gaps, and some downstream application claims still remain in working-note status until the corresponding primary sources are promoted into the canonical review.
 
 ## License

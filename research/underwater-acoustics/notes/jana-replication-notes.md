@@ -12,7 +12,7 @@ The replication-method, validation, and notebook-alignment sections below are lo
 
 ## Citation
 
-Jana, S., Gangopadhyay, A., Haley, P. J., Jr., and Lermusiaux, P. F. J. (2022). *Sound speed variability over Bay of Bengal from Argo observations (2011-2020).* In *OCEANS 2022, Hampton Roads* (pp. 1-7). IEEE. DOI: `10.1109/OCEANSChennai45887.2022.9775509`
+Jana, S., Gangopadhyay, A., Haley, P. J., Jr., and Lermusiaux, P. F. J. (2022). *Sound speed variability over Bay of Bengal from Argo observations (2011-2020).* In *OCEANS 2022 - Chennai* (pp. 1-8). IEEE. DOI: `10.1109/OCEANSChennai45887.2022.9775509`
 
 ## Source-backed summary
 

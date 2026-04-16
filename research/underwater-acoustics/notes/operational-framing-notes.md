@@ -22,7 +22,7 @@ The talk scope should stay deliberately bounded. The concrete work being present
 
 ## Operational translation
 
-The current source-backed anchor from the literature review is that Argo-informed sound-speed structure already feeds operational acoustics through HYCOM/NCODA and Navy acoustic workflows. The clean operator-facing translation is therefore not "here is a nicer interpolation method." It is: when someone substitutes a model-derived or Argo-informed profile for a local cast, they are accepting a risk whose size is usually hidden.
+The current source-backed anchor from the literature review is narrower: Argo-informed temperature-salinity and sound-speed-relevant ocean fields are upstream inputs to operationally relevant acoustic environments. The more specific HYCOM/NCODA and Navy-workflow translation is still a notes-level interpretation rather than a canonical literature-review claim. The clean operator-facing translation is therefore not "here is a nicer interpolation method." It is: when someone substitutes a model-derived or Argo-informed profile for a local cast, they are accepting a risk whose size is usually hidden.
 
 That is the core "so what" for the conference audience. If floats are sparse, peripheral to the cell, or temporally stale relative to the requested profile, the operator currently gets a point estimate with little signal that the estimate is weakly constrained. The package contribution is to quantify that constraint quality at the source and convert it into a practical decision question: is the prior good enough to proceed, or does this job warrant an in-situ cast?
 

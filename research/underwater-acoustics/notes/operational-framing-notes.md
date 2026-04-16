@@ -18,7 +18,7 @@ That framing keeps the package at the environmental-input layer, where it is dif
 
 The current conference target is Underwater Intervention 2026, scheduled for December 2-4, 2026 at the Morial Convention Center in New Orleans. The Call for Speakers closes on April 30, 2026. For this submission, the preferred track is Emerging Technologies & Innovation rather than Uncrewed Maritime Systems. That track choice is a local proposal decision, but it is grounded in the published track descriptions: Uncrewed Maritime Systems is framed mainly around seafloor data collection, mapping, and survey techniques, while Emerging Technologies & Innovation explicitly emphasizes AUVs, real-time oceanographic data, underwater communications, and other enabling technologies for future operations.
 
-The talk scope should stay deliberately bounded. The concrete work being presented is Jason's replication of Jana et al. (2022) plus a normal-distribution-based uncertainty layer attached with his own library. The abstract should not promise the MRST-PCHIP Python implementation as required deliverable scope. If that path matures in time, it can appear as a bonus comparison or discussion point rather than as the central commitment.
+The talk scope should stay deliberately bounded. The concrete work being presented is Jason's replication of Jana et al. (2022) plus a normal-distribution-based uncertainty layer attached with his own library, with that uncertainty-aware path compared back to the deterministic baseline rather than presented as an untested add-on. The abstract should not promise the MRST-PCHIP Python implementation as required deliverable scope. If that path matures in time, it can appear as a bonus comparison or discussion point rather than as the central commitment.
 
 ## Operational translation
 
@@ -26,7 +26,7 @@ The current source-backed anchor from the literature review is that Argo-informe
 
 That is the core "so what" for the conference audience. If floats are sparse, peripheral to the cell, or temporally stale relative to the requested profile, the operator currently gets a point estimate with little signal that the estimate is weakly constrained. The package contribution is to quantify that constraint quality at the source and convert it into a practical decision question: is the prior good enough to proceed, or does this job warrant an in-situ cast?
 
-The open-access 2025 *Satellite Navigation* paper on GNSS-acoustic seafloor positioning is currently the strongest industry-facing example for this audience. A local PDF copy is now stored under `sources/` as `liu-2025-precise_gnss_acoustic_seafloor_positioning_global_ocean_analysis.pdf`. It evaluates HYCOM sound-speed profiles as a substitute for in-situ measurements and reports small positioning impacts, especially attractive for USV-based operations. The source is therefore available for canonical literature-review inclusion when that argument is promoted.
+The open-access 2025 *Satellite Navigation* paper on GNSS-acoustic seafloor positioning is currently the strongest candidate industry-facing example for this audience. A local PDF copy is now stored under `sources/` as `liu-2025-precise_gnss_acoustic_seafloor_positioning_global_ocean_analysis.pdf`. Because this source has not yet been promoted into the canonical literature review, its HYCOM-for-GNSS-A result should be treated here as a pending extension hook rather than as established support.
 
 ## Visualization and title
 

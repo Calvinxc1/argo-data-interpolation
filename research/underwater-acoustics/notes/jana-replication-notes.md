@@ -55,7 +55,7 @@ The standard-deviation threshold is set to 3 rather than 2. A literal 2-SD imple
 
 Extrapolation is enabled on the interpolation wrappers. Jana et al. define a 5 m to 500 m analysis grid while requiring only one observation shallower than 20 m, which implies some near-surface extrapolation when a retained profile does not contain an observation exactly at or above 5 m. Disabling extrapolation produced `NaN` values in the 5 m to 20 m range, which then distorted the outlier filter and artificially reduced the retained cycle count.
 
-This replication still uses the standard `argopy` fetch path rather than an explicit delayed-mode-only workflow. Practically, this means the notebook is operating on the standard-mode merged `PRES`, `TEMP`, and `PSAL` product exposed by `argopy`.
+This replication still uses the standard `argopy` fetch path rather than an explicit delayed-mode-only workflow. Practically, this means the notebook is operating on the standard-mode merged `PRES`, `TEMP`, and `PSAL` product exposed by `argopy`. That choice is aligned with the package's own stated design: Maze and Balem (2020) describe `argopy` standard mode as the simplified science-facing data view, distinct from an expert mode that preserves the fuller Argo variable set.
 
 ### Final Confirmed Pipeline
 

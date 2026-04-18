@@ -4,12 +4,12 @@ This note tracks which active bibliography entries in [literature-review.md](lit
 
 ## Summary
 
-- Last updated: 2026-04-15
-- References in active bibliography: `150`
-- References with linked local PDF copies: `137`
-- References resolved via canonical non-article web pages: `5`
-- References still missing local PDF full-text material: `8`
-- Missing full-text media-type breakdown: `3` journal articles, `3` conference or presentation publications, `1` book, `1` special publication/report.
+- Last updated: 2026-04-17
+- References in active bibliography: `152`
+- References with linked local PDF copies: `138`
+- References resolved via canonical non-article web pages: `4`
+- References still missing local PDF full-text material: `10`
+- Missing full-text media-type breakdown: `5` journal articles, `3` conference or presentation publications, `1` book, `1` special publication/report.
 - Archived acquisition records excluded from active tallies: `1`
 - Local `.pdf` files remain the required resolved format for article and book sources; non-article web-native resources may resolve through a stable canonical landing page.
 
@@ -42,25 +42,32 @@ This note tracks which active bibliography entries in [literature-review.md](lit
 | # | Citation | Status | Source host | Last attempt | Notes |
 | --- | --- | --- | --- | --- | --- |
 | 3 | Grekov, Aleksandr N., et al. “Estimating Quality of Indirect Measurements of Sea Water Sound Velocity by CTD Data.” Measurement, vol. 175, Apr. 2021, p. 109073. https://doi.org/10.1016/j.measurement.2021.109073. | `ill_requested` | Elsevier / ScienceDirect | 2026-04-06 | DOI resolves through Elsevier linking hub to the ScienceDirect article URL, but direct CLI fetches return a generic challenge page rather than article content. |
+
+#### Journal of Physical Oceanography
+
+| # | Citation | Status | Source host | Last attempt | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 4 | Bindoff, Nathaniel L., and Trevor J. McDougall. “Diagnosing Climate Change and Ocean Ventilation Using Hydrographic Data.” Journal of Physical Oceanography, vol. 24, no. 6, June 1994, pp. 1137–52. https://doi.org/10.1175/1520-0485(1994)024<1137:DCCAOV>2.0.CO;2. | `metadata_only` | AMS / Journal of Physical Oceanography | 2026-04-16 | DOI metadata were verified and the AMS landing-page URL is recorded in acquisition notes, but no local PDF is stored yet and no publisher fetch was completed in this pass. This source is directionally relevant to the pressure-versus-depth and isopycnal-heave framing added around vertical-coordinate choice. |
+| 5 | Saunders, Peter M. “Practical Conversion of Pressure to Depth.” Journal of Physical Oceanography, vol. 11, no. 4, Apr. 1981, pp. 573–74. https://doi.org/10.1175/1520-0485(1981)011<0573:PCOPTD>2.0.CO;2. | `metadata_only` | AMS / Journal of Physical Oceanography | 2026-04-16 | DOI metadata were verified and the AMS landing-page URL is recorded in acquisition notes, but no local PDF is stored yet and no publisher fetch was completed in this pass. This is the classic pressure-to-depth conversion reference now retained in the active bibliography alongside the locally verified UNESCO report. |
 ### Conference and Presentation Publications
 
 | # | Citation | Status | Source host | Last attempt | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 4 | Iqbal, Khan, A. G. Bhaskara Rao, Y. Ashok Kumar, and T. V. S. Udaya Bhaskar. “Significance of Deep Argo Data in Computation of Sound Speed in Deep Oceanic Waters.” Underwater Acoustics Conference & Exhibition, 2019. | `metadata_only` | unknown | 2026-04-10 | A related later journal article is now stored locally as `sources/iqbal-2020-symmetrical_and_asymmetrical_rectifications_for_deeper_ocean_ctd_ssp_extrapolations.pdf`, but it is not the cited 2019 conference publication, so this conference citation still remains unresolved. |
-| 5 | Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. | `subscription_preview_only` | IEEE Xplore | 2026-04-15 | Official IEEE Xplore landing page identified at `https://ieeexplore.ieee.org/document/881241`, but no local PDF is stored and full text appears to remain access-controlled from the article host. |
-| 6 | Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814. | `blocked_pdf_endpoint` | AIP / JASA | 2026-04-06 | DOI resolves to the AIP Publishing / JASA article host, but CLI fetches terminate in a Cloudflare challenge page instead of article content. SFCC library appears to indicate a full-text copy is available, but the linked pages do not presently support actually retrieving it. This appears to be a meeting or presentation-style publication rather than a standard journal article. |
+| 6 | Iqbal, Khan, A. G. Bhaskara Rao, Y. Ashok Kumar, and T. V. S. Udaya Bhaskar. “Significance of Deep Argo Data in Computation of Sound Speed in Deep Oceanic Waters.” Underwater Acoustics Conference & Exhibition, 2019. | `metadata_only` | unknown | 2026-04-10 | A related later journal article is now stored locally as `sources/iqbal-2020-symmetrical_and_asymmetrical_rectifications_for_deeper_ocean_ctd_ssp_extrapolations.pdf`, but it is not the cited 2019 conference publication, so this conference citation still remains unresolved. |
+| 7 | Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. | `subscription_preview_only` | IEEE Xplore | 2026-04-15 | Official IEEE Xplore landing page identified at `https://ieeexplore.ieee.org/document/881241`, but no local PDF is stored and full text appears to remain access-controlled from the article host. |
+| 8 | Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814. | `blocked_pdf_endpoint` | AIP / JASA | 2026-04-06 | DOI resolves to the AIP Publishing / JASA article host, but CLI fetches terminate in a Cloudflare challenge page instead of article content. SFCC library appears to indicate a full-text copy is available, but the linked pages do not presently support actually retrieving it. This appears to be a meeting or presentation-style publication rather than a standard journal article. |
 
 ### Book
 
 | # | Citation | Status | Source host | Last attempt | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 7 | Munk, Walter, Peter Worcester, and Carl Wunsch. Ocean Acoustic Tomography. Cambridge University Press, 1995. Cambridge Monographs on Mechanics. https://doi.org/10.1017/CBO9780511666926. | `ill_requested` | Cambridge | 2026-04-06 | DOI resolves to the Cambridge Core book landing page, but the full book text is not exposed in this environment. |
+| 9 | Munk, Walter, Peter Worcester, and Carl Wunsch. Ocean Acoustic Tomography. Cambridge University Press, 1995. Cambridge Monographs on Mechanics. https://doi.org/10.1017/CBO9780511666926. | `ill_requested` | Cambridge | 2026-04-06 | DOI resolves to the Cambridge Core book landing page, but the full book text is not exposed in this environment. |
 
 ### Special Publication / Report
 
 | # | Citation | Status | Source host | Last attempt | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 8 | Pike, J. M., and F. L. Beiboer. A Comparison between Algorithms for the Speed of Sound in Seawater. The Hydrographic Society, 1993. Special Publication 34. | `metadata_only` | unknown | 2026-04-06 | No DOI or stable official online host is present in the citation metadata used here; manual acquisition is required. |
+| 10 | Pike, J. M., and F. L. Beiboer. A Comparison between Algorithms for the Speed of Sound in Seawater. The Hydrographic Society, 1993. Special Publication 34. | `metadata_only` | unknown | 2026-04-06 | No DOI or stable official online host is present in the citation metadata used here; manual acquisition is required. |
 
 ## Archived Acquisition Records
 

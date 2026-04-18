@@ -46,6 +46,8 @@
 #
 # That alignment is deliberate. It makes the two notebooks directly comparable as baseline-versus-extension held-out validation runs.
 #
+#
+#
 
 # %%
 from dataclasses import dataclass
@@ -61,6 +63,8 @@ import pandas as pd
 import seawater as sw
 from tqdm.auto import tqdm
 
+
+
 # %%
 from argo_interp.data import data_filter, get_data
 from argo_interp.cycle.adapter import LinearAdapter
@@ -68,11 +72,15 @@ from argo_interp.cycle.model import Model
 from argo_interp.cycle.domain import ModelData, ModelMeta
 from argo_interp.cycle.config import ModelSettings, ModelKwargs
 
+
+
 # %% [markdown]
 # ## 1. Pull the Bay of Bengal Argo archive directly
 #
 # This notebook now performs its own Argo pull so it can be run independently of
 # the earlier notebooks while still reconstructing the same starting archive.
+#
+#
 #
 
 # %%
@@ -89,6 +97,8 @@ box = [
 ]
 ds = get_data(box, progress=True)
 
+
+
 # %% [markdown]
 # ## 2. Rebuild the same calibrated Jana retained archive
 #
@@ -98,6 +108,8 @@ ds = get_data(box, progress=True)
 # - duplicate pressure rows are averaged before fitting
 # - linear interpolation is used to place retained cycles on the common depth grid
 # - the calibrated `3 SD` whole-profile outlier screen is applied after gridding
+#
+#
 #
 
 # %%
@@ -188,6 +200,8 @@ temp_profiles = pd.concat(temp_profiles, axis=1)
 sal_profiles = pd.concat(sal_profiles, axis=1)
 cycle_metadata = pd.DataFrame.from_records(cycle_records).set_index("cycle_id")
 
+
+
 # %%
 temp_mean = pd.concat([
     temp_profiles.mean(axis=1).rename("mean"),
@@ -222,6 +236,8 @@ sound_speed_profiles = pd.DataFrame(
 print(f"Retained active cycles: {len(active_cycles):,}")
 print(f"Retained floats: {active_cycles_metadata['platform_number'].nunique():,}")
 
+
+
 # %% [markdown]
 # ## 3. Define the weighted retained-cycle predictor
 #
@@ -237,6 +253,8 @@ print(f"Retained floats: {active_cycles_metadata['platform_number'].nunique():,}
 # The bandwidth choices in `HoldoutConfig` are heuristic starting values, not source-backed constants. The `dist_stdev_cutoff`, `week_stdev_cutoff`, and `annual_stdev_years` settings were chosen with common-sense tapering in mind so weights decay across the local box and across seasonal and interannual separation, but they should be treated as provisional hyperparameters rather than as validated scientific defaults.
 #
 # A proper sensitivity analysis over these settings is an obvious next step, but it is deferred here because each full holdout run is expensive enough that a naive sweep would be wasteful. The defensible next move is a planned sensitivity design rather than ad hoc retuning.
+#
+#
 #
 
 # %%
@@ -254,6 +272,8 @@ class HoldoutConfig:
 
 config = HoldoutConfig()
 config
+
+
 
 # %%
 def calc_weight(x2: pd.Series | np.ndarray | float, var: float) -> pd.Series | np.ndarray | float:
@@ -333,6 +353,8 @@ def predict_cycle_weighted(
     ], axis=1)
     return predicts, diagnostics, weights
 
+
+
 # %%
 rng = np.random.default_rng(config.random_seed)
 platform_numbers = np.sort(active_cycles_metadata["platform_number"].unique())
@@ -342,11 +364,15 @@ if config.max_platforms is not None and config.max_platforms < len(platform_numb
 
 print(f"Platforms scheduled for evaluation: {len(platform_numbers):,}")
 
+
+
 # %% [markdown]
 # ## 4. Run the weighted hold-one-float-out evaluation
 #
 # This notebook evaluates directly from the rebuilt archive so the weighted-model
 # diagnostics always correspond to the current run.
+#
+#
 #
 
 # %%
@@ -425,16 +451,22 @@ depth_metrics = residuals_long.groupby(["measure", "depth"]).agg(
     n_cycles=("cycle_id", "nunique"),
 ).reset_index()
 
+
+
 # %% [markdown]
 # ## 5. Coverage and retained-cycle-support diagnostics
 #
 # These summaries match the Jana benchmark notebook so the weighted and flat predictors can be compared directly.
+#
+#
 #
 
 # %%
 status_counts = diagnostics["status"].value_counts().rename_axis("status").to_frame("n_cycles")
 status_counts["share"] = status_counts["n_cycles"] / status_counts["n_cycles"].sum()
 status_counts
+
+
 
 # %%
 if not cycle_metrics.empty:
@@ -447,6 +479,8 @@ if not cycle_metrics.empty:
         f"{cycle_metrics['retained_cycle_count'].max():.0f}"
     )
 
+
+
 # %%
 fig, ax = plt.subplots(figsize=(8, 4))
 cycle_metrics["retained_cycle_count"].hist(ax=ax, bins=30, color="#4c78a8", alpha=0.85)
@@ -458,10 +492,14 @@ ax.legend()
 plt.tight_layout()
 plt.show()
 
+
+
 # %% [markdown]
 # ## 6. Aggregate weighted-model performance by depth
 #
 # These curves use the same format as the Jana benchmark notebook so the depthwise error structure can be compared visually and numerically.
+#
+#
 #
 
 # %%
@@ -499,16 +537,22 @@ plt.suptitle("Weighted retained-cycle holdout error by depth")
 plt.tight_layout()
 plt.show()
 
+
+
 # %%
 cycle_metrics[[
     "temperature_rmse", "salinity_rmse", "sound_speed_rmse",
     "temperature_mae", "salinity_mae", "sound_speed_mae",
 ]].describe().T
 
+
+
 # %% [markdown]
 # ## 7. Spatial coverage of evaluated and skipped cycles
 #
 # This map uses the same visual logic as the Jana benchmark notebook. Differences in the skip pattern should come from the weighted model's support requirements rather than from a changed validation protocol.
+#
+#
 #
 
 # %%
@@ -550,10 +594,14 @@ ax.set_title("Weighted retained-cycle holdout coverage")
 plt.tight_layout()
 plt.show()
 
+
+
 # %% [markdown]
 # ## 8. Example held-out profiles
 #
 # These examples keep the same role as the Jana benchmark notebook, but they also expose the weighted retained-cycle cloud behind each prediction.
+#
+#
 #
 
 # %%
@@ -606,9 +654,13 @@ def plot_sample_profile(cycle_id: str) -> None:
     plt.tight_layout()
     plt.show()
 
+
+
 # %%
 for cycle_id in sample_profiles:
     plot_sample_profile(cycle_id)
+
+
 
 # %% [markdown]
 # ## 9. Interpretation and next step
@@ -625,3 +677,4 @@ for cycle_id in sample_profiles:
 # That makes notebook `4` a complementary test rather than a replacement:
 # - notebook `3` asks whether weighting helps under the strict Jana-style retained archive
 # - notebook `4` asks whether the same weighted idea benefits from keeping more partial local support
+#

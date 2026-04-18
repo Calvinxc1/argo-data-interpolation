@@ -26,7 +26,7 @@ The current source-backed anchor from the literature review is narrower: Argo-in
 
 That is the core "so what" for the conference audience. If floats are sparse, peripheral to the cell, or temporally stale relative to the requested profile, the operator currently gets a point estimate with little signal that the estimate is weakly constrained. The package contribution is to quantify that constraint quality at the source and convert it into a practical decision question: is the prior good enough to proceed, or does this job warrant an in-situ cast?
 
-The open-access 2025 *Satellite Navigation* paper on GNSS-acoustic seafloor positioning is currently the strongest candidate industry-facing example for this audience. A local PDF copy is now stored under `sources/` as `liu-2025-precise_gnss_acoustic_seafloor_positioning_global_ocean_analysis.pdf`. Because this source has not yet been promoted into the canonical literature review, its HYCOM-for-GNSS-A result should be treated here as a pending extension hook rather than as established support.
+The open-access 2025 *Satellite Navigation* paper on GNSS-acoustic seafloor positioning is currently the strongest industry-facing example for this audience. It is now covered in [../literature-review.md](../literature-review.md) as a source-backed example showing that HYCOM/NCODA sound-speed profiles, informed in part by assimilated Argo observations, can substitute for in situ profiles in many GNSS-A operations with small horizontal and moderate vertical penalties relative to in situ SSPs. That keeps the note-level operational framing anchored to the canonical review rather than to a pending source.
 
 ## Visualization and title
 

@@ -27,17 +27,18 @@
 
 # %%
 import pickle
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from pathlib import Path
-from datetime import timedelta as td
 import gsw
+import seawater as sw
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from tqdm.auto import tqdm
 import scipy.stats as stats
-from numpy.typing import ArrayLike
+from itertools import product
+from datetime import datetime as dt
 
 # %%
 from argo_interp.data import data_filter, get_data
@@ -45,7 +46,15 @@ from argo_interp.cycle.adapter import PchipAdapter
 from argo_interp.cycle.config import ModelKwargs, ModelSettings
 from argo_interp.cycle.domain import ModelData, ModelMeta
 from argo_interp.cycle.model import Model
-from argo_interp.model import CycleModels
+from argo_interp.model import CycleModels, CycleData
+from lib import (
+    GaussianScale,
+    WeightConfig,
+    build_candidate_query,
+    compute_weight_deltas,
+    weighted_cycle_prediction,
+    plot_desaturated_heatmap,
+)
 
 # %%
 notebook_dir = Path(".")
@@ -78,13 +87,7 @@ ds_filters = [
 ds = data_filter(ds, ds_filters)
 
 # %%
-settings = ModelSettings(
-    n_folds=5,
-    model_kwargs=ModelKwargs(
-        temperature=dict(extrapolate=True),
-        salinity=dict(extrapolate=True),
-    ),
-)
+settings = ModelSettings(n_folds=5)
 
 # %%
 models = {}
@@ -126,15 +129,12 @@ for (platform_number, cycle_number, direction), cycle_ds in t:
     models_data[cycle_id] = model_data
     t.set_postfix(model_count=len(models))
 cycle_models = CycleModels(models)
-cycle_index = cycle_models.index
-cycle_ids = cycle_index.index.to_numpy()
-platform_numbers = cycle_index["platform_number"].to_numpy()
-latitudes = cycle_index["latitude"].to_numpy(dtype=float, copy=False)
-longitudes = cycle_index["longitude"].to_numpy(dtype=float, copy=False)
-timestamps = pd.to_datetime(cycle_index["timestamp"])
-seasonal_timestamps = timestamps.map(lambda x: x.replace(year=2000))
+all_metadata = cycle_models.metadata()
 
 # %%
+SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60
+SECONDS_PER_WEEK = 7 * 24 * 60 * 60
+
 dist_rad = 1
 dist_border_stdev = 3
 
@@ -143,189 +143,235 @@ year_stdev = 3
 season_weeks = 8
 season_week_stdev = 3
 
+use_distance_weight = True
+use_time_weight = False
+use_season_weight = False
 
-# %%
-def weight(x: ArrayLike | float, stdev: ArrayLike | float) -> ArrayLike | float:
-    numer = -(x ** 2)
-    denom = 2 * (stdev ** 2)
-    weight = np.exp(numer / denom)
-    return weight
-
-
-# %%
-@dataclass(frozen=True, slots=True)
-class WeightScale:
-    stdev: float
-
-    def __post_init__(self) -> None:
-        if not np.isfinite(self.stdev) or self.stdev <= 0:
-            raise ValueError("stdev must be a finite positive float")
-
-    @classmethod
-    def from_border(cls, border: float, z: float) -> "GaussianWeightScale":
-        if not np.isfinite(border) or border <= 0:
-            raise ValueError("border must be a finite positive float")
-        if not np.isfinite(z) or z <= 0:
-            raise ValueError("z_score must be a finite positive float")
-
-        return cls(stdev=border / z)
-
-    @property
-    def variance(self) -> float:
-        return self.stdev ** 2
-
-    def weight(self, x: ArrayLike | float) -> ArrayLike | float:
-        numer = -(x ** 2)
-        denom = 2 * self.variance
-        return np.exp(numer / denom)
+weight_config = WeightConfig(
+    distance=GaussianScale.from_border(dist_rad, dist_border_stdev),
+    time=GaussianScale(year_stdev * SECONDS_PER_YEAR),
+    season=GaussianScale.from_border(season_weeks * SECONDS_PER_WEEK, season_week_stdev),
+    use_distance=use_distance_weight,
+    use_time=use_time_weight,
+    use_season=use_season_weight,
+)
 
 
 # %%
-def seasonal_window_mask(
-    target_timestamp: pd.Timestamp,
-    normalized_timestamps: pd.Series,
-    seasonal_window_weeks: int,
-) -> np.ndarray:
-    seasonal_start = (target_timestamp - td(weeks=seasonal_window_weeks)).replace(year=2000)
-    seasonal_end = (target_timestamp + td(weeks=seasonal_window_weeks)).replace(year=2000)
-
-    if seasonal_start <= seasonal_end:
-        return ((normalized_timestamps >= seasonal_start) & (normalized_timestamps <= seasonal_end)).to_numpy()
-
-    return ((normalized_timestamps >= seasonal_start) | (normalized_timestamps <= seasonal_end)).to_numpy()
-
-
-# %%
-def calc_weight(
-    target_position: int,
-    candidate_positions: np.ndarray,
-    latitudes: np.ndarray,
-    longitudes: np.ndarray,
-    timestamps: pd.Series,
-    seasonal_timestamps: pd.Series,
-    dist_rad: float,
-    dist_border_stdev: float,
-    year_stdev: float,
-    season_weeks: int,
-    season_week_stdev: float,
-) -> np.ndarray:
-    if len(candidate_positions) == 0:
-        return np.array([], dtype=float)
-
-    dist_deg = np.sqrt(
-        np.square(latitudes[candidate_positions] - latitudes[target_position])
-        + np.square(longitudes[candidate_positions] - longitudes[target_position])
-    )
-    dist_stdev = dist_rad / dist_border_stdev
-    dist_weight = weight(dist_deg, dist_stdev)
-    dist_weight /= dist_weight.sum()
-
-    seconds_delta = (
-        timestamps.iloc[candidate_positions].to_numpy() - timestamps.iloc[target_position]
-    ) / np.timedelta64(1, "s")
-    time_stdev = year_stdev * (365.25 * 24 * 60 * 60)
-    time_weight = weight(seconds_delta, time_stdev)
-    time_weight /= time_weight.sum()
-
-    season_seconds_delta = (
-        seasonal_timestamps.iloc[candidate_positions].to_numpy() - seasonal_timestamps.iloc[target_position]
-    ) / np.timedelta64(1, "s")
-    season_stdev = (season_weeks / season_week_stdev) * (7 * 24 * 60 * 60)
-    season_weight = weight(season_seconds_delta, season_stdev)
-    season_weight /= season_weight.sum()
-
-    total_weight = dist_weight * time_weight * season_weight
-    total_weight /= total_weight.sum()
-    return total_weight
-
-
-# %%
-def interpolate_candidate_models(
-    candidate_cycle_ids: np.ndarray,
-    pressure: np.ndarray,
-    model_lookup: dict[str, Model],
-) -> tuple[np.ndarray, np.ndarray]:
-    interpolated_temperature = np.empty((len(pressure), len(candidate_cycle_ids)), dtype=float)
-    interpolated_salinity = np.empty((len(pressure), len(candidate_cycle_ids)), dtype=float)
-
-    for idx, candidate_cycle_id in enumerate(candidate_cycle_ids):
-        interp_data = model_lookup[candidate_cycle_id].interpolate(pressure)
-        interpolated_temperature[:, idx] = interp_data.temperature
-        interpolated_salinity[:, idx] = interp_data.salinity
-
-    return interpolated_temperature, interpolated_salinity
-
-
-# %%
-temp_errors = []
-sal_errors = []
-for cycle_position, cycle_id in enumerate(tqdm(cycle_ids)):
+temp_errors = {}
+temp_rmse_vals = {}
+sal_errors = {}
+sal_rmse_vals = {}
+for cycle_position, cycle_id in enumerate(tqdm(all_metadata.cycle_id)):
     model_data = models_data[cycle_id]
-    candidate_mask = (
-        (np.abs(latitudes - latitudes[cycle_position]) <= dist_rad)
-        & (np.abs(longitudes - longitudes[cycle_position]) <= dist_rad)
-        & (platform_numbers != platform_numbers[cycle_position])
-        & seasonal_window_mask(timestamps.iloc[cycle_position], seasonal_timestamps, season_weeks)
+    target_timestamp = pd.Timestamp(all_metadata.timestamp[cycle_position])
+    candidate_query = build_candidate_query(
+        target_latitude=all_metadata.latitude[cycle_position],
+        target_longitude=all_metadata.longitude[cycle_position],
+        # target_timestamp=target_timestamp,
+        dist_rad=dist_rad,
+        # season_weeks=season_weeks,
+        exclude_platform_number=all_metadata.platform_number[cycle_position],
     )
-    candidate_positions = np.flatnonzero(candidate_mask)
-    candidate_cycle_ids = cycle_ids[candidate_positions]
+    candidate_mask = cycle_models.mask(**candidate_query.to_mask_kwargs())
+    candidate_metadata = cycle_models.metadata(candidate_mask)
 
-    if len(candidate_cycle_ids) == 0:
-        temp_errors.append(pd.Series(np.nan, index=model_data.pressure, name=cycle_id))
-        sal_errors.append(pd.Series(np.nan, index=model_data.pressure, name=cycle_id))
+    if len(candidate_metadata) == 0:
         continue
 
-    total_weight = calc_weight(
-        target_position=cycle_position,
-        candidate_positions=candidate_positions,
-        latitudes=latitudes,
-        longitudes=longitudes,
-        timestamps=timestamps,
-        seasonal_timestamps=seasonal_timestamps,
-        dist_rad=dist_rad,
-        dist_border_stdev=dist_border_stdev,
-        year_stdev=year_stdev,
-        season_weeks=season_weeks,
-        season_week_stdev=season_week_stdev,
+    weight_deltas = compute_weight_deltas(
+        target_latitude=all_metadata.latitude[cycle_position],
+        target_longitude=all_metadata.longitude[cycle_position],
+        target_timestamp=all_metadata.timestamp[cycle_position],
+        candidate_metadata=candidate_metadata,
     )
+    total_weight = weight_config.joint_weight(weight_deltas)
 
-    interp_temperature, interp_salinity = interpolate_candidate_models(
-        candidate_cycle_ids=candidate_cycle_ids,
-        pressure=model_data.pressure,
-        model_lookup=models,
-    )
+    support_mask = (
+        (model_data.pressure[:, None] >= candidate_metadata.pressure_min[None, :]) &
+        (model_data.pressure[:, None] <= candidate_metadata.pressure_max[None, :])
+    ).any(axis=1)
 
-    temp_weight_sum = np.isfinite(interp_temperature) @ total_weight
-    sal_weight_sum = np.isfinite(interp_salinity) @ total_weight
-    summed_temp = np.nansum(interp_temperature * total_weight, axis=1)
-    summed_sal = np.nansum(interp_salinity * total_weight, axis=1)
+    if not np.any(support_mask):
+        continue
+
+    active_pressure = model_data.pressure[support_mask]
+    active_temperature = model_data.temperature[support_mask]
+    active_salinity = model_data.salinity[support_mask]
+
+    interpolates = cycle_models.interpolate(active_pressure, mask=candidate_mask)
+    predict_temperature, predict_salinity = weighted_cycle_prediction(interpolates, total_weight)
 
     predict_temp = pd.Series(
-        np.divide(
-            summed_temp,
-            temp_weight_sum,
-            out=np.full(model_data.n_obs, np.nan, dtype=float),
-            where=temp_weight_sum > 0,
-        ),
-        index=model_data.pressure,
+        predict_temperature,
+        index=active_pressure,
         name="temperature",
     )
     predict_sal = pd.Series(
-        np.divide(
-            summed_sal,
-            sal_weight_sum,
-            out=np.full(model_data.n_obs, np.nan, dtype=float),
-            where=sal_weight_sum > 0,
-        ),
-        index=model_data.pressure,
+        predict_salinity,
+        index=active_pressure,
         name="salinity",
     )
 
-    temp_errors.append(pd.Series(model_data.temperature, index=model_data.pressure, name=cycle_id) - predict_temp)
-    sal_errors.append(pd.Series(model_data.salinity, index=model_data.pressure, name=cycle_id) - predict_sal)
+    temp_error = active_temperature - predict_temp
+    sal_error = active_salinity - predict_sal
+
+    temp_errors[cycle_id] = temp_error
+    sal_errors[cycle_id] = sal_error
+
+    temp_rmse = np.sqrt((temp_error ** 2).mean())
+    sal_rmse = np.sqrt((sal_error ** 2).mean())
+
+    temp_rmse_vals[cycle_id] = temp_rmse
+    sal_rmse_vals[cycle_id] = sal_rmse
+
+temp_errors_straight = pd.concat(temp_errors.values(), axis=0)
+sal_errors_straight = pd.concat(sal_errors.values(), axis=0)
+temp_rmse_vals = pd.Series(temp_rmse_vals)
+sal_rmse_vals = pd.Series(sal_rmse_vals)
 
 # %%
-temp_errors = pd.concat(temp_errors, axis=1)
-sal_errors = pd.concat(sal_errors, axis=1)
+fig, ax = plt.subplots(ncols=2, figsize=(12, 5))
+
+sns.scatterplot(x=temp_errors_straight.values, y=temp_errors_straight.index.values, ax=ax[0], alpha=0.25)
+ax[0].invert_yaxis()
+
+sns.scatterplot(x=sal_errors_straight.values, y=sal_errors_straight.index.values, ax=ax[1], alpha=0.25)
+ax[1].invert_yaxis()
+
+fig.tight_layout()
+
+# %%
+temp_rmse_vals.mean(), sal_rmse_vals.mean()
+
+# %%
+lat_resolution = 1e-1
+lon_resolution = 1e-1
+
+lat_array = np.arange(box[2], box[3] + lat_resolution, lat_resolution)
+lon_array = np.arange(box[0], box[1] + lon_resolution, lon_resolution)
+
+depth_array = np.array([5, 35, 110, 500])
+
+# %%
+lat_lon_product = list(product(lat_array, lon_array))
+
+# %%
+anchor_date = dt.now()
+results = []
+for lat, lon in tqdm(lat_lon_product):
+    candidate_query = build_candidate_query(
+        target_latitude=lat,
+        target_longitude=lon,
+        dist_rad=dist_rad,
+    )
+    candidate_mask = cycle_models.mask(**candidate_query.to_mask_kwargs())
+
+    if candidate_mask.sum() == 0:
+        continue
+
+    candidate_metadata = cycle_models.metadata(candidate_mask)
+
+    weight_deltas = compute_weight_deltas(
+        target_latitude=lat,
+        target_longitude=lon,
+        target_timestamp=np.datetime64(anchor_date),
+        candidate_metadata=candidate_metadata,
+    )
+    total_weight = weight_config.joint_weight(weight_deltas)
+    scaled_weight = total_weight / total_weight.sum()
+
+    interpolates = cycle_models.interpolate(depth_array, mask=candidate_mask)
+    predict_temperature, predict_salinity = weighted_cycle_prediction(interpolates, total_weight)
+
+    interp_errors = cycle_models.interp_error(depth_array, mask=candidate_mask)
+    interp_var = CycleData(
+        temperature=interp_errors.temperature**2,
+        salinity=interp_errors.salinity**2,
+    )
+    var_temperature, var_salinity = weighted_cycle_prediction(interp_var, total_weight**2)
+
+    c1 = sw.svel(predict_salinity, predict_temperature, depth_array)
+
+    SA = gsw.SA_from_SP(predict_salinity, depth_array, lon, lat)
+    CT = gsw.CT_from_t(SA, predict_temperature, depth_array)
+    c2 = gsw.sound_speed(SA, CT, depth_array)
+
+    results.append({'latitude': lat, 'longitude': lon,
+                    'temp_val': predict_temperature,
+                    'temp_var': var_temperature,
+                    'sal_val': predict_salinity,
+                    'sal_var': var_salinity,
+                    'sound_speed_eos80': c1,
+                    'sound_speed_teos10': c2,
+                    'support': total_weight.sum()})
+
+# %%
+idx = 2
+chart_data = pd.DataFrame([{
+    'latitude': result['latitude'],
+    'longitude': result['longitude'],
+    'temperature': result['temp_val'][idx],
+    'temp_var': result['temp_var'][idx],
+    'salinity': result['sal_val'][idx],
+    'sal_var': result['sal_var'][idx],
+    'sound_speed_eos80': result['sound_speed_eos80'][idx],
+    'sound_speed_teos10': result['sound_speed_teos10'][idx],
+    'support': result['support'],
+} for result in results])
+
+# %%
+chart_data.pivot(index='latitude', columns='longitude', values='temp_var').mean().mean()
+
+# %%
+temp_matrix = chart_data.pivot(index='latitude', columns='longitude', values='temperature')
+sal_matrix = chart_data.pivot(index='latitude', columns='longitude', values='salinity')
+sound_eos80 = chart_data.pivot(index='latitude', columns='longitude', values='sound_speed_eos80')
+sound_teos10 = chart_data.pivot(index='latitude', columns='longitude', values='sound_speed_teos10')
+support_matrix = chart_data.pivot(index='latitude', columns='longitude', values='support')
+
+tau = 40
+support_matrix = 1 - np.exp(-support_matrix / tau)
+
+# %%
+import cartopy.crs as ccrs
+
+light_mode = True
+neutral_color = (0.94, 0.94, 0.94) if light_mode else (0.25, 0.25, 0.25)
+land_color = "0.75" if light_mode else "0.85"
+val_min_max = (1522.0, 1530.0)
+
+fig, ax = plt.subplots(
+    figsize=(10, 7.5),
+    subplot_kw={"projection": ccrs.PlateCarree()},
+)
+fig.patch.set_facecolor("white" if light_mode else (0.1, 0.1, 0.1))
+
+_ = plot_desaturated_heatmap(
+    values=sound_eos80,
+    value_vmin=val_min_max[0], value_vmax=val_min_max[1],
+    standard_error=support_matrix,
+    title="Bay of Bengal"
+          "\nSound Speed (m/s) at ~110m"
+          "\nAveraged across 2011 - 2020",
+    cbar_label="Sound Speed (m/s)",
+    cmap='jet',
+    add_colorbar=True,
+    ax=ax,
+    neutral_color=neutral_color,
+    light_mode=light_mode,
+    add_gridlines=True,
+    gridline_labels=True,
+    add_land=True,
+    land_color=land_color,
+    add_coastline=True,
+    extent=(80, 99, 6, 23),
+    font_scale=1.3,
+)
+
+fig.tight_layout()
+
+fig.savefig(chart_path / 'jana_remake_image.jpg', facecolor=fig.get_facecolor(),
+            dpi=300)
 
 # %%

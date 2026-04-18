@@ -33,7 +33,7 @@ The most defensible extension path is:
 
 ## Recommendation
 
-The replication should keep one strong baseline path that stays as close as possible to Jana et al., including the original sound-speed equation if needed for a strict comparison. A second path can then introduce the TEOS-10/GSW sound-speed calculation as an explicit upgrade so interpolation effects and equation-of-state effects are not conflated in the first comparison.
+The replication should keep one strong baseline path that stays as close as possible to Jana et al., including the original sound-speed equation if needed for a strict comparison. A second path can then introduce the TEOS-10/GSW sound-speed calculation as an explicit upgrade so interpolation effects and equation-of-state effects are not conflated in the first comparison. If that TEOS-10 path expands beyond equation choice into interpolation comparison, it is now worth noting explicitly that GSW-Python already exposes `interp_method={'mrst', 'pchip', 'linear'}` in its geostrophic dynamic-height and steric-height routines, so an MRST/PCHIP Python implementation exists in the TEOS-10 ecosystem and does not need to be described as purely future tooling. Source: [GSW-Python geostrophy module](https://teos-10.github.io/GSW-Python/_modules/gsw/geostrophy.html).
 
 The current project story is strongest if it shows two things separately:
 

@@ -1,18 +1,18 @@
 # Underwater Acoustics Source Acquisition Tracker
 
-This note tracks which active bibliography entries in [literature-review.md](literature-review.md) still need local full-text material. Linked references with local copies already wired into the literature review are not repeated here. It also records orphaned references removed from the active bibliography and archived acquisition records when that history is still useful to keep.
+This note tracks which active bibliography entries in [literature-review.md](literature-review.md) still need local full-text material. Linked references with local copies or accepted repo-local source-notes artifacts already wired into the literature review are not repeated here. It also records orphaned references removed from the active bibliography and archived acquisition records when that history is still useful to keep.
 
 ## Summary
 
-- Last updated: 2026-04-18
-- References in active bibliography: `123`
-- References with linked local PDF copies: `114`
+- Last updated: 2026-04-21
+- References in active bibliography: `118`
+- References with linked local PDF copies: `115`
 - References resolved via canonical non-article web pages: `2`
-- References still missing local PDF full-text material: `7`
-- Missing full-text media-type breakdown: `2` journal articles, `3` conference or presentation publications, `1` book, `1` special publication/report.
-- Orphaned references excluded from active tallies: `31`
+- References resolved via repo-local manual source notes: `1`
+- References still missing local full-text material: `0`
+- Orphaned references excluded from active tallies: `36`
 - Archived acquisition records excluded from active tallies: `1`
-- Local `.pdf` files remain the required resolved format for article and book sources; non-article web-native resources may resolve through a stable canonical landing page.
+- Local `.pdf` files remain the required resolved format for article sources; book sources may also resolve through repo-local manual source notes with page provenance when a PDF cannot practically be stored; non-article web-native resources may resolve through a stable canonical landing page.
 
 ## Status Legend
 
@@ -25,43 +25,12 @@ This note tracks which active bibliography entries in [literature-review.md](lit
 - `wrong_artifact`: a fetched file did not match the cited article and should not be linked
 - `host_issue`: the official host had certificate, routing, or URL problems during fetch attempts
 - `ill_requested`: an interlibrary loan request has been submitted for the cited item; notes should preserve the current acquisition blocker or source-host detail
+- `manual_notes_only`: a physical copy or otherwise non-storable full text has been consulted and repo-local Markdown notes exist; for books this may count as resolved full text under the book-notes rule, while for other source types it does not by itself resolve PDF-based full-text tracking
 - `unobtainable`: acquisition attempts have been exhausted or have failed, so the record is kept only as an archived history item rather than an active pending source
 
 ## Unresolved References
 
-### Journal Articles
-
-#### The Journal of the Acoustical Society of America
-
-| # | Citation | Status | Source host | Last attempt | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Spiesberger, John L., and Kurt Metzger. “A New Algorithm for Sound Speed in Seawater.” The Journal of the Acoustical Society of America, vol. 89, no. 6, June 1991, pp. 2677–88. https://doi.org/10.1121/1.400707. | `ill_requested` | AIP / JASA | 2026-04-06 | DOI resolves to the AIP Publishing / JASA article host, but CLI fetches terminate in a Cloudflare challenge page instead of article content. |
-
-#### Elsevier Journals
-
-| # | Citation | Status | Source host | Last attempt | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 2 | Grekov, Aleksandr N., et al. “Estimating Quality of Indirect Measurements of Sea Water Sound Velocity by CTD Data.” Measurement, vol. 175, Apr. 2021, p. 109073. https://doi.org/10.1016/j.measurement.2021.109073. | `ill_requested` | Elsevier / ScienceDirect | 2026-04-06 | DOI resolves through Elsevier linking hub to the ScienceDirect article URL, but direct CLI fetches return a generic challenge page rather than article content. |
-
-### Conference and Presentation Publications
-
-| # | Citation | Status | Source host | Last attempt | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 3 | Iqbal, Khan, A. G. Bhaskara Rao, Y. Ashok Kumar, and T. V. S. Udaya Bhaskar. “Significance of Deep Argo Data in Computation of Sound Speed in Deep Oceanic Waters.” Underwater Acoustics Conference & Exhibition, 2019. | `metadata_only` | unknown | 2026-04-10 | A related later journal article is now stored locally as `sources/iqbal-2020-symmetrical_and_asymmetrical_rectifications_for_deeper_ocean_ctd_ssp_extrapolations.pdf`, but it is not the cited 2019 conference publication, so this conference citation still remains unresolved. |
-| 4 | Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. | `subscription_preview_only` | IEEE Xplore | 2026-04-15 | Official IEEE Xplore landing page identified at `https://ieeexplore.ieee.org/document/881241`, but no local PDF is stored and full text appears to remain access-controlled from the article host. |
-| 5 | Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814. | `blocked_pdf_endpoint` | AIP / JASA | 2026-04-06 | DOI resolves to the AIP Publishing / JASA article host, but CLI fetches terminate in a Cloudflare challenge page instead of article content. SFCC library appears to indicate a full-text copy is available, but the linked pages do not presently support actually retrieving it. This appears to be a meeting or presentation-style publication rather than a standard journal article. |
-
-### Book
-
-| # | Citation | Status | Source host | Last attempt | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 6 | Munk, Walter, Peter Worcester, and Carl Wunsch. Ocean Acoustic Tomography. Cambridge University Press, 1995. Cambridge Monographs on Mechanics. https://doi.org/10.1017/CBO9780511666926. | `ill_requested` | Cambridge | 2026-04-06 | DOI resolves to the Cambridge Core book landing page, but the full book text is not exposed in this environment. |
-
-### Special Publication / Report
-
-| # | Citation | Status | Source host | Last attempt | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 7 | Pike, J. M., and F. L. Beiboer. A Comparison between Algorithms for the Speed of Sound in Seawater. The Hydrographic Society, 1993. Special Publication 34. | `metadata_only` | unknown | 2026-04-06 | No DOI or stable official online host is present in the citation metadata used here; manual acquisition is required. |
+There are currently no unresolved active bibliography entries.
 
 ## Orphaned References
 
@@ -82,13 +51,18 @@ These records are excluded from the active tallies above because they are not cu
 - `local_pdf` Jha, Ravi Kumar, and T. V. S. Udaya Bhaskar. “[Optimal Parameters for Generation of Gridded Product of Argo Temperature and Salinity Using DIVA](sources/jha-2021-optimal_parameters_argo_gridding_diva.pdf).” Journal of Earth System Science, vol. 130, no. 3, Aug. 2021. https://doi.org/10.1007/s12040-021-01675-2.
 - `local_pdf` Johnson, J. Emmanuel, et al. “[Neural Fields for Fast and Scalable Interpolation of Geophysical Ocean Variables](sources/johnson-2022-neural_fields_geophysical_ocean_interpolation.pdf).” arXiv, 2022. https://doi.org/10.48550/arXiv.2211.10444.
 - `local_pdf` Jones, Daniel C., et al. “[Unsupervised Clustering of Southern Ocean Argo Float Temperature Profiles](sources/jones-2019-unsupervised_clustering_southern_ocean_argo_float_temperature_profiles.pdf).” Journal of Geophysical Research: Oceans, vol. 124, no. 1, Jan. 2019, pp. 390–402. https://doi.org/10.1029/2018jc014629.
+- `unresolved_full_text` Grekov, Aleksandr N., et al. “Estimating Quality of Indirect Measurements of Sea Water Sound Velocity by CTD Data.” Measurement, vol. 175, Apr. 2021, p. 109073. https://doi.org/10.1016/j.measurement.2021.109073.
+- `unresolved_full_text` Iqbal, Khan, A. G. Bhaskara Rao, Y. Ashok Kumar, and T. V. S. Udaya Bhaskar. “Significance of Deep Argo Data in Computation of Sound Speed in Deep Oceanic Waters.” Underwater Acoustics Conference & Exhibition, 2019.
 - `local_pdf` Li, Haipeng, Ke Qu, and Jianbo Zhou. “[Reconstructing Sound Speed Profile From Remote Sensing Data: Nonlinear Inversion Based on Self-Organizing Map](sources/li-2021-reconstructing_sound_speed_profile_remote_sensing_data_nonlinear_inversion_self_organizing_map.pdf).” IEEE Access, vol. 9, 2021, pp. 109754–62. https://doi.org/10.1109/ACCESS.2021.3102608.
 - `local_pdf` Li, Hong, et al. “[Development of a Global Gridded Argo Data Set with Barnes Successive Corrections](sources/li-2017-development_global_gridded_argo_data_set_barnes_successive_corrections.pdf).” Journal of Geophysical Research: Oceans, vol. 122, no. 2, Feb. 2017, pp. 866–89. https://doi.org/10.1002/2016jc012285.
 - `local_pdf` Lu, Jiajun, et al. “[Enhancing Few-Shot Prediction of Ocean Sound Speed Profiles through Hierarchical Long Short-Term Memory Transfer Learning](sources/lu-2024-enhancing_few_shot_prediction_ocean_sound_speed_profiles_hierarchical_lstm_transfer_learning.pdf).” Journal of Marine Science and Engineering, vol. 12, no. 7, June 2024, article 1041. https://doi.org/10.3390/jmse12071041.
 - `local_pdf` Luo, Guangyu, et al. “[Deep-Sea Convergence Zone Parameter Prediction with Non-Uniform Mixed-Layer Sound Speed Profiles](sources/luo-2025-deep_sea_convergence_zone_parameter_prediction_non_uniform_mixed_layer_sound_speed_profiles.pdf).” Journal of Marine Science and Engineering, vol. 13, no. 9, Aug. 2025, article 1649. https://doi.org/10.3390/jmse13091649.
+- `unresolved_full_text` Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. https://ieeexplore.ieee.org/document/881241.
+- `unresolved_full_text` Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814.
 - `local_pdf` Ou, Zhenyi, et al. “[Estimation of Sound Speed Profiles Based on Remote Sensing Parameters Using a Scalable End-to-End Tree Boosting Model](sources/ou-2022-remote_sensing_tree_boosting_sound_speed_profiles.pdf).” Frontiers in Marine Science, vol. 9, Dec. 2022. https://doi.org/10.3389/fmars.2022.1051820.
 - `local_pdf` Park, Beomjo, et al. “[Spatiotemporal Local Interpolation of Global Ocean Heat Transport Using Argo Floats: A Debiased Latent Gaussian Process Approach](sources/park-2023-spatiotemporal_local_interpolation_issue.pdf).” The Annals of Applied Statistics, vol. 17, no. 2, June 2023. https://doi.org/10.1214/22-aoas1679.
 - `local_pdf` [sources/palmer-2019-adequacy_of_the_ocean_observation_system_for_quantifying_regional_heat_and_freshwater_storage_and_change.pdf](sources/palmer-2019-adequacy_of_the_ocean_observation_system_for_quantifying_regional_heat_and_freshwater_storage_and_change.pdf): local PDF is present in `sources/`, but it is not cited in the active literature review, notes, or notebooks.
+- `unresolved_full_text` Pike, J. M., and F. L. Beiboer. A Comparison between Algorithms for the Speed of Sound in Seawater. The Hydrographic Society, 1993. Special Publication 34.
 - `local_pdf` Ridgway, K. R., J. R. Dunn, and J. L. Wilkin. “[Ocean Interpolation by Four-Dimensional Weighted Least Squares: Application to the Waters around Australasia](sources/ridgway-2002-ocean_interpolation_four_dimensional_weighted_least_squares.pdf).” Journal of Atmospheric and Oceanic Technology, vol. 19, no. 9, Sept. 2002, pp. 1357–75. https://doi.org/10.1175/1520-0426(2002)019<1357:OIBFDW>2.0.CO;2.
 - `web_native` NOAA Office of National Marine Sanctuaries, and U.S. Navy. [*SanctSound Raw Passive Acoustic Data*](https://data.noaa.gov/metaview/page?view=getDataView&xml=NOAA%2FNESDIS%2FNGDC%2FMGG%2Fpassive_acoustic%2F%2Fiso%2Fxml%2FNOAA-Navy-SanctSound_Raw_Data.xml). NOAA National Centers for Environmental Information, 2020. https://doi.org/10.25921/saca-sp25.
 - `unresolved_full_text` Saunders, Peter M. “Practical Conversion of Pressure to Depth.” Journal of Physical Oceanography, vol. 11, no. 4, Apr. 1981, pp. 573–74. https://doi.org/10.1175/1520-0485(1981)011<0573:PCOPTD>2.0.CO;2.

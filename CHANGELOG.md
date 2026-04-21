@@ -24,6 +24,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Standardized `source-acquisition-tracker.md` as a topic-root research artifact and added policy requiring same-stem Markdown translation companions for non-English local full-text sources.
 - Reorganized the Argo cycle-representation research materials into focused note files, moved notebook artifacts under an indexed notebooks folder, and aligned the spatio-temporal topic with the same notes-based layout.
 - Added research-policy rules requiring topic notes and notebooks to trace source-backed claims back through the topic literature review and to keep working-note structure consistent with the new folder model.
+- Updated research-source policy so books can resolve through repo-local Markdown source notes when PDFs cannot practically be stored, and aligned the underwater-acoustics literature review and acquisition tracker with that workflow.
 - Reduced `CycleModel` memory and serialization overhead substantially by replacing heavy metadata models with slotted dataclasses and using compact custom pickle state.
 - Split notebook and research dependencies into a dedicated `research` dependency group while keeping the core runtime dependency surface limited to `numpy`, `pandas`, and `scipy`.
 - Reworked cycle-model settings so validation and interpolation can use distinct temperature and salinity kwargs through a dedicated settings package and shared sensor-accuracy configuration.

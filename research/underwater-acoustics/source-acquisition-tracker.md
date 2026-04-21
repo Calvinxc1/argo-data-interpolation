@@ -5,12 +5,12 @@ This note tracks which active bibliography entries in [literature-review.md](lit
 ## Summary
 
 - Last updated: 2026-04-21
-- References in active bibliography: `118`
+- References in active bibliography: `117`
 - References with linked local PDF copies: `115`
 - References resolved via canonical non-article web pages: `2`
-- References resolved via repo-local manual source notes: `1`
+- References resolved via repo-local manual source notes: `0`
 - References still missing local full-text material: `0`
-- Orphaned references excluded from active tallies: `36`
+- Orphaned references excluded from active tallies: `37`
 - Archived acquisition records excluded from active tallies: `1`
 - Local `.pdf` files remain the required resolved format for article sources; book sources may also resolve through repo-local manual source notes with page provenance when a PDF cannot practically be stored; non-article web-native resources may resolve through a stable canonical landing page.
 
@@ -58,6 +58,7 @@ These records are excluded from the active tallies above because they are not cu
 - `local_pdf` Lu, Jiajun, et al. “[Enhancing Few-Shot Prediction of Ocean Sound Speed Profiles through Hierarchical Long Short-Term Memory Transfer Learning](sources/lu-2024-enhancing_few_shot_prediction_ocean_sound_speed_profiles_hierarchical_lstm_transfer_learning.pdf).” Journal of Marine Science and Engineering, vol. 12, no. 7, June 2024, article 1041. https://doi.org/10.3390/jmse12071041.
 - `local_pdf` Luo, Guangyu, et al. “[Deep-Sea Convergence Zone Parameter Prediction with Non-Uniform Mixed-Layer Sound Speed Profiles](sources/luo-2025-deep_sea_convergence_zone_parameter_prediction_non_uniform_mixed_layer_sound_speed_profiles.pdf).” Journal of Marine Science and Engineering, vol. 13, no. 9, Aug. 2025, article 1649. https://doi.org/10.3390/jmse13091649.
 - `unresolved_full_text` Mandelberg, M. D., and L. J. Frizzell-Makowski. “Acoustic Provincing of Ocean Basins.” OCEANS 2000 MTS/IEEE Conference and Exhibition, 2000, pp. 105–08. https://ieeexplore.ieee.org/document/881241.
+- `manual_notes_only` Munk, Walter, Peter Worcester, and Carl Wunsch. [*Ocean Acoustic Tomography*](sources/munk-1995-ocean_acoustic_tomography.md). Cambridge University Press, 1995. Cambridge Monographs on Mechanics. https://doi.org/10.1017/CBO9780511666926.
 - `unresolved_full_text` Nystuen, Jeffrey A., Stephen C. Riser, T. Wen, and D. Swift. “Interpreted Acoustic Ocean Observations from Argo Floats.” The Journal of the Acoustical Society of America, vol. 129, no. 4, Apr. 2011, p. 2400. https://doi.org/10.1121/1.3587814.
 - `local_pdf` Ou, Zhenyi, et al. “[Estimation of Sound Speed Profiles Based on Remote Sensing Parameters Using a Scalable End-to-End Tree Boosting Model](sources/ou-2022-remote_sensing_tree_boosting_sound_speed_profiles.pdf).” Frontiers in Marine Science, vol. 9, Dec. 2022. https://doi.org/10.3389/fmars.2022.1051820.
 - `local_pdf` Park, Beomjo, et al. “[Spatiotemporal Local Interpolation of Global Ocean Heat Transport Using Argo Floats: A Debiased Latent Gaussian Process Approach](sources/park-2023-spatiotemporal_local_interpolation_issue.pdf).” The Annals of Applied Statistics, vol. 17, no. 2, June 2023. https://doi.org/10.1214/22-aoas1679.

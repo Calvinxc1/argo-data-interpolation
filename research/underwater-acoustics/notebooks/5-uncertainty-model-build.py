@@ -25,6 +25,43 @@
 #     version: 3.14.3
 # ---
 
+# %% [markdown]
+# # Deterministic weighted local-window model build
+#
+# This notebook is the fifth step in the current `underwater-acoustics` sequence. Its role is narrower than the replication and holdout notebooks that come before it: it rebuilds the relaxed weighted local-window predictor as a reusable deterministic backbone for later downstream use, rather than as a standalone acoustics result. That sequence placement follows the topic notebook index in [README.md](README.md).
+#
+# The notebook should therefore be read as a model-build handoff artifact, not as the canonical summary of the acoustics topic. Source-backed synthesis still lives in [../literature-review.md](../literature-review.md), while the surrounding implementation rationale lives in [../notes/jana-replication-notes.md](../notes/jana-replication-notes.md) and [../notes/literature-review-project-framing-notes.md](../notes/literature-review-project-framing-notes.md).
+#
+# %% [markdown]
+# ## Why this notebook exists
+#
+# The canonical literature review argues that the profile-level interpolation step in Argo-to-sound-speed workflows is often under-reported even though adjacent literature shows that interpolation choice can materially affect derived ocean-state quantities and downstream diagnostics. See [Vertical Interpolation Methods Remain Under-Reported](../literature-review.md#vertical-interpolation-methods-remain-under-reported) and the review conclusion in [literature-review.md](../literature-review.md#conclusion).
+#
+# The project-facing implication extracted in [literature-review-project-framing-notes.md](../notes/literature-review-project-framing-notes.md) is that the useful contribution here is not to restate that sound speed matters, but to make one explicit processing path inspectable, reproducible, and eventually uncertainty-aware. That framing is also consistent with [Uncertainty Quantification: Sensor Precision Versus Mapping Error](../literature-review.md#uncertainty-quantification-sensor-precision-versus-mapping-error), [Acoustic Applications Increasingly Depend on Argo](../literature-review.md#acoustic-applications-increasingly-depend-on-argo), and the `argopy` tooling discussion in the same review.
+#
+# %% [markdown]
+# ## Method boundary
+#
+# Notebook `1` established the calibrated Jana et al. (2022) replication baseline, notebooks `2` through `4` converted that baseline into held-out local prediction experiments, and this notebook repackages the currently preferred relaxed weighted-local-window path as a deterministic model surface. That handoff matches the extension path described in [jana-replication-notes.md](../notes/jana-replication-notes.md).
+#
+# Two boundaries matter here:
+# - This notebook is not a new literature-review artifact; source-backed claims should still trace through [../literature-review.md](../literature-review.md).
+# - This notebook is not yet the full uncertainty-propagation endpoint promised by the broader acoustics framing; it is the deterministic backbone that later uncertainty work can attach to.
+#
+# The equation comparison is intentionally kept visible. The Jana-facing baseline remains tied to the legacy EOS-80 / UNESCO sound-speed path, while TEOS-10 / GSW is kept alongside it as an upgrade path so equation-choice effects are not silently conflated with interpolation and weighting effects. See [Sound Speed Equations: From UNESCO to TEOS-10](../literature-review.md#sound-speed-equations-from-unesco-to-teos-10) and the recommendation section in [jana-replication-notes.md](../notes/jana-replication-notes.md).
+#
+# %% [markdown]
+# ## Current uncertainty scope
+#
+# The current error-architecture note distinguishes three main uncertainty terms for the broader package path: spatiotemporal interpolation error, observation error propagated through kernel weights, and kernel-parameter uncertainty. See [error-propagation-architecture-notes.md](../notes/error-propagation-architecture-notes.md).
+#
+# This notebook only covers part of that picture. In its current form it:
+# - estimates held-out structural interpolation residuals for temperature and salinity
+# - propagates upstream profile-level uncertainty through the linear weighted average using squared weights
+# - compares deterministic EOS-80 and TEOS-10 sound-speed outputs on the resulting weighted profiles
+#
+# It does **not** yet present the full package uncertainty architecture as a completed notebook result, and it does not yet publish a final sound-speed uncertainty field. Those broader claims should remain in note or package-architecture status until they are implemented and validated explicitly.
+#
 # %%
 import pickle
 from dataclasses import asdict
@@ -56,6 +93,13 @@ from lib import (
     plot_desaturated_heatmap,
 )
 
+# %% [markdown]
+# ## 1. Load the Bay of Bengal archive and apply the settled QC gate
+#
+# The first stage keeps the same regional box used throughout the Jana replication sequence. The goal here is not to introduce a new archive definition, but to rebuild the deterministic predictor from the same Bay of Bengal source region that made the earlier notebooks acoustically legible. That continuity matters because the broader Jana-facing rationale is still the main empirical anchor for this topic; see [jana-replication-notes.md](../notes/jana-replication-notes.md).
+#
+# The fetch path remains intentionally close to the practical `argopy` workflow discussed in the literature review. As summarized in [Vertical Interpolation Methods Remain Under-Reported](../literature-review.md#vertical-interpolation-methods-remain-under-reported), `argopy` is useful enabling infrastructure for Argo data access and reshaping, but it does not itself solve the uncertainty-propagation problem this project is trying to expose.
+#
 # %%
 notebook_dir = Path(".")
 data_path = notebook_dir / "data"
@@ -72,6 +116,7 @@ box = [
 argo_data_path = data_path / "argo_data.pkl"
 
 if argo_data_path.exists():
+    # Reuse the cached regional pull when it exists so the notebook can focus on model build rather than redownloading.
     ds = pickle.load(open(argo_data_path, "rb"))
 else:
     ds = get_data(box, progress=True)
@@ -86,6 +131,13 @@ ds_filters = [
 ]
 ds = data_filter(ds, ds_filters)
 
+# %% [markdown]
+# ## 2. Fit one profile model per retained cycle
+#
+# This stage converts the screened archive into a bank of per-cycle interpolation models. The notebook is still operating in the same conceptual space highlighted in [Vertical Interpolation Methods Remain Under-Reported](../literature-review.md#vertical-interpolation-methods-remain-under-reported): the project contribution lives at the profile-processing layer between native Argo observations and derived sound-speed structure.
+#
+# For notebook `5`, the goal is not to compare multiple interpolation families again. Instead, it picks one deterministic path and turns it into a reusable cycle collection that downstream local predictions can query repeatedly. That is why the notebook shifts from the descriptive and benchmark role of notebooks `1-4` into a model-build role.
+#
 # %%
 settings = ModelSettings(n_folds=5)
 
@@ -131,6 +183,13 @@ for (platform_number, cycle_number, direction), cycle_ds in t:
 cycle_models = CycleModels(models)
 all_metadata = cycle_models.metadata()
 
+# %% [markdown]
+# ## 3. Recreate the held-out local-prediction frame
+#
+# Before exporting a deterministic model surface, the notebook first reuses the local-window logic from the earlier holdout notebooks to estimate how much structural interpolation error remains when one cycle is predicted from nearby cycles. This is the first of the uncertainty terms described in [error-propagation-architecture-notes.md](../notes/error-propagation-architecture-notes.md): spatiotemporal interpolation error estimated from held-out residuals rather than from upstream sensor uncertainty.
+#
+# The weighting configuration is carried over as a practical working choice, not as a newly justified set of source-backed constants. That matches the project-note boundary already stated around the weighted extensions in the earlier acoustics notebooks.
+#
 # %%
 SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60
 SECONDS_PER_WEEK = 7 * 24 * 60 * 60
@@ -187,6 +246,7 @@ for cycle_position, cycle_id in enumerate(tqdm(all_metadata.cycle_id)):
     )
     total_weight = weight_config.joint_weight(weight_deltas)
 
+    # Only score depths that are supported by at least one neighboring profile in the retained local set.
     support_mask = (
         (model_data.pressure[:, None] >= candidate_metadata.pressure_min[None, :]) &
         (model_data.pressure[:, None] <= candidate_metadata.pressure_max[None, :])
@@ -244,6 +304,13 @@ fig.tight_layout()
 # %%
 temp_rmse_vals.mean(), sal_rmse_vals.mean()
 
+# %% [markdown]
+# ## 4. Build the deterministic local model on a regular latitude-longitude grid
+#
+# Once the notebook has a retained cycle bank and a holdout-style local prediction rule, it evaluates that rule on a regular grid across the Bay of Bengal. The purpose here is operational rather than inferential: produce a deterministic surface that later workflows can query without rerunning the full notebook chain each time.
+#
+# This is the point where the notebook starts to resemble a lightweight regional model-build artifact rather than a replication notebook. That transition is consistent with the topic README, which already treats notebook `5` as a handoff into broader model-building work rather than as the canonical acoustics case study.
+#
 # %%
 lat_resolution = 1e-1
 lon_resolution = 1e-1
@@ -285,6 +352,7 @@ for lat, lon in tqdm(lat_lon_product):
     predict_temperature, predict_salinity = weighted_cycle_prediction(interpolates, total_weight)
 
     interp_errors = cycle_models.interp_error(depth_array, mask=candidate_mask)
+    # For a linear weighted average, independent upstream variances propagate through squared weights.
     interp_var = CycleData(
         temperature=interp_errors.temperature**2,
         salinity=interp_errors.salinity**2,
@@ -306,6 +374,15 @@ for lat, lon in tqdm(lat_lon_product):
                     'sound_speed_teos10': c2,
                     'support': total_weight.sum()})
 
+# %% [markdown]
+# ## 5. Compare deterministic equation paths and visualize support
+#
+# The last stage reshapes the gridded results for plotting. The side-by-side EOS-80 and TEOS-10 sound-speed outputs are here to preserve the baseline-versus-upgrade framing described in [Sound Speed Equations: From UNESCO to TEOS-10](../literature-review.md#sound-speed-equations-from-unesco-to-teos-10) and in [jana-replication-notes.md](../notes/jana-replication-notes.md). The notebook is not trying to settle that equation comparison here; it is keeping the distinction visible so interpolation and weighting choices are not silently mixed with equation-of-state choices.
+#
+# The support field is also plotted explicitly because this notebook is still closer to transparent model construction than to a finished mapped product. The reader should be able to see not only the predicted sound-speed field, but also where that field is backed by stronger or weaker local retained support.
+#
+# The project's methodological default remains pressure-space interpolation and prediction, consistent with the Argo-native vertical coordinate discussed in the literature review. In this notebook, labels such as `~110 m` should therefore be read as approximate acoustics-facing depth interpretations used for readability in an exploratory slice visualization, not as exact geometric-depth claims or as a standalone proof that the local model has been fully reformulated onto a strict depth coordinate.
+#
 # %%
 idx = 2
 chart_data = pd.DataFrame([{
@@ -374,4 +451,20 @@ fig.tight_layout()
 fig.savefig(chart_path / 'jana_remake_image.jpg', facecolor=fig.get_facecolor(),
             dpi=300)
 
+# %% [markdown]
+# ## 6. Sequence handoff
+#
+# Read as a full chain, the five notebooks now divide the acoustics work into distinct slices:
+# - notebook `1`: establish the calibrated Jana replication baseline
+# - notebook `2`: measure how far the flat Jana-style kernel can go as a held-out predictor
+# - notebook `3`: test whether weighting improves that benchmark under the same strict archive
+# - notebook `4`: test whether the weighted predictor improves further when partial local support is retained
+# - notebook `5`: take the current preferred deterministic path and turn it into a reusable model-build artifact
+#
+# That means this notebook is the end of the current sequence, but not the end of the broader work. Its handoff is into the next stage of the project:
+# - attach the fuller uncertainty architecture described in [../notes/error-propagation-architecture-notes.md](../notes/error-propagation-architecture-notes.md)
+# - decide which outputs should stay as acoustics-facing notebook artifacts and which should migrate into a broader spatiotemporal model-build topic
+# - keep equation choice, interpolation choice, and uncertainty propagation separated clearly enough that later notebooks or package outputs can compare them explicitly rather than absorbing them into one opaque workflow
+# - treat the current plotted `~depth` slices as exploratory presentation outputs until the coordinate treatment is tightened further
+#
 # %%

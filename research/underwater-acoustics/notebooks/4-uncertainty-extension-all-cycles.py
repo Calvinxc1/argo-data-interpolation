@@ -683,8 +683,12 @@ for cycle_id in sample_profiles:
 # - whether thermocline errors improve when partial profiles are retained locally
 # - whether dropped-depth counts reveal where local support still collapses despite the relaxed archive
 #
-# Read as a sequence, the four notebooks now separate the main questions cleanly:
+# Read as a sequence, the first four notebooks now separate the main questions cleanly:
 # - notebook `1`: can the Jana workflow be replicated transparently enough to serve as a baseline?
 # - notebook `2`: how strong is the flat Jana-style kernel as a held-out predictor?
 # - notebook `3`: does weighted local aggregation beat that flat benchmark under the same strict archive?
 # - notebook `4`: does the weighted approach improve further when partial local support is allowed back into the archive?
+#
+# The next notebook in the sequence, `5-uncertainty-model-build.ipynb`, stops changing the validation design and instead turns the preferred deterministic path from this progression into a reusable local model surface. In other words:
+# - notebooks `2` through `4` ask which local prediction design is worth keeping
+# - notebook `5` takes the current preferred design and repackages it for downstream use

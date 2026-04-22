@@ -10,13 +10,23 @@ The local `lib/` package holds notebook-support code used only for this topic's 
 
 ## Sequence
 
-These notebooks are intended to be read as a five-step progression:
+These notebooks are intended to be read as a five-step progression. The sequence is not just chronological; each notebook answers one narrower question and then hands the result to the next:
 
-1. [1-jana-study-replication.ipynb](1-jana-study-replication.ipynb) and [1-jana-study-replication.py](1-jana-study-replication.py): establish the calibrated Jana et al. (2022) replication baseline, from archive pull through the reproduced domain, map, and subdomain figures.
-2. [2-jana-holdout-validation.ipynb](2-jana-holdout-validation.ipynb) and [2-jana-holdout-validation.py](2-jana-holdout-validation.py): turn that descriptive replication into an explicit held-out benchmark by evaluating a flat Jana-style `2° x 2°` retained-cycle kernel predictor by depth.
-3. [3-uncertainty-extension.ipynb](3-uncertainty-extension.ipynb) and [3-uncertainty-extension.py](3-uncertainty-extension.py): keep the same strict retained archive and holdout protocol, but replace the flat local mean with a weighted retained-cycle predictor to test whether modest spatio-temporal weighting improves skill.
-4. [4-uncertainty-extension-all-cycles.ipynb](4-uncertainty-extension-all-cycles.ipynb) and [4-uncertainty-extension-all-cycles.py](4-uncertainty-extension-all-cycles.py): keep the weighted local-window idea from notebook `3`, but relax the archive-pruning rules so partially sampled cycles can contribute where they have real depth support.
-5. [5-uncertainty-model-build.ipynb](5-uncertainty-model-build.ipynb) and [5-uncertainty-model-build.py](5-uncertainty-model-build.py): rebuild the relaxed weighted local-window model as the current deterministic backbone when needed, cache it under `data/uncertainty_model_build.pkl`, and export passthrough-ready model tables without yet attaching uncertainty propagation.
+1. establish a calibrated replication baseline
+2. turn that baseline into an explicit held-out benchmark
+3. test whether weighting improves that benchmark without changing the archive
+4. test whether relaxing the archive improves the same weighted predictor
+5. repackage the preferred deterministic path as a reusable local model surface
+
+Read together, the story moves from descriptive replication, to predictive validation, to controlled method changes, and finally to a deterministic model-build handoff for later uncertainty work.
+
+That progression maps onto the current notebook set as follows:
+
+1. [1-jana-study-replication.ipynb](1-jana-study-replication.ipynb) and [1-jana-study-replication.py](1-jana-study-replication.py): establish the calibrated Jana et al. (2022) replication baseline, from archive pull through the reproduced domain, map, and subdomain figures. This notebook settles the descriptive starting point that the rest of the sequence can interrogate.
+2. [2-jana-holdout-validation.ipynb](2-jana-holdout-validation.ipynb) and [2-jana-holdout-validation.py](2-jana-holdout-validation.py): turn that descriptive replication into an explicit held-out benchmark by evaluating a flat Jana-style `2° x 2°` retained-cycle kernel predictor by depth. This notebook converts the replication archive into the first predictive baseline.
+3. [3-uncertainty-extension.ipynb](3-uncertainty-extension.ipynb) and [3-uncertainty-extension.py](3-uncertainty-extension.py): keep the same strict retained archive and holdout protocol, but replace the flat local mean with a weighted retained-cycle predictor to test whether modest spatio-temporal weighting improves skill. This notebook changes the predictor while keeping the archive fixed.
+4. [4-uncertainty-extension-all-cycles.ipynb](4-uncertainty-extension-all-cycles.ipynb) and [4-uncertainty-extension-all-cycles.py](4-uncertainty-extension-all-cycles.py): keep the weighted local-window idea from notebook `3`, but relax the archive-pruning rules so partially sampled cycles can contribute where they have real depth support. This notebook changes the archive while keeping the weighted predictor idea.
+5. [5-uncertainty-model-build.ipynb](5-uncertainty-model-build.ipynb) and [5-uncertainty-model-build.py](5-uncertainty-model-build.py): rebuild the relaxed weighted local-window model as the current deterministic backbone when needed, cache it under `data/uncertainty_model_build.pkl`, and export passthrough-ready model tables without yet attaching uncertainty propagation. This notebook is the handoff from the experimental sequence into reusable model-build work.
 
 ## License
 

@@ -1,9 +1,9 @@
-import numpy as np
-from numpy.typing import NDArray, ArrayLike
-from typing import Self
 from dataclasses import dataclass, field
+from typing import Self
 
-from .ModelAdapters import ModelAdapters
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
+
 from ..adapter.BaseAdapter import BaseAdapter
 from ..config.ModelSettings import ModelSettings
 from ..domain.CycleError import CycleError
@@ -11,6 +11,7 @@ from ..domain.MeasureError import MeasureError
 from ..domain.ModelData import ModelData
 from ..domain.ModelMeta import ModelMeta
 from ..validation.calc_fold_error import calc_fold_error
+from .ModelAdapters import ModelAdapters
 
 
 @dataclass
@@ -21,11 +22,25 @@ class Model:
     settings: ModelSettings
 
     @classmethod
-    def build(cls, model_meta: ModelMeta, model_data: ModelData, adapter: BaseAdapter, settings: ModelSettings) -> Self:
+    def build(
+        cls,
+        model_meta: ModelMeta,
+        model_data: ModelData,
+        adapter: BaseAdapter,
+        settings: ModelSettings,
+    ) -> Self:
         temp_error, sal_error = calc_fold_error(model_data, adapter, settings)
 
-        temp_adapter = adapter.fit(model_data.pressure, model_data.temperature, settings.model_kwargs.temperature)
-        sal_adapter = adapter.fit(model_data.pressure, model_data.salinity, settings.model_kwargs.salinity)
+        temp_adapter = adapter.fit(
+            model_data.pressure,
+            model_data.temperature,
+            settings.model_kwargs.temperature,
+        )
+        sal_adapter = adapter.fit(
+            model_data.pressure,
+            model_data.salinity,
+            settings.model_kwargs.salinity,
+        )
 
         adapters = ModelAdapters(temperature=temp_adapter, salinity=sal_adapter)
         error = CycleError(
@@ -37,23 +52,43 @@ class Model:
         model = cls(meta=model_meta, adapters=adapters, error=error, settings=settings)
         return model
 
-    def interpolate(self, pressure_data: ArrayLike) -> ModelData:
+    @staticmethod
+    def _normalize_pressure_input(pressure_data: ArrayLike | float) -> NDArray[np.float64]:
+        pressure_array = np.asarray(pressure_data, dtype=float)
+        if pressure_array.ndim == 0:
+            return pressure_array.reshape(1)
+        return pressure_array
+
+    def interpolate(self, pressure_data: ArrayLike | float) -> ModelData:
+        pressure_data = self._normalize_pressure_input(pressure_data)
+
         temp_data = self.adapters.temperature.interpolate(pressure_data)
         sal_data = self.adapters.salinity.interpolate(pressure_data)
         interp_data = ModelData(pressure=pressure_data, temperature=temp_data, salinity=sal_data)
         return interp_data
 
-    def interp_error(self, pressure_data: ArrayLike) -> ModelData:
-        temp_error = self._measure_error(self.error.pressure, self.error.temperature,
-                                         self.adapters.temperature.gradient(pressure_data))
-        sal_error = self._measure_error(self.error.pressure, self.error.salinity,
-                                         self.adapters.salinity.gradient(pressure_data))
+    def interp_error(self, pressure_data: ArrayLike | float) -> ModelData:
+        pressure_data = self._normalize_pressure_input(pressure_data)
+
+        temp_error = self._measure_error(
+            self.error.pressure,
+            self.error.temperature,
+            self.adapters.temperature.gradient(pressure_data),
+        )
+        sal_error = self._measure_error(
+            self.error.pressure,
+            self.error.salinity,
+            self.adapters.salinity.gradient(pressure_data),
+        )
         interp_error = ModelData(pressure=pressure_data, temperature=temp_error, salinity=sal_error)
         return interp_error
 
     @staticmethod
-    def _measure_error(pressure_error: float, measure_error: MeasureError,
-                       measure_gradient: NDArray[np.float64]) -> NDArray[np.float64]:
+    def _measure_error(
+        pressure_error: float,
+        measure_error: MeasureError,
+        measure_gradient: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         sq_model_error = measure_error.model ** 2
         sq_sensor_error = measure_error.sensor ** 2
         sq_pres_error = (np.abs(measure_gradient) * pressure_error) ** 2

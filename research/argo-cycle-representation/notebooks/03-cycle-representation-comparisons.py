@@ -24,12 +24,14 @@
 #     pygments_lexer: ipython3
 #     version: 3.11.13
 # ---
+
 # %% [markdown]
 # # 03. Cycle Representation Comparisons
 #
 # Notebook 02 established the tradeoff: the custom spline artifact is meaningfully smaller than exact interpolants, but weaker on withheld-point RMSE. Notebook 03 asks whether that tradeoff actually requires the custom curvature-adaptive implementation, or whether simpler traditional / native spline options already cover the same ground more convincingly.
 #
 # The comparison here is therefore reduced to the core model families that still matter: linear interpolation, PCHIP, and SciPy's native spline path. Those choices match the method classes emphasized in the topic literature review: linear interpolation as the simplest baseline, shape-preserving PCHIP-type methods as the main Argo interpolation comparator, and continuous spline representations as the natural family for compact functional encoding (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7, 14-15; Yarger et al., 2022, pp. 11-12, 216-218).
+#
 
 # %% [markdown]
 # ## Scope and Research Role
@@ -45,11 +47,11 @@
 # 1. Does the native spline path dominate the custom spline direction on simplicity and performance?
 # 2. Does PCHIP still sit on the low-RMSE end of the tradeoff?
 # 3. If spline methods are weaker on RMSE, do they still earn their place through tunability and smaller artifacts?
+#
 
 # %%
 import pickle
-
-import numpy as np
+from pathlib import Path
 import pandas as pd
 from pympler import asizeof
 from tqdm.auto import tqdm
@@ -68,6 +70,7 @@ from argo_interp.cycle.model import Model
 # The sensor terms below are fixed local defaults passed into `ModelSettings`. Those values come from the delayed-mode Argo uncertainty conventions summarized in the topic literature review: 2.4 dbar for pressure, 0.002°C for temperature, and a 0.01 PSU floor for salinity in the standard float setting (Wong et al., 2025, pp. 43, 47, 50, 55-56, 84). That is acceptable for the present purpose because this notebook is not trying to calibrate uncertainty intervals; it is trying to locate a sensible model family to carry forward into the uncertainty-aware representation work.
 #
 # In other words, this notebook helps decide what is worth quantifying uncertainty around, not how that uncertainty should ultimately be calibrated.
+#
 
 # %%
 SENSOR_ACCURACY = {
@@ -82,15 +85,31 @@ SENSOR_ACCURACY = {
 # This uses the same 2011 regional cycle sample as notebook 02 so the comparison stays tied to the validation dataset rather than drifting to a different slice. The sample is still compact enough to compare the core model classes on many individual cycles without turning the notebook into a large batch benchmark.
 #
 # The important thing here is relative behavior across models on the same loop, not publishing these particular aggregate numbers as final topic results.
+#
 
 # %%
-box = [
-    -75, -45,  # Longitude min/max
-    20, 30,    # Latitude min/max
-    0, 3000,   # Pressure/depth min/max
-    '2011-01', '2011-06',
-]
-ds = get_data(box)
+data_path = Path('./data')
+data_path.mkdir(exist_ok=True)
+
+data_file = data_path / 'argo_data.pkl'
+
+# %%
+override = False
+
+if data_file.exists() and not override:
+    with data_file.open('br') as f:
+        ds = pickle.load(f)
+else:
+    box = [
+        -75, -45, ## Longitude min/max
+        20, 30, ## Latitude min/max
+        0, 3000, ## Pressure/depth min/max
+        '2011-01', '2011-06', ## Datetime min/max
+    ]
+    ds = get_data(box, progress=True)
+
+    with data_file.open('bw') as f:
+        pickle.dump(ds, f)
 
 # %% [markdown]
 # ## Model Setup
@@ -103,6 +122,7 @@ ds = get_data(box)
 # - `SplineAdapter` with heuristic `s`: the same native spline family, but with explicit smoothing used as a footprint / fidelity control
 #
 # This is the key shift from notebooks 01 and 02. Linear interpolation and PCHIP-type methods are the most relevant exact baselines from the reviewed oceanographic literature, while spline smoothing connects more naturally to the continuous-representation direction described by Yarger et al. (2022, pp. 11-12, 216-218) (Li et al., 2022, pp. 1, 8; Barker & McDougall, 2020, pp. 1-2, 4-7). The question is no longer whether the custom spline can be made to work; notebooks 01 and 02 already answered that. The question is whether the native spline family already captures the only part of that story that remains compelling.
+#
 
 # %%
 settings = ModelSettings(
@@ -139,6 +159,7 @@ def build_smooth_settings(
 # - artifact footprint in memory and serialized form
 #
 # That split matters because this notebook is trying to settle the custom-method question. If PCHIP wins on RMSE but native spline methods can be tuned into substantially smaller artifacts, then the custom spline story loses most of its remaining rationale and the broader spline story becomes one of controlled approximation and later uncertainty quantification.
+#
 
 # %%
 model_errors = {}
@@ -148,11 +169,12 @@ for (platform_number, cycle_number, direction), cycle_ds in tqdm(
     ds.groupby(['PLATFORM_NUMBER', 'CYCLE_NUMBER', 'DIRECTION']),
     total=cycles,
 ):
-    cycle_id = f"{int(platform_number)}|{int(cycle_number)}-{direction}"
     cycle_ds = cycle_ds.sortby('PRES')
 
     model_meta = ModelMeta(
-        cycle_id=cycle_id,
+        platform_number=str(int(platform_number)),
+        cycle_number=str(int(cycle_number)),
+        direction=direction,
         latitude=float(cycle_ds['LATITUDE'].values[0]),
         longitude=float(cycle_ds['LONGITUDE'].values[0]),
         timestamp=cycle_ds['TIME'].values[0],
@@ -161,6 +183,7 @@ for (platform_number, cycle_number, direction), cycle_ds in tqdm(
             float(cycle_ds['PRES'].max().item()),
         ),
     )
+    cycle_id = model_meta.cycle_id
 
     # Fitting requires strictly increasing pressures, so duplicate levels are collapsed first.
     model_data = ModelData(
@@ -212,6 +235,7 @@ model_errors = pd.DataFrame(model_errors).T
 # - Lower `temp_*` and `sal_*` values mean better omitted-point reconstruction.
 # - Lower `memory_*` and `file_*` values mean a smaller stored artifact.
 # - The practical interpretation is whether accepting weaker RMSE than PCHIP buys enough compactness and tunability to justify carrying the spline family forward into the uncertainty-aware representation work.
+#
 
 # %%
 pd.concat([
@@ -231,6 +255,7 @@ pd.concat([
 # - that makes the spline family relevant as a compact, tunable representation layer whose next research step is uncertainty quantification, not further technique invention.
 #
 # In other words, notebook 03 closes the loop opened by notebooks 01 and 02. The custom spline was a useful exploratory method, but the more durable research direction is the simpler native spline family plus explicit uncertainty work.
+#
 
 # %% [markdown]
 # ## Framing References

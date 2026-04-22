@@ -1,8 +1,9 @@
-import numpy as np
 from abc import ABC, abstractmethod
-from numpy.typing import NDArray, ArrayLike
-from typing import Any, Self
 from dataclasses import dataclass
+from typing import Any, Self
+
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 
 @dataclass

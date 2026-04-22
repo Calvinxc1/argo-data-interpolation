@@ -6,6 +6,7 @@ Source-backed claims in these notes should trace to [../literature-review.md](..
 
 ## Files
 
+- [error-propagation-architecture-notes.md](error-propagation-architecture-notes.md): working note on the additive uncertainty architecture for underwater-acoustics interpolation, including active error terms, negligible terms, and deferred positioning issues.
 - [jana-replication-notes.md](jana-replication-notes.md): working notes on why Jana et al. is the current demonstration target and how to extend it with uncertainty-aware interpolation.
 - [literature-review-project-framing-notes.md](literature-review-project-framing-notes.md): project-facing implications extracted from the literature review so the review can remain focused on source-backed synthesis.
 - [operational-framing-notes.md](operational-framing-notes.md): working notes on the underwater-acoustics positioning, candidate industry hooks, and pending-verification research questions.

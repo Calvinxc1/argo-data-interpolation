@@ -1,6 +1,7 @@
-import xarray as xr
-from functools import reduce
 import operator
+from functools import reduce
+
+import xarray as xr
 
 
 def data_filter(ds: xr.Dataset, filters: list) -> xr.Dataset:

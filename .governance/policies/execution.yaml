@@ -3,6 +3,8 @@ when: [edit, command]
 state:
   preflight: one_time_per_discussion
 rules:
+  - Use `uv` as the repository's development environment and command runner.
+  - When authenticated `gh` access is required, run `gh` outside the sandbox because sandboxed commands in this environment cannot access the session keyring/Secret Service used for GitHub CLI auth.
   - Require a separate explicit execution cue before changing files after proposal or question discussion.
   - If proposal or question discussion occurred and preflight has not yet been sent for that discussion, send only `Execution confirmation required. No changes made yet.` and make no changes.
   - If preflight has already been sent for that discussion and a later explicit execution cue is received, execute without another confirmation unless requirements changed materially or became ambiguous.

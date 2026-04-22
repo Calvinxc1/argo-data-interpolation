@@ -1,30 +1,26 @@
 # Spatio-Temporal Argo Modeling Source Acquisition Tracker
 
 This note tracks bibliography entries in [literature-review.md](literature-review.md)
-that do not yet have local full-text copies in `sources/` or that still
-carry a local-source verification caveat. Linked references with fully
-verified local copies, and resolved web-native references, do not need
+that were added to the topic before a local full-text PDF was acquired in this topic.
+Linked references with already-wired local copies elsewhere in the repo do not need
 to be repeated here.
 
 ## Summary
 
-- Last updated: `2026-04-09`
-- References in bibliography: `0`
-- References with linked local PDF copies: `0`
-- References resolved via canonical non-article web pages: `0`
-- References still missing local PDF full-text material: `0`
-- References with local-copy verification caveats: `0`
-- This tracker is now a standard topic-root fixture for research topics in this repo. Populate it when source acquisition or verification exceptions appear for this topic.
+- Last updated: `2026-04-14`
+- References currently tracked: `2`
+- References with linked local PDF copies in this topic: `0`
+- References still pending local full-text acquisition in this topic: `2`
+- References with incomplete bibliography details: `0`
 
 ## Status Legend
 
-- `metadata_only`: citation metadata is recorded in the bibliography, but no local full-text PDF has been added in this topic yet
-- `blocked_pdf_endpoint`: official article identified, but publisher or repository blocked CLI fetches
-- `subscription_preview_only`: official article or book page is reachable, but the full text is not exposed in this environment
-- `html_capture_only`: publisher or journal HTML appears to expose article full text, but no local PDF is available and local HTML captures are not stored in this repo
-- `preprint_only`: a local PDF is present and usable, but it is an author preprint or non-publisher copy that does not fully verify final citation details
-- `web_native_complete`: the cited resource is a web-native non-article item and is resolved through its canonical landing page
+- `metadata_only`: citation metadata is recorded in the bibliography, but no local full-text PDF has yet been added in this topic
+- `metadata_incomplete`: the reference has been identified descriptively, but bibliographic details still need to be completed before acquisition is considered resolved
 
 ## Pending References
 
-None currently tracked.
+| # | Citation / Description | Status | Notes |
+| --- | --- | --- | --- |
+| 1 | Ishii, M., Kimoto, M., and Kachi, M. (2003). *Historical ocean subsurface temperature analysis with error estimates.* Monthly Weather Review, 131(1), 51-73. DOI: `10.1175/1520-0493(2003)131<0051:HOSTAW>2.0.CO;2` | `metadata_only` | Historical objective-analysis-with-error-estimates antecedent added to clarify the pre-Argo lineage behind later mapped products. |
+| 2 | Chang, Y.-S., Rosati, A. J., Zhang, S., and Harrison, M. J. (2009). *Objective analysis of monthly temperature and salinity for the world ocean in the 21st century: Comparison with World Ocean Atlas and application to assimilation validation.* Journal of Geophysical Research: Oceans, 114, C02014. DOI: `10.1029/2008JC004970` | `metadata_only` | Argo-era monthly objective-analysis reference added to connect mapped products with assimilation-validation framing. |

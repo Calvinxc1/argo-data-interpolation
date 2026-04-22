@@ -6,8 +6,15 @@ routes:
   file_or_command_work:
     - .governance/policies/execution.yaml
     - .governance/policies/safety.yaml
+  notebook_work:
+    - .governance/policies/execution.yaml
+    - .governance/policies/safety.yaml
+    - .governance/policies/notebooks.yaml
   gitflow_work:
     - .governance/policies/gitflow.yaml
+  notebook_gitflow_work:
+    - .governance/policies/gitflow.yaml
+    - .governance/policies/notebooks.yaml
   research_writing_work:
     - .governance/policies/research-citations.yaml
     - .governance/policies/research-structure.yaml

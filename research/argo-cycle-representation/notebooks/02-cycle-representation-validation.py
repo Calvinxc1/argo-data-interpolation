@@ -16,14 +16,15 @@
 #   language_info:
 #     codemirror_mode:
 #       name: ipython
-#       version: 2
+#       version: 3
 #     file_extension: .py
 #     mimetype: text/x-python
 #     name: python
 #     nbconvert_exporter: python
-#     pygments_lexer: ipython2
-#     version: 2.7.6
+#     pygments_lexer: ipython3
+#     version: 3.11.13
 # ---
+
 # %% [markdown]
 # # 02. Argo Cycle Representation Validation
 #
@@ -36,24 +37,24 @@
 # - [Method Comparison Notes](../notes/method-comparison-notes.md)
 # - [Experiment Design Notes](../notes/experiment-design-notes.md)
 # - [Framing Notes](../notes/framing-notes.md)
+#
 
 # %%
 import numpy as np
 from argopy import DataFetcher as ArgoDataFetcher
 import pandas as pd
 from tqdm.auto import tqdm
-from matplotlib import pyplot as plt
-import seaborn as sns
 from scipy.interpolate import Akima1DInterpolator, PchipInterpolator
 import pickle
 from pympler import asizeof
+from pathlib import Path
 
 # %%
 from lib import ModelError, SensorError, CycleError, CycleModel, CycleSettings
-
 from lib import build_model, calc_fold_error
-
 from lib.calc_rmse import calc_rmse
+
+from argo_interp.data import get_data
 
 # %% [markdown]
 # ## Benchmark Setup
@@ -61,6 +62,7 @@ from lib.calc_rmse import calc_rmse
 # The next cells define the shared fold logic, baseline comparison helpers, and sampled profile set used throughout the notebook. The Akima and PCHIP helper functions are kept intentionally close to the spline validation pattern so that the comparison reflects representation differences rather than different split logic.
 #
 # That keeps the benchmark focused on one narrow question already motivated by the literature: what happens when an exact interpolant and a compact stored representation are asked to solve the same within-profile reconstruction problem (Akima, 1970, pp. 2-5; Barker & McDougall, 2020, pp. 1-2, 4-7; Yarger et al., 2022, pp. 11-12, 216-218)?
+#
 
 # %%
 def interleaved_fold_index(cycle_data: pd.DataFrame, folds: int) -> np.ndarray:
@@ -94,6 +96,7 @@ def akima_kfold(cycle_data, folds=5):
     sal_rmse /= valid_obs
     return temp_rmse, sal_rmse
 
+
 # %%
 def pchip_kfold(cycle_data, folds=5):
     cycle_data = cycle_data.sort_values('PRES').reset_index(drop=True)
@@ -120,15 +123,33 @@ def pchip_kfold(cycle_data, folds=5):
     sal_rmse /= valid_obs
     return temp_rmse, sal_rmse
 
+
 # %%
-box = [
-    -75, -45, ## Longitude min/max
-    20, 30, ## Latitude min/max
-    0, 3000, ## Pressure/depth min/max
-    '2011-01', '2011-06', ## Datetime min/max
-]
-f = ArgoDataFetcher().region(box).load()
-data = f.data.to_dataframe()
+data_path = Path('./data')
+data_path.mkdir(exist_ok=True)
+
+data_file = data_path / 'argo_data.pkl'
+
+# %%
+override = False
+
+if data_file.exists() and not override:
+    with data_file.open('br') as f:
+        ds = pickle.load(f)
+else:
+    box = [
+        -75, -45, ## Longitude min/max
+        20, 30, ## Latitude min/max
+        0, 3000, ## Pressure/depth min/max
+        '2011-01', '2011-06', ## Datetime min/max
+    ]
+    ds = get_data(box, progress=True)
+
+    with data_file.open('bw') as f:
+        pickle.dump(ds, f)
+
+# %%
+data = ds.to_dataframe()
 
 # %%
 group_col = 'PLATFORM_CYCLE'
@@ -163,11 +184,13 @@ readings = readings.drop(columns=group_fields)
 # - [Framing Notes](../notes/framing-notes.md): the intended project framing is a compact, uncertainty-aware profile representation layer rather than a claim of best interpolation RMSE.
 #
 # In practical terms, this notebook can speak directly to omitted-point RMSE, artifact footprint, and footprint stability. It cannot by itself establish downstream acoustic utility, operational value of the uncertainty terms, or superiority as a prior layer once sparse local sensing is introduced. It also does not yet answer whether the custom spline machinery is the right non-exact spline family to carry forward; notebook 03 takes up that question directly.
+#
 
 # %% [markdown]
 # ## Compact Spline Artifact Results
 #
 # The next cells fit the current spline-based cycle artifact across the sampled profiles and summarize its reconstruction error and artifact footprint.
+#
 
 # %%
 settings = CycleSettings(
@@ -240,11 +263,13 @@ pd.concat([
 # - pressure bounds.
 #
 # So the memory and pickle-size numbers for this method reflect a richer artifact definition than a raw interpolator alone. That matters for interpretation: if the fuller spline artifact still remains smaller than the exact-interpolant baselines, the compactness result is conservative rather than inflated.
+#
 
 # %% [markdown]
 # ## Akima Baseline Results
 #
 # The next cells evaluate `Akima1DInterpolator` under the same interleaved omitted-point validation logic and summarize both reconstruction error and interpolator footprint.
+#
 
 # %%
 akima_model_errors = {}
@@ -290,6 +315,7 @@ cycle_data = readings.loc[readings['PLATFORM_CYCLE'] == cycle_number]
 # ## PCHIP Baseline Results
 #
 # The next cells evaluate `PchipInterpolator` under the same omitted-point validation logic. In practice, this serves as a second strong exact-interpolant comparator and helps show whether the footprint pattern is specific to Akima or characteristic of exact interpolants more generally.
+#
 
 # %%
 pchip_model_errors = {}
@@ -379,6 +405,7 @@ pchip_model_sizes.loc[pchip_model_sizes['file'] < np.nanpercentile(pchip_model_s
 # - but it does appear to offer a substantially smaller and more predictable artifact,
 # - so notebook 01's feasibility result survives comparison as a real tradeoff rather than collapsing immediately,
 # - and the next question becomes whether this custom spline implementation actually earns its complexity relative to simpler spline-family alternatives.
+#
 
 # %% [markdown]
 # ## Framing References

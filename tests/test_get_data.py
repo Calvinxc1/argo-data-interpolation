@@ -1,7 +1,7 @@
-import pytest
-import xarray as xr
 from importlib import import_module
 
+import pytest
+import xarray as xr
 
 pytest.importorskip("argopy")
 

@@ -126,7 +126,7 @@ There is still no strong reason to prioritize Reiniger-Ross unless a historical 
 
 ### Full MRST-PCHIP
 
-Implementing full MRST-PCHIP could still be worthwhile if the project later needs a stronger exact-interpolant comparator tied more directly to Barker and McDougall (2020). It is not the highest-priority next experiment for the current research direction, which is now centered more on native spline tradeoffs and uncertainty.
+Implementing full MRST-PCHIP could still be worthwhile if the project later needs a stronger exact-interpolant comparator tied more directly to Barker and McDougall (2020). In the current Python stack, that is not an off-the-shelf package switch: the official GSW-Python docs expose MRST only inside the geostrophic-height routines, not as a standalone profile-interpolation API. A true comparator would therefore require either wrapping the relevant GSW C path or reimplementing the published method directly. It is not the highest-priority next experiment for the current research direction, which is now centered more on native spline tradeoffs and uncertainty.
 
 ## Current experimental priority order
 

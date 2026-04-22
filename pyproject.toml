@@ -13,6 +13,7 @@ dependencies = [
     "argopy>=1.4.0",
     "cartopy>=0.25.0",
     "gsw>=3.6.21",
+    "ipykernel>=7.2.0",
     "numpy>=2.4.3",
     "pandas>=3.0.1",
     "scipy>=1.17.1",

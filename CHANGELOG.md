@@ -17,6 +17,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Changed
 
 - Added a changelog workflow policy and established this file as the single source of truth for staged and released change history.
+- Documented repository execution policy that authenticated `gh` commands must run outside the sandbox because sandboxed sessions cannot access the local keyring-backed GitHub CLI credentials.
 - Added a repository notebook workflow rule requiring Jupytext `.py` files to be resynced from diverged `.ipynb` notebooks before notebook-source edits, and requiring explicit user direction before syncing edits back into notebooks.
 - Optimized the underwater-acoustics uncertainty model-build notebook hold-one-out validation loop by replacing repeated `CycleModels.filter()/pop()` usage with direct metadata masking and shared vectorized weighting while preserving the full temperature and salinity error matrices.
 - Split repository licensing so `research/` materials are documented and machine-mapped as `CC-BY-4.0` while non-research project materials remain `GPL-3.0-or-later`.

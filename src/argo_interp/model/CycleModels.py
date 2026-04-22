@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 import warnings
 from dataclasses import dataclass, field
-from typing import Collection, Iterator, Optional
-from numpy.typing import ArrayLike
 from datetime import datetime
+from typing import Collection, Iterator, Optional
 
+import numpy as np
+import pandas as pd
+from numpy.typing import ArrayLike
+
+from ..cycle.model import Model
 from .CycleData import CycleData
 from .CycleMetadata import CycleMetadata
-from ..cycle.model import Model
 
 TimestampLike = datetime | pd.Timestamp | np.datetime64
 
@@ -30,7 +31,10 @@ class CycleModels:
         models = list(self.models.values())
         self._metadata = CycleMetadata(
             cycle_id=np.array([model.meta.cycle_id for model in models], dtype=object),
-            platform_number=np.array([model.meta.platform_number for model in models], dtype=object),
+            platform_number=np.array(
+                [model.meta.platform_number for model in models],
+                dtype=object,
+            ),
             cycle_number=np.array([model.meta.cycle_number for model in models], dtype=object),
             direction=np.array([model.meta.direction for model in models], dtype=object),
             latitude=np.array([model.meta.latitude for model in models], dtype=float),
@@ -40,11 +44,20 @@ class CycleModels:
                 dtype="datetime64[ns]",
             ),
             seasonal_timestamp=np.array(
-                [pd.Timestamp(model.meta.timestamp).replace(year=2000).to_datetime64() for model in models],
+                [
+                    pd.Timestamp(model.meta.timestamp).replace(year=2000).to_datetime64()
+                    for model in models
+                ],
                 dtype="datetime64[ns]",
             ),
-            pressure_min=np.array([model.meta.profile_pressure[0] for model in models], dtype=float),
-            pressure_max=np.array([model.meta.profile_pressure[1] for model in models], dtype=float),
+            pressure_min=np.array(
+                [model.meta.profile_pressure[0] for model in models],
+                dtype=float,
+            ),
+            pressure_max=np.array(
+                [model.meta.profile_pressure[1] for model in models],
+                dtype=float,
+            ),
         )
 
     def __len__(self) -> int:

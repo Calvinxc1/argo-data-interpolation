@@ -1,10 +1,10 @@
 import numpy as np
 
-from .InterleavedKFolds import InterleavedKFolds
-from .calc_measure_error import calc_measure_error
 from ..adapter.BaseAdapter import BaseAdapter
 from ..config.ModelSettings import ModelSettings
 from ..domain.ModelData import ModelData
+from .calc_measure_error import calc_measure_error
+from .InterleavedKFolds import InterleavedKFolds
 
 
 def calc_fold_error(model_data: ModelData, adapter: type[BaseAdapter],
@@ -17,22 +17,29 @@ def calc_fold_error(model_data: ModelData, adapter: type[BaseAdapter],
     valid_obs = 0
     for fold in range(settings.n_folds):
         train_mask, valid_mask = k_folds.fold_mask(fold)
-        train_pressure, valid_pressure = model_data.pressure[train_mask], model_data.pressure[valid_mask]
-        train_temperature, valid_temperature = model_data.temperature[train_mask], model_data.temperature[valid_mask]
-        train_salinity, valid_salinity = model_data.salinity[train_mask], model_data.salinity[valid_mask]
+        train_pressure = model_data.pressure[train_mask]
+        valid_pressure = model_data.pressure[valid_mask]
+        train_temperature = model_data.temperature[train_mask]
+        valid_temperature = model_data.temperature[valid_mask]
+        train_salinity = model_data.salinity[train_mask]
+        valid_salinity = model_data.salinity[valid_mask]
 
-        temp_model = adapter.fit(pressure_data=train_pressure,
-                                 measure_data=train_temperature,
-                                 model_kwargs=settings.model_kwargs.temperature)
+        temp_model = adapter.fit(
+            pressure_data=train_pressure,
+            measure_data=train_temperature,
+            model_kwargs=settings.model_kwargs.temperature,
+        )
         temp_sse += calc_measure_error(
             adapter=temp_model,
             pressure_data=valid_pressure,
             measure_data=valid_temperature,
         )
 
-        sal_model = adapter.fit(pressure_data=train_pressure,
-                                measure_data=train_salinity,
-                                model_kwargs=settings.model_kwargs.salinity)
+        sal_model = adapter.fit(
+            pressure_data=train_pressure,
+            measure_data=train_salinity,
+            model_kwargs=settings.model_kwargs.salinity,
+        )
         sal_sse += calc_measure_error(
             adapter=sal_model,
             pressure_data=valid_pressure,

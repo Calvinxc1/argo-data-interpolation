@@ -6,16 +6,28 @@ from argo_interp.model.CycleData import CycleData
 
 
 def test_cycle_data_rejects_mismatched_pressure_index() -> None:
-    temperature = pd.DataFrame({"cycle_a": [10.0, 11.0]}, index=pd.Index([1.0, 2.0], name="pressure"))
-    salinity = pd.DataFrame({"cycle_a": [35.0, 35.1]}, index=pd.Index([1.0, 3.0], name="pressure"))
+    temperature = pd.DataFrame(
+        {"cycle_a": [10.0, 11.0]},
+        index=pd.Index([1.0, 2.0], name="pressure"),
+    )
+    salinity = pd.DataFrame(
+        {"cycle_a": [35.0, 35.1]},
+        index=pd.Index([1.0, 3.0], name="pressure"),
+    )
 
     with pytest.raises(ValueError, match="same pressure index"):
         CycleData(temperature=temperature, salinity=salinity)
 
 
 def test_cycle_data_rejects_mismatched_cycle_columns() -> None:
-    temperature = pd.DataFrame({"cycle_a": [10.0, 11.0]}, index=pd.Index([1.0, 2.0], name="pressure"))
-    salinity = pd.DataFrame({"cycle_b": [35.0, 35.1]}, index=pd.Index([1.0, 2.0], name="pressure"))
+    temperature = pd.DataFrame(
+        {"cycle_a": [10.0, 11.0]},
+        index=pd.Index([1.0, 2.0], name="pressure"),
+    )
+    salinity = pd.DataFrame(
+        {"cycle_b": [35.0, 35.1]},
+        index=pd.Index([1.0, 2.0], name="pressure"),
+    )
 
     with pytest.raises(ValueError, match="same cycle columns"):
         CycleData(temperature=temperature, salinity=salinity)

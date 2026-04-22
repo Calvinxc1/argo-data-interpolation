@@ -35,6 +35,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Fixed
 
 - Fixed `SplineAdapter.fit` to apply `extrapolate` on the fitted `BSpline` object instead of passing it to `make_splrep`, preventing runtime `TypeError` and restoring configurable extrapolation behavior.
+- Fixed `Model.interpolate()` and `Model.interp_error()` to normalize scalar pressure inputs consistently, including integer scalars, while cleaning the remaining Ruff line-length violations in the runtime and test code.
 
 ### Removed
 

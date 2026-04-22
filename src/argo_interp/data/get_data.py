@@ -1,5 +1,6 @@
-from argopy import DataFetcher
 import xarray as xr
+from argopy import DataFetcher
+
 
 def get_data(box: list, progress: bool = False, max_workers: int = 4,
              mode: str = 'standard') -> xr.Dataset:

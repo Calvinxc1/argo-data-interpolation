@@ -62,7 +62,7 @@ from argo_interp.data import get_data
 from argo_interp.cycle.adapter import LinearAdapter, PchipAdapter, SplineAdapter
 from argo_interp.cycle.config import ModelKwargs, ModelSettings, SensorAccuracy
 from argo_interp.cycle.domain import ModelData, ModelMeta
-from argo_interp.cycle.model import Model
+from argo_interp.cycle import InterpolationModel
 
 # %% [markdown]
 # ## Local Assumptions
@@ -192,9 +192,9 @@ for (platform_number, cycle_number, direction), cycle_ds in tqdm(
         salinity=cycle_ds['PSAL'].values,
     ).clean_duplicates(rule='mean')
 
-    linear_model = Model.build(model_meta, model_data, LinearAdapter, settings)
-    pchip_model = Model.build(model_meta, model_data, PchipAdapter, settings)
-    spline_model = Model.build(model_meta, model_data, SplineAdapter, settings)
+    linear_model = InterpolationModel.build(model_meta, model_data, LinearAdapter, settings)
+    pchip_model = InterpolationModel.build(model_meta, model_data, PchipAdapter, settings)
+    spline_model = InterpolationModel.build(model_meta, model_data, SplineAdapter, settings)
 
     # The smoothed spline keeps the same native spline family but exposes an explicit tradeoff knob.
     smooth_settings = build_smooth_settings(
@@ -204,7 +204,12 @@ for (platform_number, cycle_number, direction), cycle_ds in tqdm(
         settings,
         smooth_scaler=5e-2,
     )
-    smooth_spline_model = Model.build(model_meta, model_data, SplineAdapter, smooth_settings)
+    smooth_spline_model = InterpolationModel.build(
+        model_meta,
+        model_data,
+        SplineAdapter,
+        smooth_settings,
+    )
 
     model_errors[cycle_id] = {
         'temp_linear': linear_model.error.temperature.model,

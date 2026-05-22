@@ -75,7 +75,7 @@ from tqdm.auto import tqdm
 # %%
 from argo_interp.data import data_filter, get_data
 from argo_interp.cycle.adapter import LinearAdapter
-from argo_interp.cycle.model import Model
+from argo_interp.cycle import InterpolationModel
 from argo_interp.cycle.domain import ModelData, ModelMeta
 from argo_interp.cycle.config import ModelSettings, ModelKwargs
 
@@ -168,7 +168,7 @@ for (platform_number, cycle_number, direction), cycle_ds in t:
     )
     cycle_id = model_meta.cycle_id
 
-    linear_model = Model.build(model_meta, model_data, LinearAdapter, settings)
+    linear_model = InterpolationModel.build(model_meta, model_data, LinearAdapter, settings)
     models[cycle_id] = linear_model
     t.set_postfix(model_count=len(models))
 

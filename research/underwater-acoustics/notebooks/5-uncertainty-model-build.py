@@ -82,8 +82,8 @@ from argo_interp.data import data_filter, get_data
 from argo_interp.cycle.adapter import PchipAdapter
 from argo_interp.cycle.config import ModelKwargs, ModelSettings
 from argo_interp.cycle.domain import ModelData, ModelMeta
-from argo_interp.cycle.model import Model
-from argo_interp.model import CycleModels, CycleData
+from argo_interp.collection import CycleBatch, CycleCollection
+from argo_interp.cycle import InterpolationModel
 from lib import (
     GaussianScale,
     WeightConfig,
@@ -176,12 +176,12 @@ for (platform_number, cycle_number, direction), cycle_ds in t:
     )
     cycle_id = model_meta.cycle_id
 
-    linear_model = Model.build(model_meta, model_data, PchipAdapter, settings)
+    linear_model = InterpolationModel.build(model_meta, model_data, PchipAdapter, settings)
     models[cycle_id] = linear_model
     models_data[cycle_id] = model_data
     t.set_postfix(model_count=len(models))
-cycle_models = CycleModels(models)
-all_metadata = cycle_models.metadata()
+cycle_collection = CycleCollection(models)
+all_index = cycle_collection.index()
 
 # %% [markdown]
 # ## 3. Recreate the held-out local-prediction frame
@@ -221,35 +221,35 @@ temp_errors = {}
 temp_rmse_vals = {}
 sal_errors = {}
 sal_rmse_vals = {}
-for cycle_position, cycle_id in enumerate(tqdm(all_metadata.cycle_id)):
+for cycle_position, cycle_id in enumerate(tqdm(all_index.cycle_id)):
     model_data = models_data[cycle_id]
-    target_timestamp = pd.Timestamp(all_metadata.timestamp[cycle_position])
+    target_timestamp = pd.Timestamp(all_index.timestamp[cycle_position])
     candidate_query = build_candidate_query(
-        target_latitude=all_metadata.latitude[cycle_position],
-        target_longitude=all_metadata.longitude[cycle_position],
+        target_latitude=all_index.latitude[cycle_position],
+        target_longitude=all_index.longitude[cycle_position],
         # target_timestamp=target_timestamp,
         dist_rad=dist_rad,
         # season_weeks=season_weeks,
-        exclude_platform_number=all_metadata.platform_number[cycle_position],
+        exclude_platform_number=all_index.platform_number[cycle_position],
     )
-    candidate_mask = cycle_models.mask(**candidate_query.to_mask_kwargs())
-    candidate_metadata = cycle_models.metadata(candidate_mask)
+    candidate_mask = cycle_collection.mask(**candidate_query.to_mask_kwargs())
+    candidate_index = cycle_collection.index(candidate_mask)
 
-    if len(candidate_metadata) == 0:
+    if len(candidate_index) == 0:
         continue
 
     weight_deltas = compute_weight_deltas(
-        target_latitude=all_metadata.latitude[cycle_position],
-        target_longitude=all_metadata.longitude[cycle_position],
-        target_timestamp=all_metadata.timestamp[cycle_position],
-        candidate_metadata=candidate_metadata,
+        target_latitude=all_index.latitude[cycle_position],
+        target_longitude=all_index.longitude[cycle_position],
+        target_timestamp=all_index.timestamp[cycle_position],
+        candidate_metadata=candidate_index,
     )
     total_weight = weight_config.joint_weight(weight_deltas)
 
     # Only score depths that are supported by at least one neighboring profile in the retained local set.
     support_mask = (
-        (model_data.pressure[:, None] >= candidate_metadata.pressure_min[None, :]) &
-        (model_data.pressure[:, None] <= candidate_metadata.pressure_max[None, :])
+        (model_data.pressure[:, None] >= candidate_index.pressure_min[None, :]) &
+        (model_data.pressure[:, None] <= candidate_index.pressure_max[None, :])
     ).any(axis=1)
 
     if not np.any(support_mask):
@@ -259,7 +259,7 @@ for cycle_position, cycle_id in enumerate(tqdm(all_metadata.cycle_id)):
     active_temperature = model_data.temperature[support_mask]
     active_salinity = model_data.salinity[support_mask]
 
-    interpolates = cycle_models.interpolate(active_pressure, mask=candidate_mask)
+    interpolates = cycle_collection.interpolate(active_pressure, mask=candidate_mask)
     predict_temperature, predict_salinity = weighted_cycle_prediction(interpolates, total_weight)
 
     predict_temp = pd.Series(
@@ -332,28 +332,28 @@ for lat, lon in tqdm(lat_lon_product):
         target_longitude=lon,
         dist_rad=dist_rad,
     )
-    candidate_mask = cycle_models.mask(**candidate_query.to_mask_kwargs())
+    candidate_mask = cycle_collection.mask(**candidate_query.to_mask_kwargs())
 
     if candidate_mask.sum() == 0:
         continue
 
-    candidate_metadata = cycle_models.metadata(candidate_mask)
+    candidate_index = cycle_collection.index(candidate_mask)
 
     weight_deltas = compute_weight_deltas(
         target_latitude=lat,
         target_longitude=lon,
         target_timestamp=np.datetime64(anchor_date),
-        candidate_metadata=candidate_metadata,
+        candidate_metadata=candidate_index,
     )
     total_weight = weight_config.joint_weight(weight_deltas)
     scaled_weight = total_weight / total_weight.sum()
 
-    interpolates = cycle_models.interpolate(depth_array, mask=candidate_mask)
+    interpolates = cycle_collection.interpolate(depth_array, mask=candidate_mask)
     predict_temperature, predict_salinity = weighted_cycle_prediction(interpolates, total_weight)
 
-    interp_errors = cycle_models.interp_error(depth_array, mask=candidate_mask)
+    interp_errors = cycle_collection.interp_error(depth_array, mask=candidate_mask)
     # For a linear weighted average, independent upstream variances propagate through squared weights.
-    interp_var = CycleData(
+    interp_var = CycleBatch(
         temperature=interp_errors.temperature**2,
         salinity=interp_errors.salinity**2,
     )

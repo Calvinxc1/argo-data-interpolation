@@ -11,13 +11,13 @@ from ..domain.MeasureError import MeasureError
 from ..domain.ModelData import ModelData
 from ..domain.ModelMeta import ModelMeta
 from ..validation.calc_fold_error import calc_fold_error
-from .ModelAdapters import ModelAdapters
+from .InterpolationAdapters import InterpolationAdapters
 
 
 @dataclass
-class Model:
+class InterpolationModel:
     meta: ModelMeta
-    adapters: ModelAdapters = field(repr=False)
+    adapters: InterpolationAdapters = field(repr=False)
     error: CycleError
     settings: ModelSettings
 
@@ -26,7 +26,7 @@ class Model:
         cls,
         model_meta: ModelMeta,
         model_data: ModelData,
-        adapter: BaseAdapter,
+        adapter: type[BaseAdapter],
         settings: ModelSettings,
     ) -> Self:
         temp_error, sal_error = calc_fold_error(model_data, adapter, settings)
@@ -42,7 +42,7 @@ class Model:
             settings.model_kwargs.salinity,
         )
 
-        adapters = ModelAdapters(temperature=temp_adapter, salinity=sal_adapter)
+        adapters = InterpolationAdapters(temperature=temp_adapter, salinity=sal_adapter)
         error = CycleError(
             pressure=settings.sensor_accuracy.pressure,
             temperature=MeasureError(model=temp_error, sensor=settings.sensor_accuracy.temperature),

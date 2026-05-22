@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from argo_interp.cycle import InterpolationAdapters, InterpolationModel
 from argo_interp.cycle.config.ModelKwargs import ModelKwargs
 from argo_interp.cycle.config.ModelSettings import ModelSettings
 from argo_interp.cycle.config.SensorAccuracy import SensorAccuracy
@@ -9,8 +10,6 @@ from argo_interp.cycle.domain.CycleError import CycleError
 from argo_interp.cycle.domain.MeasureError import MeasureError
 from argo_interp.cycle.domain.ModelData import ModelData
 from argo_interp.cycle.domain.ModelMeta import ModelMeta
-from argo_interp.cycle.model.Model import Model
-from argo_interp.cycle.model.ModelAdapters import ModelAdapters
 from argo_interp.cycle.validation.calc_measure_error import calc_measure_error
 
 
@@ -52,7 +51,7 @@ def test_model_measure_error_combines_all_error_sources() -> None:
     measure_error = MeasureError(sensor=0.4, model=0.3)
     gradient = np.array([2.0, -1.0])
 
-    result = Model._measure_error(
+    result = InterpolationModel._measure_error(
         pressure_error=0.5,
         measure_error=measure_error,
         measure_gradient=gradient,
@@ -63,9 +62,9 @@ def test_model_measure_error_combines_all_error_sources() -> None:
 
 
 def test_model_interpolate_returns_model_data() -> None:
-    model = Model(
+    model = InterpolationModel(
         meta=_meta(),
-        adapters=ModelAdapters(
+        adapters=InterpolationAdapters(
             temperature=StubAdapter(offset=1.0),
             salinity=StubAdapter(offset=10.0),
         ),
@@ -86,9 +85,9 @@ def test_model_interpolate_returns_model_data() -> None:
 
 
 def test_model_interpolate_normalizes_scalar_inputs() -> None:
-    model = Model(
+    model = InterpolationModel(
         meta=_meta(),
-        adapters=ModelAdapters(
+        adapters=InterpolationAdapters(
             temperature=StubAdapter(offset=1.0),
             salinity=StubAdapter(offset=10.0),
         ),
@@ -106,9 +105,9 @@ def test_model_interpolate_normalizes_scalar_inputs() -> None:
 
 
 def test_model_interp_error_uses_gradients_and_stored_error_values() -> None:
-    model = Model(
+    model = InterpolationModel(
         meta=_meta(),
-        adapters=ModelAdapters(
+        adapters=InterpolationAdapters(
             temperature=StubAdapter(slope=2.0),
             salinity=StubAdapter(slope=3.0),
         ),
@@ -143,7 +142,7 @@ def test_model_build_uses_cross_validated_errors_and_fitted_adapters() -> None:
         sensor_accuracy=SensorAccuracy(pressure=0.6, temperature=0.05, salinity=0.08),
     )
 
-    model = Model.build(_meta(), model_data, StubAdapter, settings)
+    model = InterpolationModel.build(_meta(), model_data, StubAdapter, settings)
 
     assert model.error.pressure == 0.6
     assert model.error.temperature.sensor == 0.05

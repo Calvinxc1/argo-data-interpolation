@@ -6,7 +6,7 @@ import pandas as pd
 
 
 @dataclass(frozen=True, slots=True)
-class CycleData:
+class CycleBatch:
     temperature: pd.DataFrame
     salinity: pd.DataFrame
 
@@ -15,7 +15,7 @@ class CycleData:
             not isinstance(self.temperature, pd.DataFrame)
             or not isinstance(self.salinity, pd.DataFrame)
         ):
-            raise ValueError("CycleData temperature and salinity must be pandas DataFrames")
+            raise ValueError("CycleBatch temperature and salinity must be pandas DataFrames")
 
         if not self.temperature.index.equals(self.salinity.index):
             raise ValueError("temperature and salinity must share the same pressure index")
@@ -55,7 +55,7 @@ class CycleData:
     @classmethod
     def from_frame(cls, data_frame: pd.DataFrame) -> Self:
         if not isinstance(data_frame.columns, pd.MultiIndex):
-            raise ValueError("CycleData frame must use a MultiIndex column layout")
+            raise ValueError("CycleBatch frame must use a MultiIndex column layout")
 
         required = ["temperature", "salinity"]
         missing = [name for name in required if name not in data_frame.columns.get_level_values(0)]

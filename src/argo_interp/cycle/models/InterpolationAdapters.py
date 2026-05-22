@@ -4,6 +4,6 @@ from ..adapter.BaseAdapter import BaseAdapter
 
 
 @dataclass(frozen=True, slots=True)
-class ModelAdapters:
+class InterpolationAdapters:
     temperature: BaseAdapter
     salinity: BaseAdapter

@@ -7,7 +7,7 @@ import pandas as pd
 
 
 @dataclass(frozen=True, slots=True)
-class CycleMetadata:
+class CycleIndex:
     cycle_id: np.ndarray
     platform_number: np.ndarray
     cycle_number: np.ndarray
@@ -33,12 +33,12 @@ class CycleMetadata:
             len(self.pressure_max),
         }
         if len(lengths) != 1:
-            raise ValueError("CycleMetadata arrays must all have the same length")
+            raise ValueError("CycleIndex arrays must all have the same length")
 
     def __len__(self) -> int:
         return len(self.cycle_id)
 
-    def select(self, mask: np.ndarray) -> CycleMetadata:
+    def select(self, mask: np.ndarray) -> CycleIndex:
         return type(self)(
             cycle_id=self.cycle_id[mask],
             platform_number=self.platform_number[mask],

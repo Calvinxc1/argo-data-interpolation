@@ -26,12 +26,9 @@ queries.
 from pathlib import Path
 import pickle
 
-from tqdm.auto import tqdm
-
 from argo_interp.collection import CycleCollection
 from argo_interp.cycle import ModelSettings
 from argo_interp.cycle.adapter import PchipAdapter
-from argo_interp.cycle.validation.InterleavedKFolds import InterleavedKFolds
 from argo_interp.data import data_filter, get_data
 from argo_interp.field import FieldQuery, LocalWeightedField
 
@@ -64,13 +61,7 @@ ds = data_filter(
 )
 
 settings = ModelSettings(n_folds=5)
-with tqdm(desc="Building cycle models") as pbar:
-    cycles = CycleCollection.from_dataset(
-        ds,
-        PchipAdapter,
-        settings,
-        pbar=pbar,
-    )
+cycles = CycleCollection.from_dataset(ds, PchipAdapter, settings)
 
 field = LocalWeightedField(
     cycles,
@@ -82,20 +73,7 @@ field = LocalWeightedField(
 )
 
 pressure_grid = [50, 100, 200, 500]
-field_n_folds = 5
-field_k_folds = InterleavedKFolds(len(cycles), field_n_folds)
-field_cv_total = sum(
-    field_k_folds.fold_mask(fold)[1].any()
-    for fold in range(field_n_folds)
-)
-
-with tqdm(total=field_cv_total, desc="Cross-validating field") as pbar:
-    field_model_error = field.cross_validate(
-        pressure_grid,
-        n_folds=field_n_folds,
-        pbar=pbar,
-    )
-
+field_model_error = field.cross_validate(pressure_grid, n_folds=5)
 field = field.with_model_error(field_model_error)
 
 queries = [

@@ -176,4 +176,4 @@ research/**/notebooks/data/
 
 #
 /data/
-/playground.ipynb
+/playground*.ipynb

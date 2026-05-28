@@ -18,6 +18,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 
 ### Changed
 
+- Ignored all root-level playground notebooks instead of only `playground.ipynb`.
 - Added a changelog workflow policy and established this file as the single source of truth for staged and released change history.
 - Documented repository execution policy that authenticated `gh` commands must run outside the sandbox because sandboxed sessions cannot access the local keyring-backed GitHub CLI credentials.
 - Added a repository notebook workflow rule requiring Jupytext `.py` files to be resynced from diverged `.ipynb` notebooks before notebook-source edits, and requiring explicit user direction before syncing edits back into notebooks.

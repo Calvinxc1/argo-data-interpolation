@@ -28,6 +28,18 @@ class StubAdapter:
         return np.full_like(pressure, self.slope, dtype=float)
 
 
+@dataclass
+class StubProgressBar:
+    count: int = 0
+    total: int | None = None
+
+    def update(self, n: int = 1) -> None:
+        self.count += n
+
+    def refresh(self) -> None:
+        pass
+
+
 def test_cycle_collection_rejects_mismatched_dict_keys() -> None:
     model = _build_model(
         platform_number="5901001",
@@ -213,6 +225,21 @@ def test_cycle_collection_from_dataset_skips_cycles_below_min_points() -> None:
     )
 
     assert len(cycle_collection) == 0
+
+
+def test_cycle_collection_from_dataset_updates_progress_bar() -> None:
+    pbar = StubProgressBar()
+
+    CycleCollection.from_dataset(
+        _build_cycle_dataset(),
+        adapter=LinearAdapter,
+        settings=ModelSettings(n_folds=2),
+        min_points=3,
+        pbar=pbar,
+    )
+
+    assert pbar.count == 2
+    assert pbar.total == 2
 
 
 def test_cycle_collection_from_dataset_rejects_missing_required_variables() -> None:

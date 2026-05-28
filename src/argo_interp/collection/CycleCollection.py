@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Collection, Iterator, Optional
+from typing import Collection, Iterator, Optional, Protocol
 
 import numpy as np
 import pandas as pd
@@ -31,6 +31,13 @@ _ARGO_DATASET_COLUMNS = [
 ]
 
 
+class ProgressBar(Protocol):
+    total: int | None
+
+    def update(self, n: int = 1) -> object: ...
+    def refresh(self) -> object: ...
+
+
 @dataclass(slots=True)
 class CycleCollection:
     models: dict[str, InterpolationModel] = field(repr=False)
@@ -44,6 +51,7 @@ class CycleCollection:
         settings: ModelSettings,
         min_points: int = 5,
         duplicate_pressure_rule: str = "mean",
+        pbar: ProgressBar | None = None,
     ) -> CycleCollection:
         missing = [name for name in _ARGO_DATASET_COLUMNS if name not in dataset]
         if missing:
@@ -54,37 +62,52 @@ class CycleCollection:
 
         models: dict[str, InterpolationModel] = {}
         group_cols = ["PLATFORM_NUMBER", "CYCLE_NUMBER", "DIRECTION"]
-        for (platform_number, cycle_number, direction), cycle_frame in data_frame.groupby(
+        grouped_cycles = data_frame.groupby(
             group_cols,
             sort=True,
-        ):
-            model_data = ModelData(
-                pressure=cycle_frame["PRES"].to_numpy(dtype=float),
-                temperature=cycle_frame["TEMP"].to_numpy(dtype=float),
-                salinity=cycle_frame["PSAL"].to_numpy(dtype=float),
-            ).clean_duplicates(rule=duplicate_pressure_rule)
+        )
+        cls._set_progress_total(pbar, grouped_cycles.ngroups)
 
-            if len(model_data) < min_points:
-                continue
+        for (platform_number, cycle_number, direction), cycle_frame in grouped_cycles:
+            try:
+                model_data = ModelData(
+                    pressure=cycle_frame["PRES"].to_numpy(dtype=float),
+                    temperature=cycle_frame["TEMP"].to_numpy(dtype=float),
+                    salinity=cycle_frame["PSAL"].to_numpy(dtype=float),
+                ).clean_duplicates(rule=duplicate_pressure_rule)
 
-            cycle_frame = cycle_frame.sort_values("PRES", kind="stable")
-            model_meta = ModelMeta(
-                platform_number=str(platform_number),
-                cycle_number=str(cycle_number),
-                direction=str(direction),
-                latitude=float(cycle_frame["LATITUDE"].iloc[0]),
-                longitude=float(cycle_frame["LONGITUDE"].iloc[0]),
-                timestamp=pd.Timestamp(cycle_frame["TIME"].iloc[0]).to_datetime64(),
-                profile_pressure=(
-                    float(model_data.pressure[0]),
-                    float(model_data.pressure[-1]),
-                ),
-            )
+                if len(model_data) < min_points:
+                    continue
 
-            model = InterpolationModel.build(model_meta, model_data, adapter, settings)
-            models[model.meta.cycle_id] = model
+                cycle_frame = cycle_frame.sort_values("PRES", kind="stable")
+                model_meta = ModelMeta(
+                    platform_number=str(platform_number),
+                    cycle_number=str(cycle_number),
+                    direction=str(direction),
+                    latitude=float(cycle_frame["LATITUDE"].iloc[0]),
+                    longitude=float(cycle_frame["LONGITUDE"].iloc[0]),
+                    timestamp=pd.Timestamp(cycle_frame["TIME"].iloc[0]).to_datetime64(),
+                    profile_pressure=(
+                        float(model_data.pressure[0]),
+                        float(model_data.pressure[-1]),
+                    ),
+                )
+
+                model = InterpolationModel.build(model_meta, model_data, adapter, settings)
+                models[model.meta.cycle_id] = model
+            finally:
+                if pbar is not None:
+                    pbar.update(1)
 
         return cls(models=models)
+
+    @staticmethod
+    def _set_progress_total(pbar: ProgressBar | None, total: int) -> None:
+        if pbar is None or getattr(pbar, "total", None) is not None:
+            return
+
+        pbar.total = total
+        pbar.refresh()
 
     def __post_init__(self) -> None:
         duplicate_ids = [k for k, v in self.models.items() if k != v.meta.cycle_id]

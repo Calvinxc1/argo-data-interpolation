@@ -9,6 +9,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 ### Added
 
 - Added sound-speed calculation and uncertainty propagation helpers, exposed on `ModelData` and `argo_interp.cycle`.
+- Added optional progress-bar support to `CycleCollection.from_dataset()`.
 - Added `CycleCollection`, `CycleBatch`, and `CycleIndex` collection-layer APIs, including a draft `CycleCollection.from_dataset()` bridge for constructing cycle collections from filtered Argo datasets.
 - Added a first `LocalWeightedField` field-layer API that produces depth-aware weighted `FieldProfile` interpolation results from a `CycleCollection`.
 - Added `scipy-stubs` to the development dependency set to improve local type-checking support for SciPy usage during development.

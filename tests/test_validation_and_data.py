@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+import pytest
 import xarray as xr
 
 from argo_interp.cycle.config.ModelKwargs import ModelKwargs
@@ -43,6 +44,17 @@ def test_calc_fold_error_returns_rmse_for_each_measure() -> None:
 
     np.testing.assert_allclose(temp_error, 0.0)
     np.testing.assert_allclose(sal_error, 12.0)
+
+
+def test_calc_fold_error_rejects_invalid_fold_configuration() -> None:
+    model_data = ModelData(
+        pressure=np.array([0.0, 1.0]),
+        temperature=np.array([1.0, 2.0]),
+        salinity=np.array([10.0, 11.0]),
+    )
+
+    with pytest.raises(ValueError, match="at least one validation observation"):
+        calc_fold_error(model_data, OffsetAdapter, ModelSettings(n_folds=1))
 
 
 def test_data_filter_combines_masks_and_drops_rows() -> None:

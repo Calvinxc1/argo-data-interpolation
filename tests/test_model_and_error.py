@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+import pytest
 
 from argo_interp.cycle import InterpolationAdapters, InterpolationModel
 from argo_interp.cycle.config.ModelKwargs import ModelKwargs
@@ -152,6 +153,17 @@ def test_model_build_uses_cross_validated_errors_and_fitted_adapters() -> None:
 
     np.testing.assert_array_equal(model.interpolate(np.array([1.0])).temperature, np.array([2.5]))
     np.testing.assert_array_equal(model.interpolate(np.array([1.0])).salinity, np.array([-1.0]))
+
+
+def test_model_build_rejects_invalid_validation_settings() -> None:
+    model_data = ModelData(
+        pressure=np.array([0.0, 1.0]),
+        temperature=np.array([1.0, 2.0]),
+        salinity=np.array([10.0, 11.0]),
+    )
+
+    with pytest.raises(ValueError, match="at least one validation observation"):
+        InterpolationModel.build(_meta(), model_data, StubAdapter, ModelSettings(n_folds=1))
 
 
 def _meta() -> ModelMeta:

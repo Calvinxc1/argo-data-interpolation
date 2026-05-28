@@ -193,7 +193,7 @@ def test_cycle_collection_from_dataset_builds_models_by_cycle() -> None:
     cycle_collection = CycleCollection.from_dataset(
         dataset,
         adapter=LinearAdapter,
-        settings=ModelSettings(n_folds=2),
+        settings=ModelSettings(n_folds=1),
         min_points=3,
     )
 
@@ -233,7 +233,7 @@ def test_cycle_collection_from_dataset_updates_progress_bar() -> None:
     CycleCollection.from_dataset(
         _build_cycle_dataset(),
         adapter=LinearAdapter,
-        settings=ModelSettings(n_folds=2),
+        settings=ModelSettings(n_folds=1),
         min_points=3,
         pbar=pbar,
     )
@@ -250,6 +250,16 @@ def test_cycle_collection_from_dataset_rejects_missing_required_variables() -> N
             dataset,
             adapter=LinearAdapter,
             settings=ModelSettings(n_folds=2),
+        )
+
+
+def test_cycle_collection_from_dataset_rejects_invalid_validation_settings() -> None:
+    with pytest.raises(ValueError, match="n_folds cannot exceed"):
+        CycleCollection.from_dataset(
+            _build_cycle_dataset(),
+            adapter=LinearAdapter,
+            settings=ModelSettings(n_folds=2),
+            min_points=3,
         )
 
 

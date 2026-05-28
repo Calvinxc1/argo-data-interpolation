@@ -41,6 +41,39 @@ def test_model_data_n_obs_and_frame_round_trip() -> None:
     np.testing.assert_array_equal(restored.salinity, model_data.salinity)
 
 
+def test_model_data_calculates_sound_speed_from_salinity_temperature_and_pressure() -> None:
+    model_data = ModelData(
+        pressure=np.array([0.0, 500.0, 1000.0]),
+        temperature=np.array([15.0, 10.0, 5.0]),
+        salinity=np.array([35.0, 35.0, 35.0]),
+    )
+
+    sound_speed = model_data.sound_speed()
+
+    np.testing.assert_allclose(
+        sound_speed,
+        np.array([1506.67462936, 1498.07495363, 1487.20039663]),
+    )
+
+
+def test_model_data_propagates_sound_speed_uncertainty() -> None:
+    model_data = ModelData(
+        pressure=np.array([100.0, 200.0]),
+        temperature=np.array([10.0, 9.0]),
+        salinity=np.array([35.0, 35.1]),
+    )
+
+    sound_speed, sigma = model_data.sound_speed_uncertainty(
+        sigma_temperature=np.array([0.002, 0.5]),
+        sigma_salinity=0.01,
+        sigma_pressure=2.4,
+    )
+
+    np.testing.assert_allclose(sound_speed, model_data.sound_speed())
+    assert sigma.shape == (2,)
+    assert sigma[1] > sigma[0]
+
+
 def test_model_data_from_frame_rejects_missing_columns() -> None:
     frame = pd.DataFrame({"pressure": [1.0], "temperature": [10.0]})
 

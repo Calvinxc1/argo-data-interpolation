@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
+from ..sound_speed import SoundSpeedFormulation, calc_sound_speed, propagate_sound_speed_uncertainty
+
 
 @dataclass(frozen=True, slots=True)
 class ModelData:
@@ -35,6 +37,40 @@ class ModelData:
             }
         )
         return data_frame
+
+    def sound_speed(
+        self,
+        formulation: SoundSpeedFormulation = "EOS-80",
+    ) -> NDArray[np.float64]:
+        return calc_sound_speed(
+            temperature=self.temperature,
+            salinity=self.salinity,
+            pressure=self.pressure,
+            formulation=formulation,
+        )
+
+    def sound_speed_uncertainty(
+        self,
+        sigma_temperature: NDArray[np.float64] | float,
+        sigma_salinity: NDArray[np.float64] | float,
+        sigma_pressure: NDArray[np.float64] | float,
+        formulation: SoundSpeedFormulation = "EOS-80",
+        h_temperature: float = 1e-3,
+        h_salinity: float = 1e-3,
+        h_pressure: float = 1e-2,
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        return propagate_sound_speed_uncertainty(
+            temperature=self.temperature,
+            salinity=self.salinity,
+            pressure=self.pressure,
+            sigma_temperature=sigma_temperature,
+            sigma_salinity=sigma_salinity,
+            sigma_pressure=sigma_pressure,
+            formulation=formulation,
+            h_temperature=h_temperature,
+            h_salinity=h_salinity,
+            h_pressure=h_pressure,
+        )
 
     @classmethod
     def from_frame(cls, data_frame: pd.DataFrame) -> Self:

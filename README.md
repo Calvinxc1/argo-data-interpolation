@@ -16,6 +16,102 @@ The long-term goal is to turn irregular Argo float measurements into compact, re
 
 - [`research/README.md`](research/README.md): index of the project's research materials, methodology, and current research topics.
 
+## Example
+
+The library turns filtered Argo observations into cycle-level interpolation
+models, then uses those cycle models as support for local spatio-temporal field
+queries.
+
+```python
+from pathlib import Path
+import pickle
+
+from tqdm.auto import tqdm
+
+from argo_interp.collection import CycleCollection
+from argo_interp.cycle import ModelSettings
+from argo_interp.cycle.adapter import PchipAdapter
+from argo_interp.cycle.validation.InterleavedKFolds import InterleavedKFolds
+from argo_interp.data import data_filter, get_data
+from argo_interp.field import FieldQuery, LocalWeightedField
+
+data_path = Path("data")
+data_path.mkdir(exist_ok=True)
+
+box = [
+    80, 99,                    # longitude bounds
+    6, 23,                     # latitude bounds
+    0, 750,                    # pressure bounds
+    "2016-01-01", "2018-12-31",
+]
+
+argo_data_path = data_path / "argo_data.pkl"
+if argo_data_path.exists():
+    with argo_data_path.open("rb") as f:
+        ds = pickle.load(f)
+else:
+    ds = get_data(box, progress=True)
+    with argo_data_path.open("wb") as f:
+        pickle.dump(ds, f)
+
+ds = data_filter(
+    ds,
+    [
+        ds["PRES_QC"].isin([1, 2]),
+        ds["TEMP_QC"].isin([1, 2]),
+        ds["PSAL_QC"].isin([1, 2]),
+    ],
+)
+
+settings = ModelSettings(n_folds=5)
+with tqdm(desc="Building cycle models") as pbar:
+    cycles = CycleCollection.from_dataset(
+        ds,
+        PchipAdapter,
+        settings,
+        pbar=pbar,
+    )
+
+field = LocalWeightedField(
+    cycles,
+    spatial_scale_km=500,
+    spatial_radius_km=1000,
+    temporal_scale_days=365 * 3,
+    seasonal_scale_days=7 * 4,
+    min_support=1,
+)
+
+pressure_grid = [50, 100, 200, 500]
+field_n_folds = 5
+field_k_folds = InterleavedKFolds(len(cycles), field_n_folds)
+field_cv_total = sum(
+    field_k_folds.fold_mask(fold)[1].any()
+    for fold in range(field_n_folds)
+)
+
+with tqdm(total=field_cv_total, desc="Cross-validating field") as pbar:
+    field_model_error = field.cross_validate(
+        pressure_grid,
+        n_folds=field_n_folds,
+        pbar=pbar,
+    )
+
+field = field.with_model_error(field_model_error)
+
+queries = [
+    FieldQuery(latitude, longitude, "2017-01-01", pressure_grid)
+    for latitude in [7.0, 7.5, 8.0]
+    for longitude in [80.5, 81.0]
+]
+
+profile = field.interpolate(queries)
+profile.to_frame().sort_values(["query_index", "pressure"])
+```
+
+The returned `FieldProfile` includes interpolated temperature and salinity,
+combined error estimates, separate cycle/field/model error components, support
+counts, and support weights for each query-pressure record.
+
 ## Argo Background
 
 - [How Argo floats work](https://youtu.be/YI_qhwMB9ME?si=kp0Rc3PNzKyzwS2l): a concise external explainer on Argo float operation and the observing system context behind this repository's data source.
@@ -47,16 +143,14 @@ interpolation accuracy.
 ## AI Assistance
 
 This repository uses AI-assisted development workflows, including Claude and
-Codex. In code work, AI may use the repository's research materials to support
-code analysis, design comparison, implementation review, and alignment between
-the implemented pipeline and its documented research basis. The way AI is used
-within the research documents themselves is described in
-[`research/research-methodology.md`](research/research-methodology.md). All
-AI-assisted work is reviewed by a human before publication. In general, core
-implementation code is not delegated to AI, though AI may still be used to
-brainstorm approaches, compare design options, and support surrounding analysis
-and documentation work. Repository-specific AI agent policies are documented in
-[`AGENTS.md`](AGENTS.md).
+Codex, and contains a mix of AI-generated and human-generated code and
+documentation. AI may support code analysis, design comparison, implementation
+review, research organization, and alignment between the implemented pipeline
+and its documented research basis. Final authority for repository content rests
+with the human developer. The way AI is used within the research documents
+themselves is described in
+[`research/research-methodology.md`](research/research-methodology.md).
+Repository-specific AI agent policies are documented in [`AGENTS.md`](AGENTS.md).
 
 ## Acknowledgments
 

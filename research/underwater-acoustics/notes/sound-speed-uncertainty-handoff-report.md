@@ -187,6 +187,81 @@ Summary metrics:
 | `110` | `20,570` | `1.7994` | `0.1566` | `4.6891` | `3.5827` | `0.1588` |
 | `500` | `15,951` | `0.2073` | `0.0410` | `0.7543` | `0.5790` | `0.0144` |
 
+## Matched Replication-Grid Holdout Validation
+
+The 2026-07-25 rerun removes the old statistic/depth-grid confounds by running
+both the notebook `6` spatiotemporal Gaussian predictor and a flat Jana-style
+predictor through the same harness, same held-out cycles, same depth levels,
+and same aggregation.
+
+Generated outputs:
+
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_detail.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_cycle_summary.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_predictor_summary.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_depth_summary.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_sigma_coverage.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_spatial_variance.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_metadata.json`
+
+Design details:
+
+- Depth grid is `5` to `500` m inclusive at `1` m spacing, `496` levels.
+- The grid is represented in metres. For each held-out cycle, the script
+  converts each `depth_m` to `pressure_dbar` with
+  `gsw.p_from_z(-depth_m, cycle_latitude)` before interpolating that cycle's
+  PCHIP model.
+- Withholding is hold-one-float-out: all cycles from the held-out
+  `PLATFORM_NUMBER` are excluded for both predictors.
+- The shared predictor candidate set is the same 2 degree by 2 degree spatial
+  window, with cycles skipped for both predictors when the shared candidate
+  count is below `min_cycles = 30`.
+- NaN rule: per-cycle RMSE/MAE use only finite depth-level errors for that
+  cycle, predictor, and variable. The detail file keeps each cycle/depth row,
+  and the cycle summary reports finite level counts.
+- The rerun evaluated `20,779` held-out cycles on the full depth grid and
+  skipped `207` cycles for low support. The predictor summary has `20,772`
+  valid per-cycle metric rows after finite-error filtering.
+
+Headline per-cycle p75 RMSE comparison:
+
+| Variable | Notebook 6 p75 RMSE | Flat Jana-style p75 RMSE | Delta | Relative delta | Winner |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Temperature | `1.0500 deg C` | `1.3419 deg C` | `-0.2919 deg C` | `-21.75%` | Notebook 6 |
+| Salinity | `0.2402 PSU` | `0.2747 PSU` | `-0.0345 PSU` | `-12.58%` | Notebook 6 |
+| TEOS-10 sound speed | `2.8258 m/s` | `3.5719 m/s` | `-0.7461 m/s` | `-20.89%` | Notebook 6 |
+
+The paper-facing statement supported by this run is that, under matched
+cycles, matched metre-grid levels, and matched per-cycle p75 RMSE aggregation,
+the notebook `6` spatiotemporal Gaussian predictor outperformed the flat
+Jana-style predictor for temperature, salinity, and TEOS-10 sound speed.
+
+Sigma coverage is reported for two variants: `no_spatial`, which includes only
+the propagated sensor, pressure, and vertical interpolation/model terms, and
+`with_spatial`, which also includes the depthwise spatial residual variance
+bucket. The `with_spatial` bucket is estimated from the same notebook `6`
+matched residual pass, so it is an in-sample consistency check rather than an
+independent calibration test.
+
+Pooled coverage:
+
+| Predictor | Variable | Sigma variant | Count | Within 1 sigma | Within 2 sigma |
+| --- | --- | --- | ---: | ---: | ---: |
+| Notebook 6 | Temperature | no spatial | `8,910,082` | `5.44%` | `10.74%` |
+| Notebook 6 | Temperature | with spatial | `8,910,082` | `73.34%` | `94.99%` |
+| Notebook 6 | Salinity | no spatial | `8,910,082` | `30.36%` | `46.14%` |
+| Notebook 6 | Salinity | with spatial | `8,910,082` | `88.10%` | `96.87%` |
+| Notebook 6 | TEOS-10 sound speed | no spatial | `8,910,082` | `5.49%` | `10.87%` |
+| Notebook 6 | TEOS-10 sound speed | with spatial | `8,910,082` | `73.49%` | `95.09%` |
+| Flat Jana-style | Temperature | with spatial | `8,910,082` | `65.03%` | `91.58%` |
+| Flat Jana-style | Salinity | with spatial | `8,910,082` | `87.15%` | `96.95%` |
+| Flat Jana-style | TEOS-10 sound speed | with spatial | `8,910,082` | `65.65%` | `91.88%` |
+
+The `no_spatial` coverage is intentionally poor for temperature and sound
+speed, showing that local propagated instrument/interpolation terms alone do
+not explain realized holdout errors. The spatial bucket is therefore central
+to the product's reported sigma.
+
 ## Approach A / C Feasibility
 
 Approach A, fixed mesoscale-inspired scales, is already the implemented floor.

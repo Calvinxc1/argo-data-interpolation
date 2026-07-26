@@ -1429,6 +1429,37 @@ Focused validation run:
 - Re-executed notebook `6` with Jupytext outside the sandbox and regenerated
   embedded `.ipynb` outputs plus chart PNG/SVG exports.
 
+2026-07-25 matched replication-grid holdout validation:
+
+- Reworked `run_notebook6_holdout_validation.py` to run notebook `6` and a
+  flat Jana-style predictor through one matched hold-one-float-out harness.
+- The rerun uses a `5` to `500` m inclusive depth grid at `1` m spacing
+  (`496` levels). Per held-out cycle, `depth_m` is converted to `pressure_dbar`
+  with `gsw.p_from_z(-depth_m, cycle_latitude)` before PCHIP interpolation.
+- Both predictors use the same held-out cycles and the same shared 2 degree by
+  2 degree spatial candidate window. Cycles with fewer than `30` non-platform
+  candidates are skipped for both predictors.
+- Added per-row predicted sigma columns for temperature, salinity, and TEOS-10
+  sound speed, with `no_spatial` and `with_spatial` variants, plus pooled and
+  by-depth coverage summaries.
+- Wrote generated outputs under `research/underwater-acoustics/notebooks/data/`:
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_detail.csv`
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_cycle_summary.csv`
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_predictor_summary.csv`
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_depth_summary.csv`
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_sigma_coverage.csv`
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_spatial_variance.csv`
+  - `sound_speed_uncertainty_holdout_validation_replication_grid_metadata.json`
+- The run evaluated `20,779` held-out cycles, skipped `207` cycles for low
+  support, and wrote `10,306,384` detail rows.
+- Notebook `6` won the matched per-cycle p75 RMSE comparison over the flat
+  Jana-style predictor for temperature (`1.0500` vs `1.3419 deg C`), salinity
+  (`0.2402` vs `0.2747 PSU`), and TEOS-10 sound speed (`2.8258` vs
+  `3.5719 m/s`).
+- Re-ran notebook `6` as a Python export after the validation run; chart
+  PNG/SVG outputs now have fresh timestamps and use the finalized raw-support
+  contour thresholds `W_raw=6` and `W_raw=30`.
+
 ## Validation Targets
 
 Focused tests should prove:

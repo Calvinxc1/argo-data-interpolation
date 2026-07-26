@@ -2,11 +2,71 @@
 
 Date: 2026-07-25 PDT
 Tracker: Kanboard `#159`, "OCEANS 2026 paper: technical deliverables (Coding Agent handoff)"
-Status: coding-agent report-back draft, not Jason-accepted
+Status: paused by Jason, PR open but intentionally not merged
 
 This report maps the Education handoff items to the current repository state.
 It is intentionally shorter than the implementation log in
 [`sound-speed-uncertainty-implementation-plan.md`](sound-speed-uncertainty-implementation-plan.md).
+
+## Paused State
+
+Paused on 2026-07-25 PDT / 2026-07-26 UTC after completing the brief 3
+validation rerun and pushing branch `feature/uncertainty-estimation`.
+
+Repository state to resume from:
+
+- Current branch: `feature/uncertainty-estimation`
+- Latest pushed commit: `1df8c98 feat: add out-of-sample calibration split`
+- Open PR: `#14`, `feature/uncertainty-estimation` into `dev`,
+  <https://github.com/Calvinxc1/argo-data-interpolation/pull/14>
+- PR merge state: intentionally unmerged; Jason asked to table the work before
+  merging.
+- Tracked worktree state after the pushed validation commit was clean. A local
+  generated `research/underwater-acoustics/notebooks/lib/__pycache__/` may be
+  present and should not be treated as project work.
+
+Completed before pause:
+
+- Notebook `6` product, benchmark outputs, and finalized `110` dbar/m contour
+  charts are generated from cache.
+- Full four-depth notebook `6` hold-one-float-out validation exists.
+- Matched replication-grid validation exists on `5..500 m` at `1 m` spacing
+  with notebook `6`, distance-only, and flat Jana-style predictors.
+- The out-of-sample calibration split exists with fixed seed `20260725`.
+- The distance-only kernel ablation exists in the same harness.
+- Runtime notes identify Jason's `galatea` system as the execution host.
+
+Most important local generated outputs:
+
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_predictor_summary.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_sigma_coverage.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_coverage_curve.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_platform_split.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_metadata.json`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_detail.csv`
+
+Headline resume facts:
+
+- Matched replication-grid run completed in `3,217.54` seconds (`53:37.54`) on
+  `galatea`.
+- It evaluated `20,779` held-out cycles, skipped `207` low-support cycles, and
+  wrote `10,306,384` detail rows.
+- Notebook `6` won p75 per-cycle RMSE for temperature, salinity, and TEOS-10
+  sound speed over both the flat Jana-style predictor and the distance-only
+  ablation.
+- Distance-only did not improve over the flat baseline in this harness, so the
+  accuracy gain should be framed as coming from the temporal and seasonal
+  weighting stack.
+- Notebook `6` TEOS-10 sound-speed `with_spatial` 2-sigma coverage was
+  `95.09%` in sample and `95.06%` out-of-sample pooled, against `95.45%`
+  nominal.
+- The `no_spatial` TEOS-10 coverage remained much too narrow at `5.49%`,
+  `10.87%`, and `16.01%` for 1, 2, and 3 sigma.
+
+Likely next step when resumed: decide how to integrate the validation and
+calibration wording into the OCEANS paper and whether PR `#14` should be
+reviewed, amended, or merged into `dev`. Do not merge without a fresh Jason
+approval.
 
 ## Current Product State
 

@@ -1,16 +1,19 @@
-import numpy as np
-from numpy.typing import NDArray, ArrayLike
-from typing import Self
 from dataclasses import dataclass, field
+from typing import Self
 
-from .ModelAdapters import ModelAdapters
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
+
 from ..adapter.BaseAdapter import BaseAdapter
 from ..config.ModelSettings import ModelSettings
 from ..domain.CycleError import CycleError
 from ..domain.MeasureError import MeasureError
+from ..domain.MeasureErrorVariance import MeasureErrorVariance
 from ..domain.ModelData import ModelData
+from ..domain.ModelErrorVariance import ModelErrorVariance
 from ..domain.ModelMeta import ModelMeta
 from ..validation.calc_fold_error import calc_fold_error
+from .ModelAdapters import ModelAdapters
 
 
 @dataclass
@@ -21,11 +24,25 @@ class Model:
     settings: ModelSettings
 
     @classmethod
-    def build(cls, model_meta: ModelMeta, model_data: ModelData, adapter: BaseAdapter, settings: ModelSettings) -> Self:
+    def build(
+        cls,
+        model_meta: ModelMeta,
+        model_data: ModelData,
+        adapter: BaseAdapter,
+        settings: ModelSettings,
+    ) -> Self:
         temp_error, sal_error = calc_fold_error(model_data, adapter, settings)
 
-        temp_adapter = adapter.fit(model_data.pressure, model_data.temperature, settings.model_kwargs.temperature)
-        sal_adapter = adapter.fit(model_data.pressure, model_data.salinity, settings.model_kwargs.salinity)
+        temp_adapter = adapter.fit(
+            model_data.pressure,
+            model_data.temperature,
+            settings.model_kwargs.temperature,
+        )
+        sal_adapter = adapter.fit(
+            model_data.pressure,
+            model_data.salinity,
+            settings.model_kwargs.salinity,
+        )
 
         adapters = ModelAdapters(temperature=temp_adapter, salinity=sal_adapter)
         error = CycleError(
@@ -54,19 +71,73 @@ class Model:
         else:
             pressure_data = np.asarray(pressure_data, dtype=float)
 
-        temp_error = self._measure_error(self.error.pressure, self.error.temperature,
-                                         self.adapters.temperature.gradient(pressure_data))
-        sal_error = self._measure_error(self.error.pressure, self.error.salinity,
-                                         self.adapters.salinity.gradient(pressure_data))
+        temp_error = self._measure_error(
+            self.error.pressure,
+            self.error.temperature,
+            self.adapters.temperature.gradient(pressure_data),
+        )
+        sal_error = self._measure_error(
+            self.error.pressure,
+            self.error.salinity,
+            self.adapters.salinity.gradient(pressure_data),
+        )
         interp_error = ModelData(pressure=pressure_data, temperature=temp_error, salinity=sal_error)
         return interp_error
 
-    @staticmethod
-    def _measure_error(pressure_error: float, measure_error: MeasureError,
-                       measure_gradient: NDArray[np.float64]) -> NDArray[np.float64]:
-        sq_model_error = measure_error.model ** 2
-        sq_sensor_error = measure_error.sensor ** 2
-        sq_pres_error = (np.abs(measure_gradient) * pressure_error) ** 2
+    def interp_error_variance(self, pressure_data: ArrayLike | float) -> ModelErrorVariance:
+        if isinstance(pressure_data, float):
+            pressure_data = np.array([pressure_data])
+        else:
+            pressure_data = np.asarray(pressure_data, dtype=float)
 
-        measure_errors = np.sqrt(sq_model_error + sq_sensor_error + sq_pres_error)
-        return measure_errors
+        temp_variance = self._measure_error_variance(
+            self.error.pressure,
+            self.error.temperature,
+            self.adapters.temperature.gradient(pressure_data),
+        )
+        sal_variance = self._measure_error_variance(
+            self.error.pressure,
+            self.error.salinity,
+            self.adapters.salinity.gradient(pressure_data),
+        )
+        return ModelErrorVariance(
+            pressure=pressure_data,
+            temperature=temp_variance,
+            salinity=sal_variance,
+        )
+
+    @staticmethod
+    def _measure_error(
+        pressure_error: float,
+        measure_error: MeasureError,
+        measure_gradient: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        return Model._measure_error_variance(
+            pressure_error,
+            measure_error,
+            measure_gradient,
+        ).sigma
+
+    @staticmethod
+    def _measure_error_variance(
+        pressure_error: float,
+        measure_error: MeasureError,
+        measure_gradient: NDArray[np.float64],
+    ) -> MeasureErrorVariance:
+        sensor_precision = np.full_like(
+            measure_gradient,
+            measure_error.sensor**2,
+            dtype=float,
+        )
+        pressure_gradient = (measure_gradient * pressure_error) ** 2
+        vertical_model = np.full_like(
+            measure_gradient,
+            measure_error.model**2,
+            dtype=float,
+        )
+
+        return MeasureErrorVariance(
+            sensor_precision=sensor_precision,
+            pressure_gradient=pressure_gradient,
+            vertical_model=vertical_model,
+        )

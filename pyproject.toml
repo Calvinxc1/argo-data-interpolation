@@ -34,6 +34,7 @@ dev = [
     "nbdime>=4.0.4",
     "jupytext>=1.19.1",
     "tqdm>=4.67.3",
+    "pandas-stubs>=3.0.3.260530",
 ]
 
 research = [

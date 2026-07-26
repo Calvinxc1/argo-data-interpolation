@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 import warnings
 from dataclasses import dataclass, field
-from typing import Collection, Iterator, Optional
-from numpy.typing import ArrayLike
 from datetime import datetime
+from typing import Collection, Iterator, Optional
 
+import numpy as np
+import pandas as pd
+from numpy.typing import ArrayLike
+
+from ..cycle.model import Model
 from .CycleData import CycleData
 from .CycleMetadata import CycleMetadata
-from ..cycle.model import Model
+from .CycleVarianceData import CycleVarianceData, MeasureVarianceData
 
 TimestampLike = datetime | pd.Timestamp | np.datetime64
 
@@ -30,7 +32,10 @@ class CycleModels:
         models = list(self.models.values())
         self._metadata = CycleMetadata(
             cycle_id=np.array([model.meta.cycle_id for model in models], dtype=object),
-            platform_number=np.array([model.meta.platform_number for model in models], dtype=object),
+            platform_number=np.array(
+                [model.meta.platform_number for model in models],
+                dtype=object,
+            ),
             cycle_number=np.array([model.meta.cycle_number for model in models], dtype=object),
             direction=np.array([model.meta.direction for model in models], dtype=object),
             latitude=np.array([model.meta.latitude for model in models], dtype=float),
@@ -40,11 +45,20 @@ class CycleModels:
                 dtype="datetime64[ns]",
             ),
             seasonal_timestamp=np.array(
-                [pd.Timestamp(model.meta.timestamp).replace(year=2000).to_datetime64() for model in models],
+                [
+                    pd.Timestamp(model.meta.timestamp).replace(year=2000).to_datetime64()
+                    for model in models
+                ],
                 dtype="datetime64[ns]",
             ),
-            pressure_min=np.array([model.meta.profile_pressure[0] for model in models], dtype=float),
-            pressure_max=np.array([model.meta.profile_pressure[1] for model in models], dtype=float),
+            pressure_min=np.array(
+                [model.meta.profile_pressure[0] for model in models],
+                dtype=float,
+            ),
+            pressure_max=np.array(
+                [model.meta.profile_pressure[1] for model in models],
+                dtype=float,
+            ),
         )
 
     def __len__(self) -> int:
@@ -193,3 +207,45 @@ class CycleModels:
 
     def interp_error(self, pressure_data: ArrayLike, *, mask: ArrayLike | None = None) -> CycleData:
         return self._interpolate_cycle_data(pressure_data, "interp_error", mask=mask)
+
+    def interp_error_variance(
+        self,
+        pressure_data: ArrayLike,
+        *,
+        mask: ArrayLike | None = None,
+    ) -> CycleVarianceData:
+        pressure_values = np.asarray(pressure_data, dtype=float)
+        pressure_index = pd.Index(pressure_values, name="pressure")
+
+        metadata = self._metadata if mask is None else self.metadata(mask)
+        cycle_ids = metadata.cycle_id
+
+        empty_frame = pd.DataFrame(index=pressure_index, columns=cycle_ids, dtype=float)
+        temp_sensor = empty_frame.copy()
+        temp_pressure = empty_frame.copy()
+        temp_model = empty_frame.copy()
+        sal_sensor = empty_frame.copy()
+        sal_pressure = empty_frame.copy()
+        sal_model = empty_frame.copy()
+
+        for cycle_id in cycle_ids:
+            model_variance = self.models[cycle_id].interp_error_variance(pressure_values)
+            temp_sensor[cycle_id] = model_variance.temperature.sensor_precision
+            temp_pressure[cycle_id] = model_variance.temperature.pressure_gradient
+            temp_model[cycle_id] = model_variance.temperature.vertical_model
+            sal_sensor[cycle_id] = model_variance.salinity.sensor_precision
+            sal_pressure[cycle_id] = model_variance.salinity.pressure_gradient
+            sal_model[cycle_id] = model_variance.salinity.vertical_model
+
+        return CycleVarianceData(
+            temperature=MeasureVarianceData(
+                sensor_precision=temp_sensor,
+                pressure_gradient=temp_pressure,
+                vertical_model=temp_model,
+            ),
+            salinity=MeasureVarianceData(
+                sensor_precision=sal_sensor,
+                pressure_gradient=sal_pressure,
+                vertical_model=sal_model,
+            ),
+        )

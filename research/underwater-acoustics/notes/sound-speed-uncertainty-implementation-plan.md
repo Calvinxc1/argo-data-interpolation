@@ -1394,7 +1394,8 @@ Focused validation run:
 - The production benchmark case, `grid_0p1_depth4`, produced `92,308` rows,
   `90,362` finite sigma rows, `173.80` seconds of measured row-construction
   wall time, `48.10` seconds of one-time cycle-target precompute time, and
-  `151.999` MB of peak traced Python memory.
+  `151.999` MB of peak traced Python memory. These benchmark timings were
+  measured on Jason's `galatea` system.
 - The benchmark intentionally does not measure raw Argo download, per-cycle
   model rebuild, or spatial-variance recomputation.
 
@@ -1413,7 +1414,7 @@ Focused validation run:
   - `sound_speed_uncertainty_holdout_validation_metadata.json`
 - The run used `20,986` cached cycle models, skipped `4` cycles with no
   non-platform candidate support, wrote `83,928` detail rows, and completed in
-  `70.42` seconds from cache.
+  `70.42` seconds from cache on Jason's `galatea` system.
 - Summary TEOS-10 sound-speed RMSE by pressure: `1.6216 m/s` at `5` dbar,
   `1.7362 m/s` at `35` dbar, `4.6891 m/s` at `110` dbar, and `0.7543 m/s` at
   `500` dbar.
@@ -1451,14 +1452,16 @@ Focused validation run:
   - `sound_speed_uncertainty_holdout_validation_replication_grid_spatial_variance.csv`
   - `sound_speed_uncertainty_holdout_validation_replication_grid_metadata.json`
 - The run evaluated `20,779` held-out cycles, skipped `207` cycles for low
-  support, and wrote `10,306,384` detail rows.
+  support, wrote `10,306,384` detail rows, and completed in `1,925.60` seconds
+  (`32:05.60`) from cached PCHIP cycle models on Jason's `galatea` system.
 - Notebook `6` won the matched per-cycle p75 RMSE comparison over the flat
   Jana-style predictor for temperature (`1.0500` vs `1.3419 deg C`), salinity
   (`0.2402` vs `0.2747 PSU`), and TEOS-10 sound speed (`2.8258` vs
   `3.5719 m/s`).
 - Re-ran notebook `6` as a Python export after the validation run; chart
   PNG/SVG outputs now have fresh timestamps and use the finalized raw-support
-  contour thresholds `W_raw=6` and `W_raw=30`.
+  contour thresholds `W_raw=6` and `W_raw=30`. This chart/product-cache rerender
+  completed in `16.77` seconds on `galatea`.
 
 ## Validation Targets
 

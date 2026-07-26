@@ -118,16 +118,17 @@ product-build path across `1.0`, `0.5`, `0.25`, and `0.1` degree grid steps and
 one-versus-four target-pressure cases. The production `0.1` degree, four-depth
 case produced `92,308` rows, `90,362` finite sigma rows, `173.80` seconds of
 measured row-construction wall time, `48.10` seconds of one-time cycle-target
-precompute time, and `151.999` MB of peak traced Python memory. The benchmark
-does not measure raw Argo download, cycle-model rebuild, or spatial-variance
+precompute time, and `151.999` MB of peak traced Python memory. These runtime
+figures were measured on Jason's `galatea` system. The benchmark does not
+measure raw Argo download, cycle-model rebuild, or spatial-variance
 recomputation.
 
 Historical runtime observations for full recomputation remain useful context:
 
-- `3 sigma` candidate prefilter: spatial validation about `4:15`, gridded
-  product build about `1:14`
-- `6 sigma` candidate prefilter: spatial validation about `12:00`, gridded
-  product build about `1:45`
+- `3 sigma` candidate prefilter on `galatea`: spatial validation about `4:15`,
+  gridded product build about `1:14`
+- `6 sigma` candidate prefilter on `galatea`: spatial validation about `12:00`,
+  gridded product build about `1:45`
 
 Reproducibility hardening is partial. The notebook now has cache metadata guards
 for weighting configuration changes, Jupytext pairing, and saved output paths.
@@ -222,6 +223,12 @@ Design details:
 - The rerun evaluated `20,779` held-out cycles on the full depth grid and
   skipped `207` cycles for low support. The predictor summary has `20,772`
   valid per-cycle metric rows after finite-error filtering.
+- Runtime on Jason's `galatea` system was `1,925.60` seconds (`32:05.60`) for
+  the matched validation run from cached PCHIP cycle models, including the
+  same-run notebook `6` spatial-variance pass, both predictors, detail CSV
+  streaming, summary CSVs, and metadata JSON.
+- The follow-up notebook `6` Python-export rerender for the finalized chart
+  files completed on `galatea` in `16.77` seconds from existing caches.
 
 Headline per-cycle p75 RMSE comparison:
 

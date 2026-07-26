@@ -870,7 +870,7 @@ figure_matrices_110m["sigma_sound_speed_teos10"].mean().mean()
 # The standalone support chart uses raw `W` values with color anchors at the
 # raw support region midpoints. Its map colors and colorbar axis use the same
 # log-spaced raw `W` transform for readability, and it overlays the same raw
-# `W=5` and `W=20` contours used by the sound-speed contour chart. Exact finite
+# `W=6` and `W=30` contours used by the sound-speed contour chart. Exact finite
 # zero support is rendered transparent; other finite support values are opaque.
 # The heatmaps use bilinear display interpolation to avoid visual blockiness
 # from the 0.1-degree plotting grid; this does not change the cached product.
@@ -1260,17 +1260,13 @@ support_raw_positive_values = support_raw_finite_values[support_raw_finite_value
 support_raw_min_positive = float(np.nanmin(support_raw_positive_values))
 support_raw_log_floor = 1.0
 support_raw_vmax = float(np.nanmax(support_raw_finite_values))
-support_raw_breaks = [support_raw_log_floor, 5.0, 20.0, support_raw_vmax]
-support_color_anchor_values = [
-    2.5,
-    12.5,
-    0.5 * (20.0 + support_raw_vmax),
-]
+support_raw_breaks = [support_raw_log_floor, 6.0, 30.0, support_raw_vmax]
 support_cluster_labels = [
     ("Low", np.sqrt(support_raw_breaks[0] * support_raw_breaks[1])),
     ("Mid", np.sqrt(support_raw_breaks[1] * support_raw_breaks[2])),
     ("High", np.sqrt(support_raw_breaks[2] * support_raw_breaks[3])),
 ]
+support_color_anchor_values = [value for _, value in support_cluster_labels]
 support_norm = mcolors.LogNorm(vmin=support_raw_log_floor, vmax=support_raw_vmax)
 support_raw_anchor_positions = [float(support_norm(value)) for value in support_color_anchor_values]
 support_cmap = support_region_cmap(
@@ -1278,8 +1274,8 @@ support_cmap = support_region_cmap(
     mid_anchor=support_raw_anchor_positions[1],
     high_anchor=support_raw_anchor_positions[2],
 )
-support_contour_levels = [5.0, 20.0]
-support_contour_labels = ["Low/Mid boundary (W=5)", "Mid/High boundary (W=20)"]
+support_contour_levels = [6.0, 30.0]
+support_contour_labels = ["Low/Mid boundary (W=6)", "Mid/High boundary (W=30)"]
 sound_speed_contour_cmap = mcolors.LinearSegmentedColormap.from_list(
     "sound_speed_contour_hue",
     ["#3056ff", "#00c4df", "#19e967", "#e7ea19", "#ff9700", "#ff2b2b"],

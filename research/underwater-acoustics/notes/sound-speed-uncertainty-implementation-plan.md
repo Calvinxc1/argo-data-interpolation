@@ -1398,6 +1398,37 @@ Focused validation run:
 - The benchmark intentionally does not measure raw Argo download, per-cycle
   model rebuild, or spatial-variance recomputation.
 
+2026-07-25 notebook 6 full holdout validation pass:
+
+- Added `run_notebook6_holdout_validation.py` to run a full
+  hold-one-float-out validation under the final notebook `6` configuration from
+  cached PCHIP cycle models.
+- The validation predicts each held-out cycle at `5`, `35`, `110`, and `500`
+  dbar from other platforms only, using the final `dist_rad = 1.0` hard spatial
+  prefilter and final distance/time/season Gaussian weights.
+- Wrote generated outputs under
+  `research/underwater-acoustics/notebooks/data/`:
+  - `sound_speed_uncertainty_holdout_validation.csv`
+  - `sound_speed_uncertainty_holdout_validation_summary.csv`
+  - `sound_speed_uncertainty_holdout_validation_metadata.json`
+- The run used `20,986` cached cycle models, skipped `4` cycles with no
+  non-platform candidate support, wrote `83,928` detail rows, and completed in
+  `70.42` seconds from cache.
+- Summary TEOS-10 sound-speed RMSE by pressure: `1.6216 m/s` at `5` dbar,
+  `1.7362 m/s` at `35` dbar, `4.6891 m/s` at `110` dbar, and `0.7543 m/s` at
+  `500` dbar.
+
+2026-07-25 support-contour threshold rerender:
+
+- Moved the finalized raw-support contour thresholds from `W_raw=5` and
+  `W_raw=20` to `W_raw=6` and `W_raw=30`.
+- Updated the standalone raw-support chart colorbar breaks and legend labels
+  to match the new thresholds.
+- Re-anchored the Low, Mid, and High support colors at the geometric midpoint
+  of each log-scaled raw-support range.
+- Re-executed notebook `6` with Jupytext outside the sandbox and regenerated
+  embedded `.ipynb` outputs plus chart PNG/SVG exports.
+
 ## Validation Targets
 
 Focused tests should prove:

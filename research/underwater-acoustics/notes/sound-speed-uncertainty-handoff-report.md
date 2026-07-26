@@ -65,10 +65,25 @@ The spatiotemporal rerun is complete for the current paper-support
 configuration. Product metadata confirms `use_time_weight = true` and
 `use_season_weight = true`.
 
+Full hold-one-float-out validation has now been run under the final notebook
+`6` configuration. The run uses the cached PCHIP cycle-model bundle, predicts
+each held-out cycle at the four notebook `6` target pressures from neighboring
+cycles while excluding the held-out platform, and applies the final
+distance/time/season Gaussian weights. It writes:
+
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_summary.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_metadata.json`
+
+The run evaluated `20,982` cycles at each target pressure, skipped `4` cached
+cycles with no non-platform candidate support, and wrote `83,928` detail rows.
+At `110` dbar, finite validation counts are `20,570` and TEOS-10 sound-speed
+error metrics are RMSE `4.6891 m/s`, MAE `3.5827 m/s`, and bias `0.1588 m/s`.
+
 The five immediate `110` dbar figures are generated. The sound-speed point
 estimate chart and the sound-speed-with-contours chart now share the same
 custom sound-speed colormap. Both support-overlay figures use
-`W_raw = 5` and `W_raw = 20` contours; no finalized support-overlay chart uses
+`W_raw = 6` and `W_raw = 30` contours; no finalized support-overlay chart uses
 W opacity.
 
 Variance-space contribution decomposition exists in the product columns:
@@ -150,6 +165,28 @@ Current measured matrix:
 | `grid_0p25_depth4` | `0.25` | `4` | `14,868` | `14,581` | `27.55` | `24.62` |
 | `grid_0p1_depth4` | `0.1` | `4` | `92,308` | `90,362` | `173.80` | `152.00` |
 
+## Holdout Validation Output
+
+The current notebook `6` hold-one-float-out validation is a predictive
+validation of the final paper-support weighting configuration, not just the
+internal spatial-variance residual pass. For each cached PCHIP cycle model, it:
+
+- targets the held-out cycle's own PCHIP estimate at `5`, `35`, `110`, and
+  `500` dbar;
+- excludes all cycles from the held-out `PLATFORM_NUMBER`;
+- uses the final hard spatial prefilter, `dist_rad = 1.0` degree;
+- applies final distance, absolute-time, and wrapped-season Gaussian weights;
+- computes temperature, salinity, and TEOS-10 sound-speed errors.
+
+Summary metrics:
+
+| Pressure dbar | Finite sound-speed count | Temperature RMSE | Salinity RMSE | Sound-speed RMSE | Sound-speed MAE | Sound-speed bias |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `5` | `15,774` | `0.6077` | `0.6859` | `1.6216` | `1.1154` | `0.1086` |
+| `35` | `20,862` | `0.7821` | `0.4541` | `1.7362` | `1.2061` | `0.0306` |
+| `110` | `20,570` | `1.7994` | `0.1566` | `4.6891` | `3.5827` | `0.1588` |
+| `500` | `15,951` | `0.2073` | `0.0410` | `0.7543` | `0.5790` | `0.0144` |
+
 ## Approach A / C Feasibility
 
 Approach A, fixed mesoscale-inspired scales, is already the implemented floor.
@@ -181,6 +218,12 @@ Focused validation:
 
 ```bash
 .venv/bin/python -m pytest tests/test_acoustics.py tests/test_model_and_error.py tests/test_underwater_acoustics_prediction_helpers.py tests/test_validation_and_data.py -q
+```
+
+Run the notebook `6` hold-one-float-out validation from cached cycle models:
+
+```bash
+MPLCONFIGDIR=/tmp/matplotlib-cache .venv/bin/python research/underwater-acoustics/notebooks/run_notebook6_holdout_validation.py
 ```
 
 Regenerate the cached product and chart files from the paired Python source:

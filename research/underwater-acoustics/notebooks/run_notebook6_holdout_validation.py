@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import NormalDist
 
 import gsw
 import numpy as np
@@ -52,6 +53,12 @@ depth_summary_path = (
 coverage_summary_path = (
     data_path / "sound_speed_uncertainty_holdout_validation_replication_grid_sigma_coverage.csv"
 )
+coverage_curve_path = (
+    data_path / "sound_speed_uncertainty_holdout_validation_replication_grid_coverage_curve.csv"
+)
+platform_split_path = (
+    data_path / "sound_speed_uncertainty_holdout_validation_replication_grid_platform_split.csv"
+)
 spatial_variance_path = (
     data_path / "sound_speed_uncertainty_holdout_validation_replication_grid_spatial_variance.csv"
 )
@@ -67,10 +74,20 @@ terms_metadata_path = (
 
 depth_grid_m = np.arange(5.0, 501.0, 1.0)
 min_cycles = 30
+calibration_split_seed = 20260725
 detail_chunk_size = 100_000
-predictors = ("notebook6", "flat_jana")
+predictors = ("notebook6", "distance_only", "flat_jana")
 variables = ("temperature", "salinity", "sound_speed_teos10")
 sigma_variants = ("no_spatial", "with_spatial")
+sigma_levels = (1, 2, 3)
+normal_expected_coverage = {
+    1: 0.6827,
+    2: 0.9545,
+    3: 0.9973,
+}
+coverage_curve_quantiles = np.round(np.arange(0.01, 1.0, 0.01), 2)
+sigma_histogram_bins = np.concatenate(([0.0], np.geomspace(1e-9, 1e3, 512)))
+standardized_error_bins = np.linspace(0.0, 8.0, 801)
 
 
 def metadata_matches(path: Path, expected: dict[str, object]) -> bool:
@@ -95,6 +112,52 @@ def build_weight_config(product_metadata: dict[str, object]) -> WeightConfig:
         use_time=bool(product_metadata["use_time_weight"]),
         use_season=bool(product_metadata["use_season_weight"]),
     )
+
+
+def build_distance_only_weight_config(product_metadata: dict[str, object]) -> WeightConfig:
+    config = build_weight_config(product_metadata)
+    return WeightConfig(
+        distance=config.distance,
+        time=config.time,
+        season=config.season,
+        use_distance=True,
+        use_time=False,
+        use_season=False,
+    )
+
+
+def build_platform_split(metadata) -> tuple[np.ndarray, pd.DataFrame, pd.DataFrame]:
+    platform_numbers = np.asarray(metadata.platform_number)
+    unique_platforms = np.array(sorted(pd.unique(platform_numbers)))
+    shuffled_platforms = unique_platforms.copy()
+    rng = np.random.default_rng(calibration_split_seed)
+    rng.shuffle(shuffled_platforms)
+    split_index = int(np.ceil(len(shuffled_platforms) / 2))
+    group_a = set(shuffled_platforms[:split_index])
+    group_by_position = np.array(
+        ["A" if platform in group_a else "B" for platform in platform_numbers],
+        dtype=object,
+    )
+    platform_rows = []
+    for platform in unique_platforms:
+        group = "A" if platform in group_a else "B"
+        platform_rows.append(
+            {
+                "platform_number": platform,
+                "calibration_group": group,
+                "cycle_count": int(np.sum(platform_numbers == platform)),
+            }
+        )
+    platform_split = pd.DataFrame.from_records(platform_rows)
+    split_summary = (
+        platform_split.groupby("calibration_group", as_index=False)
+        .agg(
+            float_count=("platform_number", "count"),
+            cycle_count=("cycle_count", "sum"),
+        )
+        .sort_values("calibration_group")
+    )
+    return group_by_position, platform_split, split_summary
 
 
 def effective_cycle_count(values: np.ndarray, weights: np.ndarray) -> np.ndarray:
@@ -207,57 +270,180 @@ class DepthErrorStats:
         return rows
 
 
+def histogram_median(hist: np.ndarray, bins: np.ndarray) -> float:
+    total = int(hist.sum())
+    if total == 0:
+        return np.nan
+    midpoint = (total - 1) / 2
+    cumulative = np.cumsum(hist)
+    bin_index = int(np.searchsorted(cumulative, midpoint, side="right"))
+    bin_index = min(bin_index, len(bins) - 2)
+    return float((bins[bin_index] + bins[bin_index + 1]) / 2)
+
+
+def histogram_fraction_leq(hist: np.ndarray, bins: np.ndarray, threshold: float) -> float:
+    total = int(hist.sum())
+    if total == 0:
+        return np.nan
+    bin_index = int(np.searchsorted(bins, threshold, side="right") - 1)
+    if bin_index < 0:
+        return 0.0
+    if bin_index >= len(hist):
+        return 1.0
+    return float(hist[: bin_index + 1].sum() / total)
+
+
 class CoverageStats:
-    def __init__(self, n_depths: int) -> None:
+    def __init__(
+        self,
+        n_depths: int,
+        *,
+        calibration_scope: str,
+        fold: str,
+        train_group: str,
+        eval_group: str,
+    ) -> None:
+        self.calibration_scope = calibration_scope
+        self.fold = fold
+        self.train_group = train_group
+        self.eval_group = eval_group
         self.count = np.zeros(n_depths, dtype=np.int64)
-        self.within_1sigma = np.zeros(n_depths, dtype=np.int64)
-        self.within_2sigma = np.zeros(n_depths, dtype=np.int64)
+        self.within_sigma = {
+            level: np.zeros(n_depths, dtype=np.int64) for level in sigma_levels
+        }
+        self.sigma_sum = np.zeros(n_depths, dtype=float)
+        self.depth_sigma_hist = np.zeros(
+            (n_depths, len(sigma_histogram_bins) - 1),
+            dtype=np.int64,
+        )
+        self.pooled_sigma_hist = np.zeros(len(sigma_histogram_bins) - 1, dtype=np.int64)
+        self.pooled_standardized_error_hist = np.zeros(
+            len(standardized_error_bins) - 1,
+            dtype=np.int64,
+        )
 
     def update(self, errors: np.ndarray, sigma: np.ndarray) -> None:
-        finite = np.isfinite(errors) & np.isfinite(sigma)
+        finite = np.isfinite(errors) & np.isfinite(sigma) & (sigma > 0)
+        if not np.any(finite):
+            return
+        depth_indices = np.flatnonzero(finite)
         abs_error = np.abs(errors[finite])
         sigma_values = sigma[finite]
         self.count[finite] += 1
-        self.within_1sigma[finite] += abs_error <= sigma_values
-        self.within_2sigma[finite] += abs_error <= 2 * sigma_values
+        self.sigma_sum[finite] += sigma_values
+        for level in sigma_levels:
+            self.within_sigma[level][finite] += abs_error <= level * sigma_values
+
+        sigma_bins = np.searchsorted(sigma_histogram_bins, sigma_values, side="right") - 1
+        sigma_bins = np.clip(sigma_bins, 0, len(sigma_histogram_bins) - 2)
+        np.add.at(self.depth_sigma_hist, (depth_indices, sigma_bins), 1)
+        np.add.at(self.pooled_sigma_hist, sigma_bins, 1)
+
+        standardized_error = abs_error / sigma_values
+        error_bins = np.searchsorted(standardized_error_bins, standardized_error, side="right") - 1
+        error_bins = np.clip(error_bins, 0, len(standardized_error_bins) - 2)
+        np.add.at(self.pooled_standardized_error_hist, error_bins, 1)
+
+    def base_row(
+        self,
+        *,
+        scope: str,
+        predictor: str,
+        variable: str,
+        sigma_variant: str,
+        depth_m: float,
+        count: int,
+        within_counts: dict[int, int],
+        sigma_sum: float,
+        sigma_hist: np.ndarray,
+    ) -> dict[str, object]:
+        median_sigma = histogram_median(sigma_hist, sigma_histogram_bins)
+        row: dict[str, object] = {
+            "calibration_scope": self.calibration_scope,
+            "fold": self.fold,
+            "train_group": self.train_group,
+            "eval_group": self.eval_group,
+            "scope": scope,
+            "predictor": predictor,
+            "variable": variable,
+            "sigma_variant": sigma_variant,
+            "depth_m": depth_m,
+            "count": count,
+        }
+        mean_sigma = sigma_sum / count if count else np.nan
+        for level in sigma_levels:
+            row[f"within_{level}sigma_fraction"] = (
+                within_counts[level] / count if count else np.nan
+            )
+            row[f"normal_expected_{level}sigma"] = normal_expected_coverage[level]
+            row[f"mean_interval_width_{level}sigma"] = (
+                2 * level * mean_sigma if count else np.nan
+            )
+            row[f"median_interval_width_{level}sigma"] = (
+                2 * level * median_sigma if count else np.nan
+            )
+        return row
 
     def to_rows(self, predictor: str, variable: str, sigma_variant: str) -> list[dict[str, object]]:
         rows = []
         pooled_count = int(self.count.sum())
-        pooled_1 = int(self.within_1sigma.sum())
-        pooled_2 = int(self.within_2sigma.sum())
+        pooled_within = {
+            level: int(self.within_sigma[level].sum()) for level in sigma_levels
+        }
         rows.append(
-            {
-                "scope": "pooled",
-                "predictor": predictor,
-                "variable": variable,
-                "sigma_variant": sigma_variant,
-                "depth_m": np.nan,
-                "count": pooled_count,
-                "within_1sigma_fraction": pooled_1 / pooled_count if pooled_count else np.nan,
-                "within_2sigma_fraction": pooled_2 / pooled_count if pooled_count else np.nan,
-                "normal_expected_1sigma": 0.683,
-                "normal_expected_2sigma": 0.954,
-            }
+            self.base_row(
+                scope="pooled",
+                predictor=predictor,
+                variable=variable,
+                sigma_variant=sigma_variant,
+                depth_m=np.nan,
+                count=pooled_count,
+                within_counts=pooled_within,
+                sigma_sum=float(self.sigma_sum.sum()),
+                sigma_hist=self.pooled_sigma_hist,
+            )
         )
         for index, depth in enumerate(depth_grid_m):
             count = int(self.count[index])
             rows.append(
+                self.base_row(
+                    scope="depth",
+                    predictor=predictor,
+                    variable=variable,
+                    sigma_variant=sigma_variant,
+                    depth_m=depth,
+                    count=count,
+                    within_counts={
+                        level: int(self.within_sigma[level][index]) for level in sigma_levels
+                    },
+                    sigma_sum=float(self.sigma_sum[index]),
+                    sigma_hist=self.depth_sigma_hist[index],
+                )
+            )
+        return rows
+
+    def curve_rows(self, predictor: str, variable: str, sigma_variant: str) -> list[dict[str, object]]:
+        rows = []
+        normal = NormalDist()
+        for nominal_coverage in coverage_curve_quantiles:
+            z_value = normal.inv_cdf((1 + float(nominal_coverage)) / 2)
+            rows.append(
                 {
-                    "scope": "depth",
+                    "calibration_scope": self.calibration_scope,
+                    "fold": self.fold,
+                    "train_group": self.train_group,
+                    "eval_group": self.eval_group,
                     "predictor": predictor,
                     "variable": variable,
                     "sigma_variant": sigma_variant,
-                    "depth_m": depth,
-                    "count": count,
-                    "within_1sigma_fraction": (
-                        self.within_1sigma[index] / count if count else np.nan
+                    "nominal_coverage": float(nominal_coverage),
+                    "z_value": float(z_value),
+                    "empirical_coverage": histogram_fraction_leq(
+                        self.pooled_standardized_error_hist,
+                        standardized_error_bins,
+                        z_value,
                     ),
-                    "within_2sigma_fraction": (
-                        self.within_2sigma[index] / count if count else np.nan
-                    ),
-                    "normal_expected_1sigma": 0.683,
-                    "normal_expected_2sigma": 0.954,
+                    "count": int(self.pooled_standardized_error_hist.sum()),
                 }
             )
         return rows
@@ -427,6 +613,7 @@ def estimate_notebook6_spatial_variance(
     terms: ReplicationGridTerms,
     weight_config: WeightConfig,
     dist_rad: float,
+    group_by_position: np.ndarray,
 ) -> tuple[pd.DataFrame, dict[str, int]]:
     latitudes = metadata.latitude
     longitudes = metadata.longitude
@@ -434,6 +621,14 @@ def estimate_notebook6_spatial_variance(
     platform_numbers = metadata.platform_number
     temperature_residuals = OnlineDepthVariance(len(depth_grid_m))
     salinity_residuals = OnlineDepthVariance(len(depth_grid_m))
+    split_temperature_residuals = {
+        "A": OnlineDepthVariance(len(depth_grid_m)),
+        "B": OnlineDepthVariance(len(depth_grid_m)),
+    }
+    split_salinity_residuals = {
+        "A": OnlineDepthVariance(len(depth_grid_m)),
+        "B": OnlineDepthVariance(len(depth_grid_m)),
+    }
     skipped_low_support = 0
 
     for position in tqdm(range(len(metadata)), desc="notebook6 spatial variance"):
@@ -466,14 +661,29 @@ def estimate_notebook6_spatial_variance(
         )
         temperature_residuals.update(terms.temperature_by_cycle[:, position] - predicted_temperature)
         salinity_residuals.update(terms.salinity_by_cycle[:, position] - predicted_salinity)
+        group = str(group_by_position[position])
+        split_temperature_residuals[group].update(
+            terms.temperature_by_cycle[:, position] - predicted_temperature
+        )
+        split_salinity_residuals[group].update(
+            terms.salinity_by_cycle[:, position] - predicted_salinity
+        )
 
     spatial_variance = pd.DataFrame(
         {
             "depth_m": depth_grid_m,
             "var_temperature_spatial": temperature_residuals.variance(),
             "var_salinity_spatial": salinity_residuals.variance(),
+            "var_temperature_spatial_group_a": split_temperature_residuals["A"].variance(),
+            "var_salinity_spatial_group_a": split_salinity_residuals["A"].variance(),
+            "var_temperature_spatial_group_b": split_temperature_residuals["B"].variance(),
+            "var_salinity_spatial_group_b": split_salinity_residuals["B"].variance(),
             "spatial_validation_count_temperature": temperature_residuals.count,
             "spatial_validation_count_salinity": salinity_residuals.count,
+            "spatial_validation_count_temperature_group_a": split_temperature_residuals["A"].count,
+            "spatial_validation_count_salinity_group_a": split_salinity_residuals["A"].count,
+            "spatial_validation_count_temperature_group_b": split_temperature_residuals["B"].count,
+            "spatial_validation_count_salinity_group_b": split_salinity_residuals["B"].count,
         }
     )
     return spatial_variance, {"skipped_cycle_count_low_support": skipped_low_support}
@@ -568,8 +778,10 @@ def run_validation(
     terms: ReplicationGridTerms,
     spatial_variance: pd.DataFrame,
     weight_config: WeightConfig,
+    distance_only_weight_config: WeightConfig,
     dist_rad: float,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    group_by_position: np.ndarray,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     if detail_path.exists():
         detail_path.unlink()
 
@@ -579,18 +791,67 @@ def run_validation(
     platform_numbers = metadata.platform_number
     var_temperature_spatial = spatial_variance["var_temperature_spatial"].to_numpy(dtype=float)
     var_salinity_spatial = spatial_variance["var_salinity_spatial"].to_numpy(dtype=float)
+    split_spatial_variance = {
+        "A": {
+            "temperature": spatial_variance["var_temperature_spatial_group_a"].to_numpy(dtype=float),
+            "salinity": spatial_variance["var_salinity_spatial_group_a"].to_numpy(dtype=float),
+        },
+        "B": {
+            "temperature": spatial_variance["var_temperature_spatial_group_b"].to_numpy(dtype=float),
+            "salinity": spatial_variance["var_salinity_spatial_group_b"].to_numpy(dtype=float),
+        },
+    }
 
     depth_stats = {
         (predictor, variable): DepthErrorStats(len(depth_grid_m))
         for predictor in predictors
         for variable in variables
     }
-    coverage_stats = {
-        (predictor, variable, sigma_variant): CoverageStats(len(depth_grid_m))
-        for predictor in predictors
-        for variable in variables
-        for sigma_variant in sigma_variants
-    }
+    calibration_definitions = [
+        {
+            "calibration_scope": "in_sample",
+            "fold": "all_to_all",
+            "train_group": "all",
+            "eval_group": "all",
+        },
+        {
+            "calibration_scope": "out_of_sample",
+            "fold": "A_to_B",
+            "train_group": "A",
+            "eval_group": "B",
+        },
+        {
+            "calibration_scope": "out_of_sample",
+            "fold": "B_to_A",
+            "train_group": "B",
+            "eval_group": "A",
+        },
+        {
+            "calibration_scope": "out_of_sample_pooled",
+            "fold": "pooled",
+            "train_group": "opposite",
+            "eval_group": "A+B",
+        },
+    ]
+    coverage_stats = {}
+    for definition in calibration_definitions:
+        for predictor in predictors:
+            for variable in variables:
+                for sigma_variant in sigma_variants:
+                    key = (
+                        definition["calibration_scope"],
+                        definition["fold"],
+                        predictor,
+                        variable,
+                        sigma_variant,
+                    )
+                    coverage_stats[key] = CoverageStats(
+                        len(depth_grid_m),
+                        calibration_scope=definition["calibration_scope"],
+                        fold=definition["fold"],
+                        train_group=definition["train_group"],
+                        eval_group=definition["eval_group"],
+                    )
 
     cycle_rows = []
     detail_rows: list[dict[str, object]] = []
@@ -618,6 +879,14 @@ def run_validation(
             timestamps=timestamps,
             weight_config=weight_config,
         )
+        distance_only_weights = notebook6_weights_for_target(
+            position,
+            candidate_indices,
+            latitudes=latitudes,
+            longitudes=longitudes,
+            timestamps=timestamps,
+            weight_config=distance_only_weight_config,
+        )
         flat_weights = np.ones(candidate_count, dtype=float)
 
         target_pressure = terms.pressure_by_cycle[:, position]
@@ -635,8 +904,12 @@ def run_validation(
 
         predictor_outputs = {
             "notebook6": predictor_arrays(candidate_indices, notebook6_weights, terms),
+            "distance_only": predictor_arrays(candidate_indices, distance_only_weights, terms),
             "flat_jana": predictor_arrays(candidate_indices, flat_weights, terms),
         }
+        eval_group = str(group_by_position[position])
+        train_group = "A" if eval_group == "B" else "B"
+        fold_name = f"{train_group}_to_{eval_group}"
 
         cycle_error_payload: dict[str, dict[str, np.ndarray]] = {}
         per_depth_payload: dict[str, dict[str, np.ndarray]] = {}
@@ -660,6 +933,12 @@ def run_validation(
             var_salinity_no_spatial = output["var_salinity_no_spatial"]
             var_temperature_with_spatial = var_temperature_no_spatial + var_temperature_spatial
             var_salinity_with_spatial = var_salinity_no_spatial + var_salinity_spatial
+            var_temperature_with_oos_spatial = (
+                var_temperature_no_spatial + split_spatial_variance[train_group]["temperature"]
+            )
+            var_salinity_with_oos_spatial = (
+                var_salinity_no_spatial + split_spatial_variance[train_group]["salinity"]
+            )
             var_sound_no_spatial = sound_speed_variance(
                 var_temperature_no_spatial,
                 var_salinity_no_spatial,
@@ -668,6 +947,11 @@ def run_validation(
             var_sound_with_spatial = sound_speed_variance(
                 var_temperature_with_spatial,
                 var_salinity_with_spatial,
+                partials,
+            )
+            var_sound_with_oos_spatial = sound_speed_variance(
+                var_temperature_with_oos_spatial,
+                var_salinity_with_oos_spatial,
                 partials,
             )
 
@@ -684,13 +968,43 @@ def run_validation(
                 ("sound_speed_teos10", "no_spatial"): np.sqrt(var_sound_no_spatial),
                 ("sound_speed_teos10", "with_spatial"): np.sqrt(var_sound_with_spatial),
             }
+            oos_sigmas = {
+                ("temperature", "no_spatial"): sigmas[("temperature", "no_spatial")],
+                ("temperature", "with_spatial"): np.sqrt(var_temperature_with_oos_spatial),
+                ("salinity", "no_spatial"): sigmas[("salinity", "no_spatial")],
+                ("salinity", "with_spatial"): np.sqrt(var_salinity_with_oos_spatial),
+                ("sound_speed_teos10", "no_spatial"): sigmas[
+                    ("sound_speed_teos10", "no_spatial")
+                ],
+                ("sound_speed_teos10", "with_spatial"): np.sqrt(var_sound_with_oos_spatial),
+            }
 
             for variable, error in errors.items():
                 depth_stats[(predictor, variable)].update(error)
                 for sigma_variant in sigma_variants:
-                    coverage_stats[(predictor, variable, sigma_variant)].update(
+                    coverage_stats[
+                        ("in_sample", "all_to_all", predictor, variable, sigma_variant)
+                    ].update(
                         error,
                         sigmas[(variable, sigma_variant)],
+                    )
+                    coverage_stats[
+                        ("out_of_sample", fold_name, predictor, variable, sigma_variant)
+                    ].update(
+                        error,
+                        oos_sigmas[(variable, sigma_variant)],
+                    )
+                    coverage_stats[
+                        (
+                            "out_of_sample_pooled",
+                            "pooled",
+                            predictor,
+                            variable,
+                            sigma_variant,
+                        )
+                    ].update(
+                        error,
+                        oos_sigmas[(variable, sigma_variant)],
                     )
 
             cycle_rows.append(
@@ -762,17 +1076,27 @@ def run_validation(
     depth_summary = pd.DataFrame.from_records(depth_rows)
 
     coverage_rows = []
-    for (predictor, variable, sigma_variant), stats in coverage_stats.items():
+    curve_rows = []
+    for (
+        _calibration_scope,
+        _fold,
+        predictor,
+        variable,
+        sigma_variant,
+    ), stats in coverage_stats.items():
         coverage_rows.extend(stats.to_rows(predictor, variable, sigma_variant))
+        curve_rows.extend(stats.curve_rows(predictor, variable, sigma_variant))
     coverage_summary = pd.DataFrame.from_records(coverage_rows)
+    coverage_curve = pd.DataFrame.from_records(curve_rows)
 
     cycle_summary.to_csv(cycle_summary_path, index=False)
     predictor_summary.to_csv(predictor_summary_path, index=False)
     depth_summary.to_csv(depth_summary_path, index=False)
     coverage_summary.to_csv(coverage_summary_path, index=False)
+    coverage_curve.to_csv(coverage_curve_path, index=False)
 
     print(f"skipped_cycle_count_low_support={skipped_low_support}")
-    return cycle_summary, predictor_summary, depth_summary
+    return cycle_summary, predictor_summary, depth_summary, coverage_summary, coverage_curve
 
 
 def main() -> None:
@@ -782,12 +1106,23 @@ def main() -> None:
         product_metadata = json.load(f)
 
     weight_config = build_weight_config(product_metadata)
+    distance_only_weight_config = build_distance_only_weight_config(product_metadata)
     dist_rad = float(product_metadata["dist_rad"])
 
     with cycle_model_cache_path.open("rb") as f:
         cycle_model_bundle = pickle.load(f)
     cycle_models = cycle_model_bundle["cycle_models"]
     metadata = cycle_models.metadata()
+    group_by_position, platform_split, split_summary = build_platform_split(metadata)
+    split_summary_records = [
+        {
+            "calibration_group": str(row["calibration_group"]),
+            "float_count": int(row["float_count"]),
+            "cycle_count": int(row["cycle_count"]),
+        }
+        for row in split_summary.to_dict(orient="records")
+    ]
+    platform_split.to_csv(platform_split_path, index=False)
 
     terms = load_or_build_replication_grid_terms(cycle_models, metadata)
 
@@ -796,15 +1131,18 @@ def main() -> None:
         terms,
         weight_config,
         dist_rad,
+        group_by_position,
     )
     spatial_variance.to_csv(spatial_variance_path, index=False)
 
-    cycle_summary, predictor_summary, depth_summary = run_validation(
+    cycle_summary, predictor_summary, depth_summary, coverage_summary, coverage_curve = run_validation(
         metadata,
         terms,
         spatial_variance,
         weight_config,
+        distance_only_weight_config,
         dist_rad,
+        group_by_position,
     )
 
     elapsed_seconds = time.perf_counter() - start
@@ -832,6 +1170,17 @@ def main() -> None:
                 f"fewer than {min_cycles} candidate cycles in the shared 2 degree by 2 "
                 "degree spatial window are skipped for both predictors."
             ),
+            "calibration_split": {
+                "seed": calibration_split_seed,
+                "split_rule": (
+                    "PLATFORM_NUMBER values are randomly partitioned into groups A and B "
+                    "with a fixed seed. The split controls only which notebook6 LOFO "
+                    "residuals estimate the spatial variance bucket; LOFO predictions "
+                    "still use the full archive minus the held-out platform."
+                ),
+                "platform_split_csv": str(platform_split_path),
+                "groups": split_summary_records,
+            },
             "aggregation": (
                 "For each held-out cycle and predictor, RMSE, MAE, and bias are computed "
                 "across finite levels for each variable. Predictor summaries report mean, "
@@ -842,6 +1191,11 @@ def main() -> None:
                 "notebook6": (
                     "Final notebook 6 distance * absolute-time * wrapped-season Gaussian "
                     "weights inside the shared 1 degree half-width spatial prefilter."
+                ),
+                "distance_only": (
+                    "Notebook 6 Gaussian distance kernel inside the same shared 1 degree "
+                    "half-width spatial prefilter, with absolute-time and wrapped-season "
+                    "weights disabled."
                 ),
                 "flat_jana": (
                     "Flat Jana-style 2 degree by 2 degree box, equal candidate weights, "
@@ -862,11 +1216,18 @@ def main() -> None:
                     "model variances only."
                 ),
                 "with_spatial": (
-                    "The no_spatial variance plus a depthwise spatial variance bucket "
-                    "estimated from the notebook6 matched hold-one-float-out residuals "
-                    "on this same 5-500 m grid."
+                    "The no_spatial variance plus a depthwise spatial variance bucket. "
+                    "For in_sample rows, the bucket is estimated from all notebook6 "
+                    "matched hold-one-float-out residuals on this same 5-500 m grid. "
+                    "For out_of_sample rows, the bucket is estimated from the opposite "
+                    "calibration split group."
                 ),
             },
+            "coverage": (
+                "Coverage is reported at 1, 2, and 3 sigma with nominal normal "
+                "expectations 68.27, 95.45, and 99.73 percent. Mean and histogram-based "
+                "median predictive interval widths are reported alongside coverage."
+            ),
         },
         "cycle_count": int(len(metadata)),
         "evaluated_cycle_count": int(cycle_summary["cycle_id"].nunique()),
@@ -877,6 +1238,8 @@ def main() -> None:
         "predictor_summary_csv": str(predictor_summary_path),
         "depth_summary_csv": str(depth_summary_path),
         "coverage_summary_csv": str(coverage_summary_path),
+        "coverage_curve_csv": str(coverage_curve_path),
+        "platform_split_csv": str(platform_split_path),
         "spatial_variance_csv": str(spatial_variance_path),
     }
     with run_metadata_path.open("w") as f:
@@ -890,6 +1253,8 @@ def main() -> None:
     print(f"wrote {predictor_summary_path}")
     print(f"wrote {depth_summary_path}")
     print(f"wrote {coverage_summary_path}")
+    print(f"wrote {coverage_curve_path}")
+    print(f"wrote {platform_split_path}")
     print(f"wrote {spatial_variance_path}")
     print(f"wrote {run_metadata_path}")
     print(f"elapsed_seconds={elapsed_seconds:.2f}")

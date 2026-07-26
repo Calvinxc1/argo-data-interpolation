@@ -1463,6 +1463,53 @@ Focused validation run:
   contour thresholds `W_raw=6` and `W_raw=30`. This chart/product-cache rerender
   completed in `16.77` seconds on `galatea`.
 
+2026-07-25 out-of-sample calibration split and kernel ablation:
+
+- Extended `run_notebook6_holdout_validation.py` with a fixed-seed
+  `PLATFORM_NUMBER` calibration split. Seed `20260725` produced group A with
+  `74` floats and `10,790` cycles and group B with `73` floats and `10,196`
+  cycles.
+- The split controls only which notebook `6` LOFO residuals estimate the
+  depthwise spatial variance bucket. The held-out predictions themselves still
+  use the full archive minus the held-out platform, so the calibration split
+  does not change the predictor candidate set.
+- Added `out_of_sample` fold rows for A-to-B and B-to-A plus an
+  `out_of_sample_pooled` coverage summary. Coverage now reports 1-, 2-, and
+  3-sigma empirical coverage against nominal normal expectations `68.27%`,
+  `95.45%`, and `99.73%`, with mean interval width and histogram-based median
+  interval width.
+- Added `sound_speed_uncertainty_holdout_validation_replication_grid_coverage_curve.csv`
+  with empirical-versus-theoretical pooled coverage curves at nominal
+  coverages from `0.01` to `0.99`.
+- Added `sound_speed_uncertainty_holdout_validation_replication_grid_platform_split.csv`
+  to make the split auditable.
+- Added the `distance_only` predictor ablation. It uses the same Gaussian
+  distance kernel and shared 1 degree half-width spatial prefilter as notebook
+  `6`, but disables absolute-time and wrapped-season weighting.
+- Re-ran the full matched replication-grid validation from cached PCHIP cycle
+  models. The run evaluated `20,779` held-out cycles, skipped `207` low-support
+  cycles, wrote `10,306,384` detail rows, and completed in `3,217.54` seconds
+  (`53:37.54`) on Jason's `galatea` system.
+- Notebook `6` remained the p75 per-cycle RMSE winner over the flat Jana-style
+  predictor and the distance-only ablation:
+  - temperature: `1.0500 deg C` notebook `6`, `1.3628 deg C` distance-only,
+    `1.3419 deg C` flat Jana-style;
+  - salinity: `0.2402 PSU` notebook `6`, `0.2755 PSU` distance-only,
+    `0.2747 PSU` flat Jana-style;
+  - TEOS-10 sound speed: `2.8258 m/s` notebook `6`, `3.6133 m/s`
+    distance-only, `3.5719 m/s` flat Jana-style.
+- The distance-only ablation did not improve over the flat baseline in this
+  harness. The measured notebook `6` accuracy gain should therefore be framed
+  as coming from the temporal and seasonal weighting stack, not distance-only
+  weighting.
+- Notebook `6` TEOS-10 sound-speed `with_spatial` 2-sigma coverage was
+  `95.09%` in sample and `95.06%` out-of-sample pooled, against `95.45%`
+  nominal. The corresponding out-of-sample pooled 1- and 3-sigma coverage
+  values were `73.48%` and `99.02%`.
+- The `no_spatial` TEOS-10 sound-speed coverage remained much too narrow:
+  `5.49%`, `10.87%`, and `16.01%` at 1, 2, and 3 sigma. This confirms that the
+  spatial residual variance bucket is essential to calibrated reported sigma.
+
 ## Validation Targets
 
 Focused tests should prove:

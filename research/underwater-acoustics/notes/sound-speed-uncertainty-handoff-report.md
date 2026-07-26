@@ -202,6 +202,8 @@ Generated outputs:
 - `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_predictor_summary.csv`
 - `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_depth_summary.csv`
 - `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_sigma_coverage.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_coverage_curve.csv`
+- `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_platform_split.csv`
 - `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_spatial_variance.csv`
 - `research/underwater-acoustics/notebooks/data/sound_speed_uncertainty_holdout_validation_replication_grid_metadata.json`
 
@@ -222,52 +224,67 @@ Design details:
   and the cycle summary reports finite level counts.
 - The rerun evaluated `20,779` held-out cycles on the full depth grid and
   skipped `207` cycles for low support. The predictor summary has `20,772`
-  valid per-cycle metric rows after finite-error filtering.
-- Runtime on Jason's `galatea` system was `1,925.60` seconds (`32:05.60`) for
+  valid per-cycle metric rows after finite-error filtering. The detail output
+  contains `10,306,384` rows.
+- Runtime on Jason's `galatea` system was `3,217.54` seconds (`53:37.54`) for
   the matched validation run from cached PCHIP cycle models, including the
-  same-run notebook `6` spatial-variance pass, both predictors, detail CSV
-  streaming, summary CSVs, and metadata JSON.
+  same-run notebook `6` spatial-variance pass, three predictors, out-of-sample
+  calibration split summaries, detail CSV streaming, summary CSVs, coverage
+  curve CSV, and metadata JSON.
 - The follow-up notebook `6` Python-export rerender for the finalized chart
   files completed on `galatea` in `16.77` seconds from existing caches.
+- The calibration split uses seed `20260725` and partitions floats by
+  `PLATFORM_NUMBER`: group A has `74` floats and `10,790` cycles; group B has
+  `73` floats and `10,196` cycles. The split controls only which residuals
+  estimate the spatial variance bucket; LOFO predictions still use the full
+  archive minus the held-out platform.
 
 Headline per-cycle p75 RMSE comparison:
 
-| Variable | Notebook 6 p75 RMSE | Flat Jana-style p75 RMSE | Delta | Relative delta | Winner |
+| Variable | Notebook 6 p75 RMSE | Distance-only p75 RMSE | Flat Jana-style p75 RMSE | Notebook 6 vs flat | Winner |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Temperature | `1.0500 deg C` | `1.3419 deg C` | `-0.2919 deg C` | `-21.75%` | Notebook 6 |
-| Salinity | `0.2402 PSU` | `0.2747 PSU` | `-0.0345 PSU` | `-12.58%` | Notebook 6 |
-| TEOS-10 sound speed | `2.8258 m/s` | `3.5719 m/s` | `-0.7461 m/s` | `-20.89%` | Notebook 6 |
+| Temperature | `1.0500 deg C` | `1.3628 deg C` | `1.3419 deg C` | `-21.75%` | Notebook 6 |
+| Salinity | `0.2402 PSU` | `0.2755 PSU` | `0.2747 PSU` | `-12.58%` | Notebook 6 |
+| TEOS-10 sound speed | `2.8258 m/s` | `3.6133 m/s` | `3.5719 m/s` | `-20.89%` | Notebook 6 |
 
 The paper-facing statement supported by this run is that, under matched
 cycles, matched metre-grid levels, and matched per-cycle p75 RMSE aggregation,
-the notebook `6` spatiotemporal Gaussian predictor outperformed the flat
-Jana-style predictor for temperature, salinity, and TEOS-10 sound speed.
+the notebook `6` spatiotemporal Gaussian predictor outperformed both the flat
+Jana-style predictor and the distance-only ablation for temperature, salinity,
+and TEOS-10 sound speed. The distance-only ablation did not improve over the
+flat baseline in this matched harness, so the measured gain should be
+attributed to the temporal and seasonal weighting stack rather than to the
+distance kernel alone.
 
 Sigma coverage is reported for two variants: `no_spatial`, which includes only
 the propagated sensor, pressure, and vertical interpolation/model terms, and
 `with_spatial`, which also includes the depthwise spatial residual variance
-bucket. The `with_spatial` bucket is estimated from the same notebook `6`
-matched residual pass, so it is an in-sample consistency check rather than an
-independent calibration test.
+bucket. The output now reports both the original in-sample consistency check
+and an out-of-sample calibration split. In the out-of-sample rows, group A
+residuals estimate the spatial bucket tested on group B, and group B residuals
+estimate the spatial bucket tested on group A.
 
-Pooled coverage:
+Notebook `6` pooled coverage:
 
-| Predictor | Variable | Sigma variant | Count | Within 1 sigma | Within 2 sigma |
-| --- | --- | --- | ---: | ---: | ---: |
-| Notebook 6 | Temperature | no spatial | `8,910,082` | `5.44%` | `10.74%` |
-| Notebook 6 | Temperature | with spatial | `8,910,082` | `73.34%` | `94.99%` |
-| Notebook 6 | Salinity | no spatial | `8,910,082` | `30.36%` | `46.14%` |
-| Notebook 6 | Salinity | with spatial | `8,910,082` | `88.10%` | `96.87%` |
-| Notebook 6 | TEOS-10 sound speed | no spatial | `8,910,082` | `5.49%` | `10.87%` |
-| Notebook 6 | TEOS-10 sound speed | with spatial | `8,910,082` | `73.49%` | `95.09%` |
-| Flat Jana-style | Temperature | with spatial | `8,910,082` | `65.03%` | `91.58%` |
-| Flat Jana-style | Salinity | with spatial | `8,910,082` | `87.15%` | `96.95%` |
-| Flat Jana-style | TEOS-10 sound speed | with spatial | `8,910,082` | `65.65%` | `91.88%` |
+| Scope | Variable | Sigma variant | Count | Within 1 sigma | Within 2 sigma | Within 3 sigma | Mean 2-sigma width |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| In sample | Temperature | with spatial | `8,910,082` | `73.34%` | `94.99%` | `99.01%` | `3.0972 deg C` |
+| Out of sample pooled | Temperature | with spatial | `8,910,082` | `73.32%` | `94.96%` | `99.00%` | `3.0961 deg C` |
+| In sample | Salinity | with spatial | `8,910,082` | `88.10%` | `96.87%` | `98.80%` | `0.5418 PSU` |
+| Out of sample pooled | Salinity | with spatial | `8,910,082` | `86.70%` | `96.60%` | `98.65%` | `0.5402 PSU` |
+| In sample | TEOS-10 sound speed | with spatial | `8,910,082` | `73.49%` | `95.09%` | `99.03%` | `8.8121 m/s` |
+| Out of sample pooled | TEOS-10 sound speed | with spatial | `8,910,082` | `73.48%` | `95.06%` | `99.02%` | `8.8131 m/s` |
+| In sample | TEOS-10 sound speed | no spatial | `8,910,082` | `5.49%` | `10.87%` | `16.01%` | `0.4135 m/s` |
+| Out of sample pooled | TEOS-10 sound speed | no spatial | `8,910,082` | `5.49%` | `10.87%` | `16.01%` | `0.4135 m/s` |
 
 The `no_spatial` coverage is intentionally poor for temperature and sound
 speed, showing that local propagated instrument/interpolation terms alone do
 not explain realized holdout errors. The spatial bucket is therefore central
-to the product's reported sigma.
+to the product's reported sigma. For TEOS-10 sound speed, out-of-sample pooled
+`with_spatial` 2-sigma coverage is `95.06%` against the nominal normal
+expectation of `95.45%`; the in-sample value is `95.09%`, so the split has
+negligible effect on the headline calibration result. Median predictive
+interval widths in the coverage CSV are histogram-based approximations.
 
 ## Approach A / C Feasibility
 

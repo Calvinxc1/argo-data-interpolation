@@ -16,6 +16,15 @@ The long-term goal is to turn irregular Argo float measurements into compact, re
 
 - [`research/README.md`](research/README.md): index of the project's research materials, methodology, and current research topics.
 
+## Paper Boundary
+
+This repository is the source of truth for the code, supporting research
+materials, reproducibility work, and visualizations that feed downstream
+writing. The OCEANS 2026 Monterey paper is a separate downstream artifact
+maintained outside this repository under Education ownership. Paper drafts and
+bibliography should point back here for implementation, methodology support,
+and figures rather than duplicating repository-owned source material.
+
 ## Argo Background
 
 - [How Argo floats work](https://youtu.be/YI_qhwMB9ME?si=kp0Rc3PNzKyzwS2l): a concise external explainer on Argo float operation and the observing system context behind this repository's data source.

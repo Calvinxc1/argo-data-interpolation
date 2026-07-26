@@ -4,18 +4,12 @@ when: [policy_edit]
 rules:
   - When governance structure changes, update AGENTS.md, README.md, and affected governance files in the same change.
   - Keep policy in policies, process rules in processes, and temporary exception records in overrides.
+  - Keep lab-wide governance policy, process, routing, and override files under lab-governance.
   - Keep active repo-local governance policy, process, routing, and override files under .governance.
-  - Keep the generalized lab-wide governance copy under lab-governance.
-  - Treat committed files under .governance and lab-governance as ratified by existence.
-  - Treat status fields as operational metadata when present; do not use status labels as a separate ratification gate for committed active governance content.
   - Treat committed files under active governance policy and process directories as ratified and operative by placement.
-  - Because active lab-governance placement ratifies policy by placement, only Jason or an explicitly authorized governance-maintenance agent may add, remove, or materially change active files under lab-governance/policies or lab-governance/processes.
-  - Before committing lab-governance policy or process changes, state the intended scope, ratification basis, affected active files, canon-version impact, child-branch propagation plan, and validation plan.
   - Keep draft policy and process proposals outside active policy and process directories until Jason ratifies them.
   - Remove obsolete operative policy from active governance rather than carrying deprecated active files; Git history is the archive.
   - Treat drift between .governance and lab-governance as allowed only when it is visible and intentional.
-  - Record repo-local deviations from lab-governance under .governance/local.
-  - During governance alignment work, classify differences between .governance and lab-governance as path-only, documentation-only, local exception, or candidate general policy change.
   - Before adding, moving, or versioning a governance policy change, evaluate the narrowest existing scope that can correctly own the change.
   - Prefer the narrowest existing applicable scope, including repo-local deviation, active local governance, kind branch, or trunk-general governance.
   - Use trunk only when the rule is intended to apply across agent kinds or when Jason explicitly ratifies trunk scope.
@@ -32,28 +26,12 @@ rules:
   - Prefer updating an existing domain file over creating a new one unless the policy surface is materially distinct.
   - Keep file names stable and descriptive.
   - Update path references in the same change when files move.
-  - Keep README.md, .governance/README.md, and lab-governance/README.md aligned with the actual structure.
+  - Keep README.md, lab-governance/README.md, and .governance/README.md aligned with the actual structure.
   - When changing operative wording, review nearby files for duplicated or conflicting rules.
-  - When changing governance policy files that alter the ratified governance contract, bump the relevant canon_version using the repository's semantic-version-style model in the same change.
-  - Use a patch bump for clarifications or narrow corrections, a minor bump for additive behavioral rules, and a major bump for contract-breaking or broad governance model changes.
-  - Treat only the explicit canon_version label specified in the repository as the governance version.
-  - Do not use commit SHA, branch tip, merge status, file timestamp, or deployment state as a substitute for canon_version.
-  - Do not bump canon_version for repo-local process, deviation, record, registry, or bookkeeping changes unless they alter the ratified governance contract consumed by agents.
-  - When a canon_version is bumped, update branch descriptors, canon-version-log, and affected registry target versions in the same change.
-  - Validate YAML syntax for every changed YAML governance file before committing.
-  - Scan changed governance files for merge conflict markers before committing.
-  - Validate task-map and kind-route references so every routed file exists and every active policy file is reachable through an intended route or documented as intentionally unrouted.
-  - Validate branch descriptors after every canon-version or propagation change, including active branch identity, active canon_version, and parent canon_version on kind branches.
-  - Validate canon-version-log entries when canon_version changes, including previous_canon_version, parent_canon_version when applicable, bump level, date, summary, and introduced_by_commit provenance.
-  - Validate agent-registry target versions when a governance version target changes.
-  - Validate that active policy and process files under .governance and lab-governance use ratified placement semantics rather than draft status.
   - AGENTS.md remains the entrypoint and index, not the full policy body.
   - Branch descriptors remain separate from AGENTS.md.
   - A kind branch descriptor is not present on trunk.
   - Agents do not push branches into this repository.
-  - When committing and pushing work on a branch that has governed downstream kind or sub-branches, propagate the work to the appropriate downstream branches before calling the work complete unless Jason explicitly scopes the change as branch-local.
   - When trunk governance policy changes, propagate the update into each governed child policy branch, including coding-agent and desktop-orchestrator, unless Jason explicitly scopes the change as trunk-local.
-  - Child policy propagation must include the changed governance files, any required branch descriptor or parent canon-version references, and validation for each child branch.
-  - If propagation is skipped, record the branch-local reason and the affected downstream branches as an explicit follow-up.
-  - Report the source commit, propagated branch commits, branch status, and validation results for each propagated branch.
+  - Child policy propagation must include the changed governance files and any required branch descriptor or parent canon-version references.
   - Generalizable changes travel upward as Gitea issues, not pull requests or upward merges.

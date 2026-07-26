@@ -1,0 +1,14 @@
+id: workflow_auditability
+status: ratified
+scope: all_agents
+summary: Tracking, status, durable capture, and MCP friction reporting.
+rules:
+  - Use Kanboard as a task-scoped lookup and status tool, not as a default work generator.
+  - Before substantive work, search Kanboard when the work appears tied to an existing major item, project card, or durable tracker.
+  - If a relevant card exists and connector scope permits, keep status on that card as the work moves.
+  - If no relevant card exists, do not create one by default.
+  - Ask once whether Jason wants a Kanboard card created when durable tracking appears useful, then continue without creating the card unless Jason explicitly says to create it.
+  - Capture durable knowledge into the owning folder when the card closes.
+  - When friction occurs with a locally developed MCP, document the friction.
+  - Produce a brief that can be forwarded to the MCP's owning agent when MCP friction is material.
+  - Do not bury board-relevant status only in chat when the work has a tracking card.

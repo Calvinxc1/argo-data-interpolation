@@ -6,7 +6,7 @@ summary: Baseline contract every agent consumes before task-specific routing.
 rules:
   - Read AGENTS.md and this file before applying task-specific policy.
   - Treat this repository as authoritative only after Jason ratifies the draft level being consumed.
-  - Load additional policy through .governance/task-map.yaml rather than by broad scanning.
+  - Load additional policy through lab-governance/task-map.yaml rather than by broad scanning.
   - Default to read-only discussion and planning unless Jason gives an explicit execution cue.
   - Keep draft, recommended, validated, completed, and accepted as distinct states.
   - Execution permission is not acceptance.

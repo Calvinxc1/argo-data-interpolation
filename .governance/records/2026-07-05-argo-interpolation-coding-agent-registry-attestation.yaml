@@ -1,0 +1,26 @@
+type: agent_registry_attestation
+canonical_agent_name: Argo Interpolation Coding Agent
+agent_kind: coding_agent
+active_governance_branch: coding-agent
+source_repository: gitea.infra.newedenhomestead.net:ai-projects/ai-governance.git
+source_commit: 8df049280062fdfb5e9b3bfcc5619366b5125fdb
+previous_active_canon_version: coding-agent/1.0.0
+current_active_canon_version: coding-agent/1.3.1
+previous_generalized_canon_version: trunk/2.7.0
+current_generalized_canon_version: trunk/2.9.0
+self_stamp_path: .governance/local/version-stamp.yaml
+self_stamp_updated: true
+registry_loop_transport: gitea_issue
+registry_loop_result: submitted_to_ai-projects/ai-governance#34_pending_central_registry_update
+updated_at: 2026-07-05T20:48:20Z
+result: locally_updated_registry_pending
+reconciliation:
+  - canonical_name_corrected: Jason corrected the local canonical agent name from Coding Agent to Argo Interpolation Coding Agent before mutation.
+  - unknown_registry_row: No exact agent-registry/agents.yaml row exists for Argo Interpolation Coding Agent.
+  - generic_registry_row_present: The registry has a generic Coding Agent row for agent_kind coding_agent.
+  - branch_selected_by_kind: With no exact registry row, the active governance branch was selected from agent_kind coding_agent as coding-agent.
+  - registry_active_target_behind_source: The generic Coding Agent row targets active canon coding-agent/1.0.0, while the consumed source branch descriptor is coding-agent/1.3.1.
+  - generalized_version_advanced: Local generalized canon advanced from trunk/2.7.0 to trunk/2.9.0.
+  - missing_previous_lab_governance_tree: Local lab-governance/ was absent before this update and was added from the source branch.
+  - local_only_governance_preserved: Local-only governance files not present in the source branch were preserved, including .governance/local/version-stamp.yaml, older local records, and retired/local policy files.
+  - central_registry_pending: Direct mutation of agent-registry/agents.yaml was not authorized; this attestation requests central registry reconciliation.

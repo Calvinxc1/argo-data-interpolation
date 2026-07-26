@@ -1,0 +1,9 @@
+id: inter_agent_communication
+status: ratified
+scope: all_agents
+summary: Index for split agent communication policies.
+rules:
+  - Load `lab-governance/policies/agent-identity.yaml` for canonical identity rules.
+  - Load `lab-governance/policies/durable-communication-boundaries.yaml` for durable record and governance-canon boundaries.
+  - Load `lab-governance/policies/live-room-coordination.yaml` for active live-room coordination.
+  - Load `lab-governance/policies/live-room-closeout.yaml` for live-room closeout, dismissal, stale-presence, and completion rules.

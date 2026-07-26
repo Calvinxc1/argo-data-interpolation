@@ -1,0 +1,11 @@
+canonical_agent_name: Argo Interpolation Coding Agent
+agent_kind: coding_agent
+active_governance_branch: coding-agent
+active_canon_version: coding-agent/1.3.1
+generalized_canon_version: trunk/2.9.0
+canon_version_log_ref: canon-version-log/versions.yaml
+provenance_commit: 8df049280062fdfb5e9b3bfcc5619366b5125fdb
+source_repository_or_path: gitea.infra.newedenhomestead.net:ai-projects/ai-governance.git#coding-agent
+self_stamp_timestamp: 2026-07-05T20:48:20Z
+agent_declared_status: locally_updated_registry_pending
+notes: Local governance copy updated from ai-governance coding-agent branch at 8df049280062fdfb5e9b3bfcc5619366b5125fdb. Jason corrected the canonical agent name from the prior local self-stamp value Coding Agent to Argo Interpolation Coding Agent. No exact central registry row exists for Argo Interpolation Coding Agent; the older generic Coding Agent row remains pending registry reconciliation. Local-only governance files were preserved.

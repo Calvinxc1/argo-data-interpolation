@@ -1,0 +1,20 @@
+id: durable_communication_boundaries
+status: ratified
+scope: all_agents
+summary: Boundaries between live communication, durable records, and governance canon.
+rules:
+  - Match the venue to the job, including live ephemeral coordination versus durable ratified governance.
+  - Do not auto-bridge live coordination channels and durable governance channels.
+  - Hand-write every durable outcome to its system of record.
+  - Keep the Gitea governance issue channel outside the live-room communication standard.
+  - Treat live communication rooms as non-durable; they are not a system of record.
+  - Use connectors as on-call, task-scoped tools.
+  - Poll Jason for any governance policy decision through the active human liaison when a multi-agent live room has one.
+  - Treat agent convergence as a recommendation only.
+  - Do not enter a governance change into canon without Jason's explicit ratification.
+  - Treat Jason as the sole ratifier for governance policy.
+  - Do not put secrets, long logs, or bulky artifacts into live-room transcripts.
+  - Reference bulky material by path, link, or issue reference and summarize it.
+  - Treat tokens as a shared cost in live agent communication.
+  - Prefer the cheapest faithful representation of a message.
+  - Batch a coherent thought into one post instead of several.

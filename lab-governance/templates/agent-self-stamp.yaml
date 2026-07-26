@@ -1,0 +1,11 @@
+canonical_agent_name: null
+agent_kind: null
+active_governance_branch: null
+active_canon_version: null
+generalized_canon_version: null
+canon_version_log_ref: null
+provenance_commit: null
+source_repository_or_path: null
+self_stamp_timestamp: null
+agent_declared_status: unknown
+notes: Replace null values with the agent's locally attested governance state.

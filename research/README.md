@@ -4,6 +4,16 @@ This directory contains the project's working research materials: literature rev
 
 The shared review and verification approach for these documents is described in [research-methodology.md](research-methodology.md).
 
+## Downstream Paper Boundary
+
+The materials in this directory stay in this repository as supporting research,
+methodology, reproducibility context, and figure-development material for the
+codebase. They may feed the OCEANS 2026 Monterey paper, but they are not the
+canonical paper draft. The paper itself, including its draft text and
+bibliography, is maintained outside this repository under Education ownership
+and should point back to this repo for code, methodology support, and
+visualizations.
+
 ## Current Research Topics
 
 - [argo-cycle-representation](argo-cycle-representation/README.md): research on cycle-level vertical profile representation, interpolation, uncertainty modeling, and compression for individual Argo float profiles.

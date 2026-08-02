@@ -41,7 +41,6 @@
 
 # %%
 import numpy as np
-from argopy import DataFetcher as ArgoDataFetcher
 import pandas as pd
 from tqdm.auto import tqdm
 from scipy.interpolate import Akima1DInterpolator, PchipInterpolator

@@ -7,7 +7,7 @@ files:
 
 entry_model:
   collection_key: "overrides"
-  amendment_rule: "Amend the same case; do not layer overrides."
+  amendment_rule: "Amend the same case rather than layering overrides."
   pattern_review_rule: "After restoration, check for materially similar prior overrides and surface patterns."
 
 material_override_definition:
@@ -32,7 +32,7 @@ required_fields:
 
 optional_fields:
   - "branch"
-  - "pr"
+  - "issue"
   - "declared_by"
   - "scope"
   - "materiality"
@@ -48,7 +48,7 @@ field_definitions:
   restoration_status: "Restoration state."
   notes: "Freeform context."
   branch: "Associated branch."
-  pr: "Associated pull request."
+  issue: "Associated Gitea issue."
   declared_by: "Declaring actor."
   scope: "Case scope."
   materiality: "Optional materiality label."
@@ -65,6 +65,7 @@ entry_conventions:
   - "If restoration cannot complete immediately, use blocked or in_progress and explain why in notes."
   - "Do not use one override entry to supersede override-governance rules."
   - "When an override changes mid-stream, amend the existing case."
+  - "After restoration, review materially similar prior overrides and surface policy patterns."
 
 example:
   overrides:
@@ -72,7 +73,7 @@ example:
       date: "2026-03-25"
       operation: "Temporarily disable branch protection to perform a one-off maintenance push, then restore protection."
       policy_sections:
-        - ".governance/policies/enforcement.yaml#enforcement"
+        - ".governance/policies/risk-validation.yaml#risk_validation"
         - ".governance/processes/override-governance.yaml#override_governance.rules"
       branch: "feature/agents-user-involvement-guardrails"
       declared_by: "developer"

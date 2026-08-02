@@ -13,9 +13,12 @@ class SplineAdapter(BaseAdapter):
     model: BSpline
 
     @classmethod
-    def fit(cls, pressure_data: NDArray[np.float64],
-            measure_data: NDArray[np.float64],
-            model_kwargs: dict[str, Any]) -> Self:
+    def fit(
+        cls,
+        pressure_data: NDArray[np.float64],
+        measure_data: NDArray[np.float64],
+        model_kwargs: dict[str, Any],
+    ) -> Self:
         fit_kwargs = dict(model_kwargs)
         extrapolate = fit_kwargs.pop("extrapolate", False)
         model = make_splrep(pressure_data, measure_data, **fit_kwargs)

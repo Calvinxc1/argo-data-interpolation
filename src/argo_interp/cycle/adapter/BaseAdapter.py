@@ -10,9 +10,12 @@ from numpy.typing import ArrayLike, NDArray
 class BaseAdapter(ABC):
     @classmethod
     @abstractmethod
-    def fit(cls, pressure_data: NDArray[np.float64],
-            measure_data: NDArray[np.float64],
-            model_kwargs: dict[str, Any]) -> Self:
+    def fit(
+        cls,
+        pressure_data: NDArray[np.float64],
+        measure_data: NDArray[np.float64],
+        model_kwargs: dict[str, Any],
+    ) -> Self:
         pass
 
     @abstractmethod

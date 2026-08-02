@@ -1,11 +1,10 @@
-from importlib import import_module
+import sys
 
+import argopy
 import pytest
 import xarray as xr
 
-pytest.importorskip("argopy")
-
-from argo_interp.data.get_data import get_data
+from argo_interp.data import get_data
 
 
 class MockFetcher:
@@ -32,8 +31,7 @@ def test_get_data_builds_fetcher_with_expected_arguments(monkeypatch: pytest.Mon
         calls.update(kwargs)
         return fetcher
 
-    get_data_module = import_module("argo_interp.data.get_data")
-    monkeypatch.setattr(get_data_module, "DataFetcher", fake_data_fetcher)
+    monkeypatch.setattr(argopy, "DataFetcher", fake_data_fetcher)
 
     box = [0.0, 1.0, 2.0, 3.0, 0.0, 10.0]
     result = get_data(box=box, progress=True, max_workers=7, mode="expert")
@@ -47,3 +45,12 @@ def test_get_data_builds_fetcher_with_expected_arguments(monkeypatch: pytest.Mon
         "chunks_maxsize": {"time": 180},
         "mode": "expert",
     }
+
+
+def test_get_data_explains_how_to_install_the_optional_dependency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(sys.modules, "argopy", None)
+
+    with pytest.raises(ImportError, match="argo-data-interpolation\\[data\\]"):
+        get_data(box=[0.0, 1.0, 2.0, 3.0, 0.0, 10.0])

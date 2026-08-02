@@ -1,0 +1,60 @@
+id: agent_governance_update
+status: ratified
+scope: all_agents
+summary: Canonical prompt-driven process for updating an agent's local governance copy and closing the registry loop.
+canonical_prompt:
+  path: lab-governance/templates/governed-agent-update-prompt.md
+  source_repository: gitea.infra.newedenhomestead.net:ai-projects/ai-governance.git
+rules:
+  - Agents must use `lab-governance/templates/governed-agent-update-prompt.md` from the ai-governance Gitea repository when the canonical update prompt is available.
+  - Agents must not improvise governance update mechanics when the canonical update prompt is available.
+  - The prompt path is the source of truth for update instructions, including branch selection, self-stamp updates, attestation generation, reconciliation reporting, and registry-loop submission.
+  - The update process must preserve the distinction between local self-stamp state and central registry state.
+  - Completing the prompt does not by itself prove that `agent-registry/agents.yaml` has been updated.
+  - The prompt must instruct the agent to emit or submit a structured registry attestation after every successful, failed, or partial update.
+  - The prompt must require live feedback about registry mismatches, local self-stamp changes, branch selection, canon-version changes, and any reconciliation that remains unresolved.
+  - The current registry-loop transport may be local attestation files, Gitea issues, or another ratified transport.
+  - The transport mechanism may later become more direct if ratified and if it preserves identity, validation, audit trail, conflict detection, and bounded write scope.
+  - Agents must report the ai-governance source commit used for the update.
+  - Agents must report whether the registry loop was submitted, written locally, skipped, failed, or deferred.
+  - Agents must not directly edit the central registry unless the canonical prompt or a ratified process explicitly authorizes that mode.
+prompt_contract:
+  - Require or confirm canonical agent name.
+  - Require or confirm agent kind.
+  - Resolve the active governance branch for that agent.
+  - Fetch or inspect the ai-governance Gitea repository.
+  - Copy or merge the correct governance source into the local agent workspace.
+  - Preserve local-only governance files unless the prompt explicitly instructs reconciliation.
+  - Update the local self-stamp.
+  - Validate loaded canon versions after update.
+  - Compare the new policy state against registry targets and existing local self-stamp state.
+  - Provide live reconciliation feedback before and after local mutation.
+  - Emit a structured registry attestation.
+  - Submit the attestation through the currently ratified registry-loop transport when that transport is available.
+  - Preserve a local attestation file if remote submission fails or is not available.
+  - Print a concise closeout summary for the agent to report.
+attestation_fields:
+  - canonical_agent_name
+  - agent_kind
+  - active_governance_branch
+  - source_repository
+  - source_commit
+  - previous_active_canon_version
+  - current_active_canon_version
+  - previous_generalized_canon_version
+  - current_generalized_canon_version
+  - self_stamp_path
+  - self_stamp_updated
+  - registry_loop_transport
+  - registry_loop_result
+  - updated_at
+  - result
+  - reconciliation
+failure_rules:
+  - If agent identity is not settled, the update must stop before mutating local governance.
+  - If a branch or canon-version mismatch is detected, the agent must report the mismatch before local mutation.
+  - If the agent cannot submit a registry-loop update, it must preserve a local attestation and report the path.
+  - If registry state conflicts with the local self-stamp or source governance state, the conflict must be reported rather than silently reconciled.
+acceptance:
+  - The update is locally complete when the local governance copy and self-stamp reflect the selected source commit and a registry attestation has been written or submitted.
+  - The registry loop is closed only when `agent-registry/agents.yaml` has been updated or the attestation has been explicitly declined with rationale.

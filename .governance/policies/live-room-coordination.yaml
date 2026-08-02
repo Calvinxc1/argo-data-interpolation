@@ -1,0 +1,51 @@
+id: live_room_coordination
+status: ratified
+scope: all_agents
+summary: Live coordination, liveness, liaison, and message discipline for agent rooms.
+rules:
+  - This standard governs live agent-to-agent communication.
+  - Do not treat this standard as defining a default set of channels or rooms.
+  - Project-specific conversation topologies are allowed when the work calls for them, including hub-and-spoke coordination.
+  - Before joining, monitoring, coordinating in, or closing an Althing or other live agent room, agents must load the `live_agent_coordination` route and the room transport's available connector boundaries.
+  - Before calling a room join operation, an agent must know the room identifier, the canonical name it will use, its assigned or expected role when one was provided, any Jason-designated runner, closer, or liaison, and its obligation to maintain cursor-aware polling until suspended or dismissed by name.
+  - On joining a live room, announce in one line and check current presence when the transport supports it.
+  - After the initial join and presence check, agents must hold a preliminary coordination exchange before substantive room work begins.
+  - The preliminary coordination exchange must identify the room purpose, active room runner or closer, active human liaison when one is needed, participant roles, round cap, stalemate cap, and whether the room starts active, suspended, or waiting on Jason.
+  - If Jason designated a room runner, primary agent, closer, liaison, or role split, agents must acknowledge that designation in-room rather than renegotiating it silently.
+  - If Jason did not designate who is running the room, agents must choose and announce exactly one active room runner or closer before making task decisions, asking Jason for a decision, or treating any agent as released.
+  - If more than one agent appears to be running the room, pause substantive coordination and resolve the room-runner conflict in-room or escalate it to Jason through the active liaison.
+  - Supporting, secondary, observer, and specialist agents remain full room participants until the closer explicitly releases them under the closeout policy.
+  - Converse to resolution, then have the closer summarize, participants leave, and connectors shut down.
+  - Do not assume live-room state persists between tasks.
+  - After posting in a cursor-based live room, await new messages with the latest cursor and a short timeout.
+  - Prefer short await re-arm intervals until the host tool-call timeout has been measured against the transport's long-poll behavior.
+  - Re-arm the await loop when it returns empty while the room remains active.
+  - Always pass the latest cursor; the cursor is the catch-up mechanism, and agents must not re-read the stream.
+  - Keep live messages terse and limited to one fresh increment.
+  - Do not restate the thread in live messages.
+  - When the transport server-stamps identity, do not prefix the sender name in the message body.
+  - Use reply references to disambiguate when three or more participants are present and the transport supports replies.
+  - When a live coordination room includes more than one agent and any human participant, designate exactly one active human liaison for confirmations, clarifications, approvals, and ratification requests.
+  - If Jason does not designate the active human liaison at room start, the agents must choose one before making any Jason-facing decision request.
+  - The chosen liaison must be announced in-room, and Jason-facing confirmations, clarifications, approvals, and ratification requests route through that liaison until Jason or the room explicitly changes the liaison.
+  - Non-liaison agents must route human-facing decision requests through the active liaison or through an explicit liaison handoff.
+  - Do not ask the same human for duplicate confirmations from multiple agents in the same live coordination room.
+  - If the active liaison becomes unavailable, agents may choose a replacement liaison in-room before making further human-facing decision requests.
+  - Set a round cap and a stalemate cap during the preliminary coordination exchange at the start of a live coordination room.
+  - On convergence or cap, the closer summarizes and closes or suspends the room according to the remaining work.
+  - Escalate an unbreakable tie to Jason.
+  - Respect transport maximum message size and per-agent rate limits.
+  - Do not evade transport limits with noisy ad hoc chunking.
+  - When large transfer through the room is unavoidable, use an explicit labeled multipart protocol with file name, part number, total parts, begin marker, and end marker, or use a durable file reference instead.
+  - After a restart, rejoin with the last cursor to backfill only missed messages.
+  - If the last cursor is lost, join fresh, take the full backfill, and say so.
+  - Keep an await outstanding while a live task room is active and the agent is a participant.
+  - While a live task room is active, each participant must actively maintain presence by rejoining or re-polling before expiry until the closer signals closeout or suspension.
+  - Agents with slower response backends may take longer to produce substantive replies, but they must still maintain liveness through cursor-aware polling, keepalive rejoin, or brief working acknowledgments.
+  - The closer should distinguish slow substantive response from failure only while the participant is maintaining liveness under the room's stated latency and round caps.
+  - Do not tell peers to stop listening while the room remains active.
+  - An agent that must leave before closeout posts an explicit suspend notice with a resume trigger and owner, rather than allowing silent expiry.
+  - For a long pause, post a suspension notice naming the resume trigger, the resume owner, the last cursor, and participant_id when the transport exposes it.
+  - Resume self-serve by rejoining with the saved cursor.
+  - Do not assume automatic broker wake exists unless the transport explicitly provides it.
+  - Treat a suspended agent as requiring a one-time human or runtime wake when no automatic wake exists.

@@ -11,9 +11,8 @@ class CycleData:
     salinity: pd.DataFrame
 
     def __post_init__(self) -> None:
-        if (
-            not isinstance(self.temperature, pd.DataFrame)
-            or not isinstance(self.salinity, pd.DataFrame)
+        if not (
+            isinstance(self.temperature, pd.DataFrame) and isinstance(self.salinity, pd.DataFrame)
         ):
             raise ValueError("CycleData temperature and salinity must be pandas DataFrames")
 

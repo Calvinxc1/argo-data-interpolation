@@ -1,10 +1,18 @@
+from __future__ import annotations
+
 import operator
 from functools import reduce
+from typing import TYPE_CHECKING, Any
 
-import xarray as xr
+if TYPE_CHECKING:
+    import xarray as xr
 
 
-def data_filter(ds: xr.Dataset, filters: list) -> xr.Dataset:
+def data_filter(ds: xr.Dataset, filters: list[Any]) -> xr.Dataset:
+    """Apply boolean masks to an xarray dataset.
+
+    Xarray is provided by the optional ``argo-data-interpolation[data]`` extra.
+    """
+
     mask = reduce(operator.and_, filters)
-    filtered_ds = ds.where(mask, drop=True)
-    return filtered_ds
+    return ds.where(mask, drop=True)

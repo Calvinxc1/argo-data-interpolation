@@ -13,10 +13,13 @@ class LinearAdapter(BaseAdapter):
     model: BSpline
 
     @classmethod
-    def fit(cls, pressure_data: NDArray[np.float64],
-            measure_data: NDArray[np.float64],
-            model_kwargs: dict[str, Any]) -> Self:
-        model_kwargs = {'extrapolate': False, **model_kwargs, 'k': 1}
+    def fit(
+        cls,
+        pressure_data: NDArray[np.float64],
+        measure_data: NDArray[np.float64],
+        model_kwargs: dict[str, Any],
+    ) -> Self:
+        model_kwargs = {"extrapolate": False, **model_kwargs, "k": 1}
         knots = np.concatenate([[pressure_data[0]], pressure_data, [pressure_data[-1]]])
         model = BSpline(knots, measure_data, **model_kwargs)
         return cls(model=model)

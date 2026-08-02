@@ -13,6 +13,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Added automatic Ruff linting with PR-only reporting and PR-visible lint summaries alongside the test workflow.
 - Added a Bay of Bengal Jana et al. replication notebook under the underwater-acoustics research topic, along with companion notes documenting the settled replication pipeline, validation outputs, and subdomain figure workflow.
 - Added `cartopy` and `seawater` as runtime dependencies to support the research notebook mapping and UNESCO sound-speed replication workflow.
+- Added the reusable `argo_interp.uncertainty` API for the Notebook 6 TEOS-10 sound-speed uncertainty product, including explicit configuration, spatial-variance estimation, geometry selection, provenance metadata, and batched grid construction.
 
 ### Changed
 
@@ -31,11 +32,20 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Reworked cycle-model settings so validation and interpolation can use distinct temperature and salinity kwargs through a dedicated settings package and shared sensor-accuracy configuration.
 - Replaced the Argo QC helper with a more general `data_filter` utility, exposed that helper from `argo_interp.data`, and updated the research fetch path to accept an explicit `mode` plus larger default time chunks.
 - Split shared cycle classes into explicit `argo_interp.cycle.domain` and `argo_interp.cycle.config` public packages, removed duplicate legacy type modules under `cycle/model`, and updated model/validation wiring plus the Jana replication notebook to use the new API surface.
+- Moved Notebook 6's reusable uncertainty-product computation onto `argo_interp.uncertainty`, retaining its validated planar-degree configuration. The historical `depth_m` field remains a pressure-grid label equal to `pressure_dbar`; physical-depth conversion is deferred future work.
+- Moved Argopy/Xarray data access and notebook-only packages into explicit `data` and `research` extras, keeping the installed core focused on the public modeling and uncertainty APIs.
+- Updated package license metadata to the SPDX form required by current Python packaging tooling.
+- Streamlined the paired Notebook 6 research artifact by moving cache/model rebuild, benchmarking, and plotting mechanics into topic-local support modules; removed unused direct Argopy imports from the earlier cycle-representation notebooks.
+- Clarified that PyPI distribution is forthcoming and that the repository checkout remains the current installation path.
 
 ### Fixed
 
 - Fixed `SplineAdapter.fit` to apply `extrapolate` on the fitted `BSpline` object instead of passing it to `make_splrep`, preventing runtime `TypeError` and restoring configurable extrapolation behavior.
 - Fixed `Model.interpolate()` and `Model.interp_error()` to normalize scalar pressure inputs consistently, including integer scalars, while cleaning the remaining Ruff line-length violations in the runtime and test code.
+- Constrained Erddapy below 3.3 because Argopy 1.4.0 imports a symbol removed by Erddapy 3.3, which otherwise prevents Argo data fetching from importing.
+- Made the CI pytest step preserve test failures when its output is captured for PR summaries.
+- Preserved uncertainty provenance on frames yielded by `SoundSpeedUncertaintyProduct.iter_grid_batches()`.
+- Made weighted profile means exclude all non-finite input values, consistent with their finite-support contract.
 
 ### Removed
 

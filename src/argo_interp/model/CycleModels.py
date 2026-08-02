@@ -12,6 +12,7 @@ from numpy.typing import ArrayLike
 from ..cycle.model import Model
 from .CycleData import CycleData
 from .CycleMetadata import CycleMetadata
+from .CycleVarianceData import CycleVarianceData, MeasureVarianceData
 
 TimestampLike = datetime | pd.Timestamp | np.datetime64
 
@@ -122,14 +123,12 @@ class CycleModels:
             )
 
             if filter_norm[0] <= filter_norm[1]:
-                mask &= (
-                    (metadata.seasonal_timestamp >= filter_norm[0])
-                    & (metadata.seasonal_timestamp <= filter_norm[1])
+                mask &= (metadata.seasonal_timestamp >= filter_norm[0]) & (
+                    metadata.seasonal_timestamp <= filter_norm[1]
                 )
             else:
-                mask &= (
-                    (metadata.seasonal_timestamp >= filter_norm[0])
-                    | (metadata.seasonal_timestamp <= filter_norm[1])
+                mask &= (metadata.seasonal_timestamp >= filter_norm[0]) | (
+                    metadata.seasonal_timestamp <= filter_norm[1]
                 )
 
         if exclude_platform_number is not None:
@@ -140,14 +139,15 @@ class CycleModels:
 
         return mask
 
-    def filter(self,
-       lat: Optional[tuple[float, float]] = None,
-       lon: Optional[tuple[float, float]] = None,
-       timestamp: Optional[tuple[datetime, datetime]] = None,
-       cyclical_dates: Optional[tuple[datetime, datetime]] = None,
-       exclude_cycle_ids: Optional[Collection[str]] = None,
-       exclude_platform_number: Optional[str] = None,
-       return_models_dict: bool = False,
+    def filter(
+        self,
+        lat: Optional[tuple[float, float]] = None,
+        lon: Optional[tuple[float, float]] = None,
+        timestamp: Optional[tuple[datetime, datetime]] = None,
+        cyclical_dates: Optional[tuple[datetime, datetime]] = None,
+        exclude_cycle_ids: Optional[Collection[str]] = None,
+        exclude_platform_number: Optional[str] = None,
+        return_models_dict: bool = False,
     ) -> CycleModels | dict[str, Model]:
         mask = self.mask(
             lat=lat,
@@ -157,10 +157,7 @@ class CycleModels:
             exclude_cycle_ids=exclude_cycle_ids,
             exclude_platform_number=exclude_platform_number,
         )
-        models = {
-            cycle_id: self.models[cycle_id]
-            for cycle_id in self._metadata.cycle_id[mask]
-        }
+        models = {cycle_id: self.models[cycle_id] for cycle_id in self._metadata.cycle_id[mask]}
 
         if return_models_dict:
             return models
@@ -206,3 +203,45 @@ class CycleModels:
 
     def interp_error(self, pressure_data: ArrayLike, *, mask: ArrayLike | None = None) -> CycleData:
         return self._interpolate_cycle_data(pressure_data, "interp_error", mask=mask)
+
+    def interp_error_variance(
+        self,
+        pressure_data: ArrayLike,
+        *,
+        mask: ArrayLike | None = None,
+    ) -> CycleVarianceData:
+        pressure_values = np.asarray(pressure_data, dtype=float)
+        pressure_index = pd.Index(pressure_values, name="pressure")
+
+        metadata = self._metadata if mask is None else self.metadata(mask)
+        cycle_ids = metadata.cycle_id
+
+        empty_frame = pd.DataFrame(index=pressure_index, columns=cycle_ids, dtype=float)
+        temp_sensor = empty_frame.copy()
+        temp_pressure = empty_frame.copy()
+        temp_model = empty_frame.copy()
+        sal_sensor = empty_frame.copy()
+        sal_pressure = empty_frame.copy()
+        sal_model = empty_frame.copy()
+
+        for cycle_id in cycle_ids:
+            model_variance = self.models[cycle_id].interp_error_variance(pressure_values)
+            temp_sensor[cycle_id] = model_variance.temperature.sensor_precision
+            temp_pressure[cycle_id] = model_variance.temperature.pressure_gradient
+            temp_model[cycle_id] = model_variance.temperature.vertical_model
+            sal_sensor[cycle_id] = model_variance.salinity.sensor_precision
+            sal_pressure[cycle_id] = model_variance.salinity.pressure_gradient
+            sal_model[cycle_id] = model_variance.salinity.vertical_model
+
+        return CycleVarianceData(
+            temperature=MeasureVarianceData(
+                sensor_precision=temp_sensor,
+                pressure_gradient=temp_pressure,
+                vertical_model=temp_model,
+            ),
+            salinity=MeasureVarianceData(
+                sensor_precision=sal_sensor,
+                pressure_gradient=sal_pressure,
+                vertical_model=sal_model,
+            ),
+        )

@@ -8,7 +8,9 @@ from ..adapter.BaseAdapter import BaseAdapter
 from ..config.ModelSettings import ModelSettings
 from ..domain.CycleError import CycleError
 from ..domain.MeasureError import MeasureError
+from ..domain.MeasureErrorVariance import MeasureErrorVariance
 from ..domain.ModelData import ModelData
+from ..domain.ModelErrorVariance import ModelErrorVariance
 from ..domain.ModelMeta import ModelMeta
 from ..validation.calc_fold_error import calc_fold_error
 from .ModelAdapters import ModelAdapters
@@ -83,15 +85,57 @@ class Model:
         interp_error = ModelData(pressure=pressure_data, temperature=temp_error, salinity=sal_error)
         return interp_error
 
+    def interp_error_variance(self, pressure_data: ArrayLike | float) -> ModelErrorVariance:
+        pressure_data = self._normalize_pressure_input(pressure_data)
+
+        temp_variance = self._measure_error_variance(
+            self.error.pressure,
+            self.error.temperature,
+            self.adapters.temperature.gradient(pressure_data),
+        )
+        sal_variance = self._measure_error_variance(
+            self.error.pressure,
+            self.error.salinity,
+            self.adapters.salinity.gradient(pressure_data),
+        )
+        return ModelErrorVariance(
+            pressure=pressure_data,
+            temperature=temp_variance,
+            salinity=sal_variance,
+        )
+
     @staticmethod
     def _measure_error(
         pressure_error: float,
         measure_error: MeasureError,
         measure_gradient: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        sq_model_error = measure_error.model ** 2
-        sq_sensor_error = measure_error.sensor ** 2
-        sq_pres_error = (np.abs(measure_gradient) * pressure_error) ** 2
+        return Model._measure_error_variance(
+            pressure_error,
+            measure_error,
+            measure_gradient,
+        ).sigma
 
-        measure_errors = np.sqrt(sq_model_error + sq_sensor_error + sq_pres_error)
-        return measure_errors
+    @staticmethod
+    def _measure_error_variance(
+        pressure_error: float,
+        measure_error: MeasureError,
+        measure_gradient: NDArray[np.float64],
+    ) -> MeasureErrorVariance:
+        sensor_precision = np.full_like(
+            measure_gradient,
+            measure_error.sensor**2,
+            dtype=float,
+        )
+        pressure_gradient = (measure_gradient * pressure_error) ** 2
+        vertical_model = np.full_like(
+            measure_gradient,
+            measure_error.model**2,
+            dtype=float,
+        )
+
+        return MeasureErrorVariance(
+            sensor_precision=sensor_precision,
+            pressure_gradient=pressure_gradient,
+            vertical_model=vertical_model,
+        )

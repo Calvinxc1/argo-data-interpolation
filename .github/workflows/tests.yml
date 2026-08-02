@@ -33,7 +33,7 @@ jobs:
       - name: Run ruff
         run: |
           mkdir -p lint-results
-          if uv run ruff check src tests | tee lint-results/ruff.txt; then
+          if uv run --group dev -- python -m ruff check src tests | tee lint-results/ruff.txt; then
             echo pass > lint-results/status.txt
           else
             echo fail > lint-results/status.txt
@@ -118,10 +118,9 @@ jobs:
       - name: Run tests with coverage
         run: |
           mkdir -p test-results
-          uv run pytest \
+          set -o pipefail
+          uv run --group dev -- python -m pytest \
             --junitxml=test-results/pytest.xml \
-            --cov=argo_interp \
-            --cov-report=term-missing:skip-covered \
             --cov-report=xml:test-results/coverage.xml \
             | tee test-results/pytest-output.txt
 
@@ -293,11 +292,35 @@ jobs:
           name: pytest-results
           path: test-results/
 
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Build wheel
+        run: uv build --wheel --out-dir dist
+
+      - name: Smoke test installed core wheel
+        run: |
+          uv run --isolated --no-project --with dist/*.whl -- python -c \
+            "from argo_interp import SoundSpeedUncertaintyConfig; from argo_interp.data import get_data; assert SoundSpeedUncertaintyConfig.notebook6().distance_metric == 'planar_degrees'; assert callable(get_data)"
+
   quality-summary:
     if: always()
     needs:
       - lint
       - pytest
+      - package
     runs-on: ubuntu-latest
 
     steps:

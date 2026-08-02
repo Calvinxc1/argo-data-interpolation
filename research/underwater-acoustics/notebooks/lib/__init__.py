@@ -1,5 +1,10 @@
 from .plotting import plot_desaturated_heatmap
-from .prediction import weighted_cycle_prediction, weighted_profile_mean
+from .prediction import (
+    weighted_cycle_prediction,
+    weighted_cycle_variance,
+    weighted_profile_mean,
+    weighted_profile_variance,
+)
 from .validation import CandidateQuery, build_candidate_query
 from .weighting import (
     AVERAGE_YEAR_SECONDS,

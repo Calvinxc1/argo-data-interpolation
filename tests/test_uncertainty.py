@@ -145,6 +145,10 @@ def test_configuration_and_product_reject_invalid_inputs() -> None:
             _config(),
         )
 
+    product = SoundSpeedUncertaintyProduct(_cycle_models(), _spatial_variance(), _config())
+    with np.testing.assert_raises(ValueError):
+        product.query(latitude=10.0, longitude=80.0, depth_indices=[0.5])
+
 
 def test_empty_query_has_a_stable_schema_and_depth_summary_is_documented() -> None:
     product = SoundSpeedUncertaintyProduct(_cycle_models(), _spatial_variance(), _config())

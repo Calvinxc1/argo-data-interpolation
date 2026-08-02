@@ -118,6 +118,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           mkdir -p test-results
+          set -o pipefail
           uv run --group dev -- python -m pytest \
             --junitxml=test-results/pytest.xml \
             --cov-report=xml:test-results/coverage.xml \

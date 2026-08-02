@@ -26,12 +26,19 @@ uv pip install argo-data-interpolation
 ```
 
 Install the `data` extra to use `argo_interp.data.get_data` and
-`argo_interp.data.data_filter` with Argopy and Xarray. Install the `research`
-extra for the repository's notebooks and their plotting dependencies:
+`argo_interp.data.data_filter` with Argopy and Xarray. The `research` extra
+adds the data-analysis and plotting libraries used by the repository's research
+work; it does not install a Jupyter runtime:
 
 ```bash
 uv pip install "argo-data-interpolation[data]"
 uv pip install "argo-data-interpolation[research]"
+```
+
+For the complete notebook environment when working from this repository, run:
+
+```bash
+uv sync --all-groups
 ```
 
 ## Paper Boundary

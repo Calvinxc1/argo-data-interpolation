@@ -678,12 +678,19 @@ class SoundSpeedUncertaintyProduct:
         """Build a product table for one latitude/longitude query point."""
 
         terms = self._ensure_cycle_terms()
-        indices = (
-            np.arange(self.target_pressure.size, dtype=int)
-            if depth_indices is None
-            else np.asarray(depth_indices, dtype=int)
-        )
-        if indices.ndim != 1 or np.any(indices < 0) or np.any(indices >= self.target_pressure.size):
+        if depth_indices is None:
+            indices = np.arange(self.target_pressure.size, dtype=int)
+        else:
+            raw_indices = np.asarray(depth_indices)
+            try:
+                indices = raw_indices.astype(int)
+            except (TypeError, ValueError) as error:
+                raise ValueError(
+                    "depth_indices must be one-dimensional integer positions"
+                ) from error
+            if raw_indices.ndim != 1 or not np.array_equal(raw_indices, indices):
+                raise ValueError("depth_indices must be one-dimensional integer positions")
+        if np.any(indices < 0) or np.any(indices >= self.target_pressure.size):
             raise ValueError("depth_indices must select valid target-pressure indices")
 
         candidate_mask = candidate_mask_for_query(

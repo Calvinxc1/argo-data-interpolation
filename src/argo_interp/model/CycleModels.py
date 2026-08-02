@@ -123,14 +123,12 @@ class CycleModels:
             )
 
             if filter_norm[0] <= filter_norm[1]:
-                mask &= (
-                    (metadata.seasonal_timestamp >= filter_norm[0])
-                    & (metadata.seasonal_timestamp <= filter_norm[1])
+                mask &= (metadata.seasonal_timestamp >= filter_norm[0]) & (
+                    metadata.seasonal_timestamp <= filter_norm[1]
                 )
             else:
-                mask &= (
-                    (metadata.seasonal_timestamp >= filter_norm[0])
-                    | (metadata.seasonal_timestamp <= filter_norm[1])
+                mask &= (metadata.seasonal_timestamp >= filter_norm[0]) | (
+                    metadata.seasonal_timestamp <= filter_norm[1]
                 )
 
         if exclude_platform_number is not None:
@@ -141,14 +139,15 @@ class CycleModels:
 
         return mask
 
-    def filter(self,
-       lat: Optional[tuple[float, float]] = None,
-       lon: Optional[tuple[float, float]] = None,
-       timestamp: Optional[tuple[datetime, datetime]] = None,
-       cyclical_dates: Optional[tuple[datetime, datetime]] = None,
-       exclude_cycle_ids: Optional[Collection[str]] = None,
-       exclude_platform_number: Optional[str] = None,
-       return_models_dict: bool = False,
+    def filter(
+        self,
+        lat: Optional[tuple[float, float]] = None,
+        lon: Optional[tuple[float, float]] = None,
+        timestamp: Optional[tuple[datetime, datetime]] = None,
+        cyclical_dates: Optional[tuple[datetime, datetime]] = None,
+        exclude_cycle_ids: Optional[Collection[str]] = None,
+        exclude_platform_number: Optional[str] = None,
+        return_models_dict: bool = False,
     ) -> CycleModels | dict[str, Model]:
         mask = self.mask(
             lat=lat,
@@ -158,10 +157,7 @@ class CycleModels:
             exclude_cycle_ids=exclude_cycle_ids,
             exclude_platform_number=exclude_platform_number,
         )
-        models = {
-            cycle_id: self.models[cycle_id]
-            for cycle_id in self._metadata.cycle_id[mask]
-        }
+        models = {cycle_id: self.models[cycle_id] for cycle_id in self._metadata.cycle_id[mask]}
 
         if return_models_dict:
             return models

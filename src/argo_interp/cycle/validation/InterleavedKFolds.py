@@ -1,6 +1,7 @@
+from dataclasses import dataclass, field
+
 import numpy as np
 from numpy.typing import NDArray
-from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True, slots=True)

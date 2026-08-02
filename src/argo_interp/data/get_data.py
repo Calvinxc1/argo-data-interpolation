@@ -1,13 +1,33 @@
-from argopy import DataFetcher
-import xarray as xr
+from __future__ import annotations
 
-def get_data(box: list, progress: bool = False, max_workers: int = 4,
-             mode: str = 'standard') -> xr.Dataset:
-    f = DataFetcher(
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import xarray as xr
+
+
+def get_data(
+    box: list,
+    progress: bool = False,
+    max_workers: int = 4,
+    mode: str = "standard",
+) -> xr.Dataset:
+    """Fetch Argo observations for a region.
+
+    Requires the optional ``argo-data-interpolation[data]`` extra.
+    """
+
+    try:
+        from argopy import DataFetcher
+    except ModuleNotFoundError as error:
+        raise ImportError(
+            "Argo data fetching requires the 'data' extra: install argo-data-interpolation[data]."
+        ) from error
+
+    fetcher = DataFetcher(
         parallel=True,
         progress=progress,
         chunks_maxsize={"time": 180},
         mode=mode,
     ).region(box)
-    ds = f.to_xarray(max_workers=max_workers)
-    return ds
+    return fetcher.to_xarray(max_workers=max_workers)

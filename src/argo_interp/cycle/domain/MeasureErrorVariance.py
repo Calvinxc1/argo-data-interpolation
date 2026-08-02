@@ -19,9 +19,7 @@ class MeasureErrorVariance:
             raise ValueError("MeasureErrorVariance arrays must be one-dimensional")
 
         if not (
-            len(self.sensor_precision)
-            == len(self.pressure_gradient)
-            == len(self.vertical_model)
+            len(self.sensor_precision) == len(self.pressure_gradient) == len(self.vertical_model)
         ):
             raise ValueError("MeasureErrorVariance arrays must have the same length")
 

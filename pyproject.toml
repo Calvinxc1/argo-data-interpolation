@@ -7,21 +7,35 @@ name = "argo-data-interpolation"
 version = "0.1.0"
 description = "Interpolation tools for Argo float profile data."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
-    "argopy>=1.4.0",
-    "cartopy>=0.25.0",
     "gsw>=3.6.21",
     "numpy>=2.4.3",
     "pandas>=3.0.1",
     "scipy>=1.17.1",
+]
+
+[project.optional-dependencies]
+data = [
+    "argopy>=1.4.0",
+    "xarray>=2025.9.0",
+]
+research = [
+    "argopy>=1.4.0",
+    "cartopy>=0.25.0",
+    "matplotlib>=3.10.8",
+    "pydantic>=2.12.5",
+    "seaborn>=0.13.2",
     "seawater>=3.3.5",
+    "tqdm>=4.67.3",
     "xarray>=2025.9.0",
 ]
 
 [dependency-groups]
 dev = [
+    "argopy>=1.4.0",
     "ipykernel>=7.2.0",
     "jupyter>=1.1.1",
     "notebook>=7.5.5",
@@ -35,18 +49,30 @@ dev = [
     "jupytext>=1.19.1",
     "tqdm>=4.67.3",
     "pandas-stubs>=3.0.3.260530",
+    "xarray>=2025.9.0",
 ]
 
 research = [
     "argopy>=1.4.0",
+    "cartopy>=0.25.0",
     "matplotlib>=3.10.8",
     "pydantic>=2.12.5",
     "seaborn>=0.13.2",
+    "seawater>=3.3.5",
     "tqdm>=4.67.3",
+    "xarray>=2025.9.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov=argo_interp --cov-report=term-missing --cov-fail-under=80"
+
+[tool.coverage.run]
+branch = true
+source = ["argo_interp"]
+
+[tool.coverage.report]
+show_missing = true
 
 [tool.ruff]
 extend-exclude = ["research"]

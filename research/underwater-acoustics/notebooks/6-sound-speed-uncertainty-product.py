@@ -63,10 +63,13 @@ from matplotlib.lines import Line2D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tqdm.auto import tqdm
 
-from argo_interp.acoustics import (
-    sound_speed_teos10,
-    sound_speed_teos10_partials,
-    sound_speed_variance,
+from argo_interp.uncertainty import (
+    GaussianScale,
+    SoundSpeedUncertaintyProduct,
+    SoundSpeedUncertaintyConfig,
+    WeightConfig,
+    depth_summary,
+    estimate_depthwise_spatial_variance as estimate_depthwise_spatial_variance_package,
 )
 from argo_interp.cycle.adapter import PchipAdapter
 from argo_interp.cycle.config import ModelSettings
@@ -74,22 +77,6 @@ from argo_interp.cycle.domain import ModelData, ModelMeta
 from argo_interp.cycle.model import Model
 from argo_interp.data.data_filter import data_filter
 from argo_interp.model import CycleModels
-
-notebook_path_candidate = Path.cwd()
-if not (notebook_path_candidate / "lib").exists():
-    repo_relative_notebook_dir = Path("research/underwater-acoustics/notebooks")
-    if (repo_relative_notebook_dir / "lib").exists():
-        sys.path.insert(0, str(repo_relative_notebook_dir.resolve()))
-
-from lib import (
-    GaussianScale,
-    WeightConfig,
-    build_candidate_query,
-    compute_weight_deltas,
-    weighted_cycle_prediction,
-    weighted_profile_variance,
-    weighted_profile_mean,
-)
 
 # %% [markdown]
 # ## Configuration
@@ -147,6 +134,7 @@ season_week_stdev = 3.0
 use_distance_weight = True
 use_time_weight = True
 use_season_weight = True
+sensor_support_tau = 40.0
 
 weight_config = WeightConfig(
     distance=GaussianScale(distance_kernel_sigma_deg),
@@ -157,7 +145,14 @@ weight_config = WeightConfig(
     use_season=use_season_weight,
 )
 
-sensor_support_tau = 40.0
+uncertainty_config = SoundSpeedUncertaintyConfig(
+    target_pressure=target_pressure,
+    weight_config=weight_config,
+    anchor_time=anchor_time,
+    candidate_radius=dist_rad,
+    distance_metric="planar_degrees",
+    sensor_support_tau=sensor_support_tau,
+)
 
 weighting_cache_metadata = {
     "anchor_time": str(anchor_time),
@@ -300,67 +295,6 @@ len(all_metadata)
 # the residual primarily measures local-window interpolation rather than raw
 # vertical sampling noise.
 
-# %%
-def estimate_depthwise_spatial_variance(
-    cycle_models: CycleModels,
-    target_pressure: np.ndarray,
-    weight_config: WeightConfig,
-    dist_rad: float,
-) -> pd.DataFrame:
-    rows = []
-    metadata = cycle_models.metadata()
-
-    for position, cycle_id in enumerate(tqdm(metadata.cycle_id)):
-        candidate_query = build_candidate_query(
-            target_latitude=metadata.latitude[position],
-            target_longitude=metadata.longitude[position],
-            dist_rad=dist_rad,
-            exclude_platform_number=metadata.platform_number[position],
-        )
-        candidate_mask = cycle_models.mask(**candidate_query.to_mask_kwargs())
-        if candidate_mask.sum() == 0:
-            continue
-
-        candidate_metadata = cycle_models.metadata(candidate_mask)
-        weight_deltas = compute_weight_deltas(
-            target_latitude=metadata.latitude[position],
-            target_longitude=metadata.longitude[position],
-            target_timestamp=metadata.timestamp[position],
-            candidate_metadata=candidate_metadata,
-        )
-        weights = weight_config.joint_weight(weight_deltas)
-
-        target = cycle_models[cycle_id].interpolate(target_pressure)
-        interpolates = cycle_models.interpolate(target_pressure, mask=candidate_mask)
-        predicted_temperature, predicted_salinity = weighted_cycle_prediction(interpolates, weights)
-
-        for depth_index, pressure in enumerate(target_pressure):
-            target_temperature = target.temperature[depth_index]
-            target_salinity = target.salinity[depth_index]
-            predicted_temp = predicted_temperature[depth_index]
-            predicted_sal = predicted_salinity[depth_index]
-
-            if not np.isfinite([target_temperature, target_salinity, predicted_temp, predicted_sal]).all():
-                continue
-
-            rows.append(
-                {
-                    "cycle_id": cycle_id,
-                    "pressure_dbar": pressure,
-                    "temperature_residual": target_temperature - predicted_temp,
-                    "salinity_residual": target_salinity - predicted_sal,
-                }
-            )
-
-    residuals = pd.DataFrame(rows)
-    depthwise = residuals.groupby("pressure_dbar").agg(
-        var_temperature_spatial=("temperature_residual", "var"),
-        var_salinity_spatial=("salinity_residual", "var"),
-        spatial_validation_count=("cycle_id", "count"),
-    )
-    return depthwise.reindex(target_pressure)
-
-
 spatial_variance_cache_valid = spatial_variance_path.exists() and cache_metadata_matches(
     spatial_variance_metadata_path,
     weighting_cache_metadata,
@@ -370,17 +304,21 @@ if spatial_variance_cache_valid:
     with spatial_variance_path.open("rb") as f:
         spatial_variance = pickle.load(f)
 else:
-    spatial_variance = estimate_depthwise_spatial_variance(
+    spatial_variance = estimate_depthwise_spatial_variance_package(
         cycle_models=cycle_models,
-        target_pressure=target_pressure,
-        weight_config=weight_config,
-        dist_rad=dist_rad,
+        config=uncertainty_config,
     )
     with spatial_variance_path.open("wb") as f:
         pickle.dump(spatial_variance, f)
     write_cache_metadata(spatial_variance_metadata_path, weighting_cache_metadata)
 
 spatial_variance
+
+uncertainty_product_builder = SoundSpeedUncertaintyProduct(
+    cycle_models=cycle_models,
+    spatial_variance=spatial_variance,
+    config=uncertainty_config,
+)
 
 # %% [markdown]
 # ## Precompute Cycle-Level Target-Pressure Terms
@@ -396,44 +334,7 @@ uncertainty_product_cache_valid = uncertainty_product_path.exists() and cache_me
 )
 
 def ensure_cycle_target_terms() -> None:
-    global all_interpolates
-    global all_variance_components
-    global temperature_by_cycle
-    global salinity_by_cycle
-    global temperature_sensor_variance_by_cycle
-    global temperature_pressure_variance_by_cycle
-    global temperature_vertical_variance_by_cycle
-    global salinity_sensor_variance_by_cycle
-    global salinity_pressure_variance_by_cycle
-    global salinity_vertical_variance_by_cycle
-
-    if "temperature_by_cycle" in globals():
-        return
-
-    all_interpolates = cycle_models.interpolate(target_pressure)
-    all_variance_components = cycle_models.interp_error_variance(target_pressure)
-
-    temperature_by_cycle = all_interpolates.temperature.to_numpy(copy=False)
-    salinity_by_cycle = all_interpolates.salinity.to_numpy(copy=False)
-
-    temperature_sensor_variance_by_cycle = (
-        all_variance_components.temperature.sensor_precision.to_numpy(copy=False)
-    )
-    temperature_pressure_variance_by_cycle = (
-        all_variance_components.temperature.pressure_gradient.to_numpy(copy=False)
-    )
-    temperature_vertical_variance_by_cycle = (
-        all_variance_components.temperature.vertical_model.to_numpy(copy=False)
-    )
-    salinity_sensor_variance_by_cycle = (
-        all_variance_components.salinity.sensor_precision.to_numpy(copy=False)
-    )
-    salinity_pressure_variance_by_cycle = (
-        all_variance_components.salinity.pressure_gradient.to_numpy(copy=False)
-    )
-    salinity_vertical_variance_by_cycle = (
-        all_variance_components.salinity.vertical_model.to_numpy(copy=False)
-    )
+    uncertainty_product_builder.precompute_cycle_terms()
 
 # %% [markdown]
 # ## Query-Point Uncertainty Product
@@ -444,230 +345,16 @@ def ensure_cycle_target_terms() -> None:
 # no cross term is included in the sound-speed variance.
 
 # %%
-def weighted_component_variance(
-    component: np.ndarray,
-    support: np.ndarray,
-    weights: np.ndarray,
-) -> np.ndarray:
-    supported_component = np.where(np.isfinite(support), component, np.nan)
-    return weighted_profile_variance(supported_component, weights)
-
-
-def effective_cycle_count(values: np.ndarray, weights: np.ndarray) -> np.ndarray:
-    finite_mask = np.isfinite(values)
-    weight_sum = finite_mask @ weights
-    squared_weight_sum = finite_mask @ np.square(weights)
-    return np.divide(
-        np.square(weight_sum),
-        squared_weight_sum,
-        out=np.zeros_like(weight_sum, dtype=float),
-        where=squared_weight_sum != 0,
-    )
-
-
-def weighted_support(values: np.ndarray, weights: np.ndarray) -> np.ndarray:
-    finite_mask = np.isfinite(values)
-    return finite_mask @ weights
-
-
 def build_uncertainty_rows(
     lat: float,
     lon: float,
     depth_indices: np.ndarray | None = None,
 ) -> list[dict[str, float]]:
-    ensure_cycle_target_terms()
-
-    if depth_indices is None:
-        depth_indices = np.arange(len(target_pressure))
-    else:
-        depth_indices = np.asarray(depth_indices, dtype=int)
-    target_pressure_subset = target_pressure[depth_indices]
-
-    candidate_query = build_candidate_query(
-        target_latitude=lat,
-        target_longitude=lon,
-        dist_rad=dist_rad,
-    )
-    candidate_mask = cycle_models.mask(**candidate_query.to_mask_kwargs())
-    if candidate_mask.sum() == 0:
-        return []
-
-    candidate_metadata = cycle_models.metadata(candidate_mask)
-    weight_deltas = compute_weight_deltas(
-        target_latitude=lat,
-        target_longitude=lon,
-        target_timestamp=anchor_time,
-        candidate_metadata=candidate_metadata,
-    )
-    weights = weight_config.joint_weight(weight_deltas)
-
-    candidate_indices = np.flatnonzero(candidate_mask)
-    temperature_values = temperature_by_cycle[np.ix_(depth_indices, candidate_indices)]
-    salinity_values = salinity_by_cycle[np.ix_(depth_indices, candidate_indices)]
-
-    temperature = weighted_profile_mean(temperature_values, weights)
-    salinity = weighted_profile_mean(salinity_values, weights)
-
-    var_temperature_sensor = weighted_component_variance(
-        temperature_sensor_variance_by_cycle[np.ix_(depth_indices, candidate_indices)],
-        temperature_values,
-        weights,
-    )
-    var_temperature_pressure = weighted_component_variance(
-        temperature_pressure_variance_by_cycle[np.ix_(depth_indices, candidate_indices)],
-        temperature_values,
-        weights,
-    )
-    var_temperature_vertical = weighted_component_variance(
-        temperature_vertical_variance_by_cycle[np.ix_(depth_indices, candidate_indices)],
-        temperature_values,
-        weights,
-    )
-    var_salinity_sensor = weighted_component_variance(
-        salinity_sensor_variance_by_cycle[np.ix_(depth_indices, candidate_indices)],
-        salinity_values,
-        weights,
-    )
-    var_salinity_pressure = weighted_component_variance(
-        salinity_pressure_variance_by_cycle[np.ix_(depth_indices, candidate_indices)],
-        salinity_values,
-        weights,
-    )
-    var_salinity_vertical = weighted_component_variance(
-        salinity_vertical_variance_by_cycle[np.ix_(depth_indices, candidate_indices)],
-        salinity_values,
-        weights,
-    )
-
-    var_temperature_spatial = spatial_variance["var_temperature_spatial"].to_numpy(dtype=float)[
-        depth_indices
-    ]
-    var_salinity_spatial = spatial_variance["var_salinity_spatial"].to_numpy(dtype=float)[
-        depth_indices
-    ]
-
-    var_temperature_aggregate = (
-        var_temperature_sensor
-        + var_temperature_pressure
-        + var_temperature_vertical
-        + var_temperature_spatial
-    )
-    var_salinity_aggregate = (
-        var_salinity_sensor
-        + var_salinity_pressure
-        + var_salinity_vertical
-        + var_salinity_spatial
-    )
-
-    lon_array = np.full_like(target_pressure_subset, lon, dtype=float)
-    lat_array = np.full_like(target_pressure_subset, lat, dtype=float)
-
-    sound_teos10 = sound_speed_teos10(
-        salinity,
-        temperature,
-        target_pressure_subset,
-        lon_array,
-        lat_array,
-    )
-    partials_teos10 = sound_speed_teos10_partials(
-        salinity,
-        temperature,
-        target_pressure_subset,
-        lon_array,
-        lat_array,
-    )
-
-    var_sound_teos10 = sound_speed_variance(
-        var_temperature_aggregate,
-        var_salinity_aggregate,
-        partials_teos10,
-    )
-
-    support_values = np.where(np.isfinite(temperature_values), temperature_values, salinity_values)
-    w_raw = weighted_support(support_values, weights)
-    w_display = 1 - np.exp(-w_raw / sensor_support_tau)
-    effective_count = effective_cycle_count(support_values, weights)
-
-    rows = []
-    for depth_index, pressure in enumerate(target_pressure_subset):
-        original_depth_index = depth_indices[depth_index]
-        row = {
-            "latitude": lat,
-            "longitude": lon,
-            "depth_m": pressure,
-            "pressure_dbar": pressure,
-            "timestamp_or_anchor_time": str(anchor_time),
-            "temperature": temperature[depth_index],
-            "salinity": salinity[depth_index],
-            "var_temperature_sensor_precision": var_temperature_sensor[depth_index],
-            "var_temperature_pressure_gradient": var_temperature_pressure[depth_index],
-            "var_temperature_vertical_model": var_temperature_vertical[depth_index],
-            "var_temperature_spatial": var_temperature_spatial[depth_index],
-            "var_temperature_aggregate": var_temperature_aggregate[depth_index],
-            "sigma_temperature_aggregate": np.sqrt(var_temperature_aggregate[depth_index]),
-            "var_salinity_sensor_precision": var_salinity_sensor[depth_index],
-            "var_salinity_pressure_gradient": var_salinity_pressure[depth_index],
-            "var_salinity_vertical_model": var_salinity_vertical[depth_index],
-            "var_salinity_spatial": var_salinity_spatial[depth_index],
-            "var_salinity_aggregate": var_salinity_aggregate[depth_index],
-            "sigma_salinity_aggregate": np.sqrt(var_salinity_aggregate[depth_index]),
-            "sound_speed_teos10": sound_teos10[depth_index],
-            "dc_teos10_dT": partials_teos10.temperature[depth_index],
-            "dc_teos10_dS": partials_teos10.salinity[depth_index],
-            "var_sound_speed_teos10": var_sound_teos10[depth_index],
-            "sigma_sound_speed_teos10": np.sqrt(var_sound_teos10[depth_index]),
-            "W_raw": w_raw[depth_index],
-            "W_display": w_display[depth_index],
-            "candidate_cycle_count": int(candidate_mask.sum()),
-            "effective_cycle_count": effective_count[depth_index],
-            "spatial_validation_count": spatial_variance["spatial_validation_count"].iloc[
-                original_depth_index
-            ],
-        }
-
-        temp_factor = partials_teos10.temperature[depth_index] ** 2
-        sal_factor = partials_teos10.salinity[depth_index] ** 2
-
-        row["var_sound_speed_teos10_from_temperature_sensor_precision"] = (
-            temp_factor * var_temperature_sensor[depth_index]
-        )
-        row["var_sound_speed_teos10_from_temperature_pressure_gradient"] = (
-            temp_factor * var_temperature_pressure[depth_index]
-        )
-        row["var_sound_speed_teos10_from_temperature_vertical_model"] = (
-            temp_factor * var_temperature_vertical[depth_index]
-        )
-        row["var_sound_speed_teos10_from_temperature_spatial"] = (
-            temp_factor * var_temperature_spatial[depth_index]
-        )
-        row["var_sound_speed_teos10_from_salinity_sensor_precision"] = (
-            sal_factor * var_salinity_sensor[depth_index]
-        )
-        row["var_sound_speed_teos10_from_salinity_pressure_gradient"] = (
-            sal_factor * var_salinity_pressure[depth_index]
-        )
-        row["var_sound_speed_teos10_from_salinity_vertical_model"] = (
-            sal_factor * var_salinity_vertical[depth_index]
-        )
-        row["var_sound_speed_teos10_from_salinity_spatial"] = (
-            sal_factor * var_salinity_spatial[depth_index]
-        )
-        row["var_sound_speed_teos10_sensor_bucket"] = (
-            row["var_sound_speed_teos10_from_temperature_sensor_precision"]
-            + row["var_sound_speed_teos10_from_temperature_pressure_gradient"]
-            + row["var_sound_speed_teos10_from_salinity_sensor_precision"]
-            + row["var_sound_speed_teos10_from_salinity_pressure_gradient"]
-        )
-        row["var_sound_speed_teos10_model_bucket"] = (
-            row["var_sound_speed_teos10_from_temperature_vertical_model"]
-            + row["var_sound_speed_teos10_from_temperature_spatial"]
-            + row["var_sound_speed_teos10_from_salinity_vertical_model"]
-            + row["var_sound_speed_teos10_from_salinity_spatial"]
-        )
-
-        rows.append(row)
-
-    return rows
+    return uncertainty_product_builder.query(
+        latitude=lat,
+        longitude=lon,
+        depth_indices=depth_indices,
+    ).to_dict("records")
 
 
 if uncertainty_product_cache_valid:
@@ -697,20 +384,7 @@ uncertainty_product_110m = uncertainty_product.loc[
 ].copy()
 uncertainty_product_110m.to_csv(uncertainty_product_110m_csv_path, index=False)
 
-uncertainty_depth_summary = (
-    uncertainty_product.groupby("depth_m", as_index=False)
-    .agg(
-        row_count=("sigma_sound_speed_teos10", "size"),
-        finite_sigma_count=("sigma_sound_speed_teos10", lambda values: int(values.notna().sum())),
-        sigma_sound_speed_teos10_p01=("sigma_sound_speed_teos10", lambda values: values.quantile(0.01)),
-        sigma_sound_speed_teos10_median=("sigma_sound_speed_teos10", "median"),
-        sigma_sound_speed_teos10_p99=("sigma_sound_speed_teos10", lambda values: values.quantile(0.99)),
-        W_raw_median=("W_raw", "median"),
-        W_display_median=("W_display", "median"),
-        effective_cycle_count_median=("effective_cycle_count", "median"),
-        candidate_cycle_count_median=("candidate_cycle_count", "median"),
-    )
-)
+uncertainty_depth_summary = depth_summary(uncertainty_product)
 uncertainty_depth_summary.to_csv(uncertainty_depth_summary_csv_path, index=False)
 
 uncertainty_product_110m.describe(include="all")

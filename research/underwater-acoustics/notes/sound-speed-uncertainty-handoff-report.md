@@ -120,6 +120,10 @@ Depth-resolved reporting is now explicit through the full product table and
 `sound_speed_uncertainty_depth_summary.csv`. The current summary has one row
 per target pressure and reports row counts, finite sigma counts, sigma
 quantiles, support medians, and effective/candidate cycle-count medians.
+The current package keeps the historical `depth_m` column equal to
+`pressure_dbar`; it is a pressure-grid label rather than a physical-depth
+conversion. Correct geodetic depth conversion is recorded as future package
+work and must not be inferred from this field.
 
 The spatiotemporal rerun is complete for the current paper-support
 configuration. Product metadata confirms `use_time_weight = true` and

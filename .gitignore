@@ -171,6 +171,10 @@ uv.lock
 !research/**/notebooks/lib/
 !research/**/notebooks/lib/**
 
+# Keep generated Python caches out of those tracked support-module directories.
+research/**/notebooks/lib/__pycache__/
+research/**/notebooks/lib/**/*.py[cod]
+
 # Ignore notebook-local data directories under research topics
 research/**/notebooks/data/
 

@@ -41,26 +41,16 @@
 # %%
 from __future__ import annotations
 
-import json
 import pickle
 import sys
 import time
-import tracemalloc
 from itertools import product
 from pathlib import Path
 
-import importlib.metadata as importlib_metadata
 import matplotlib.colors as mcolors
-import matplotlib.patheffects as path_effects
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import cartopy
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import matplotlib.ticker as mticker
-from matplotlib.lines import Line2D
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tqdm.auto import tqdm
 
 from argo_interp.uncertainty import (
@@ -71,12 +61,7 @@ from argo_interp.uncertainty import (
     depth_summary,
     estimate_depthwise_spatial_variance as estimate_depthwise_spatial_variance_package,
 )
-from argo_interp.cycle.adapter import PchipAdapter
 from argo_interp.cycle.config import ModelSettings
-from argo_interp.cycle.domain import ModelData, ModelMeta
-from argo_interp.cycle.model import Model
-from argo_interp.data.data_filter import data_filter
-from argo_interp.model import CycleModels
 
 # %% [markdown]
 # ## Configuration
@@ -98,6 +83,25 @@ data_path.mkdir(exist_ok=True, parents=True)
 chart_path.mkdir(exist_ok=True, parents=True)
 cartopy_data_path.mkdir(exist_ok=True, parents=True)
 cartopy.config["data_dir"] = str(cartopy_data_path)
+
+if str(notebook_dir) not in sys.path:
+    sys.path.insert(0, str(notebook_dir))
+
+from lib.benchmarking import package_version, run_benchmark_case
+from lib.plotting import (
+    chart_title,
+    plot_matrix,
+    plot_matrix_with_support_contours,
+    plot_support_matrix,
+    save_figure,
+    support_region_cmap,
+)
+from lib.product_support import (
+    build_cycle_models,
+    cache_metadata_matches,
+    load_filtered_argo_data,
+    write_cache_metadata,
+)
 
 box = [
     80,
@@ -181,18 +185,6 @@ benchmark_path = data_path / "sound_speed_uncertainty_benchmark.csv"
 benchmark_metadata_path = data_path / "sound_speed_uncertainty_benchmark_metadata.json"
 
 
-def cache_metadata_matches(metadata_path: Path, expected_metadata: dict[str, object]) -> bool:
-    if not metadata_path.exists():
-        return False
-    with metadata_path.open() as f:
-        return json.load(f) == expected_metadata
-
-
-def write_cache_metadata(metadata_path: Path, metadata: dict[str, object]) -> None:
-    with metadata_path.open("w") as f:
-        json.dump(metadata, f, indent=2, sort_keys=True)
-        f.write("\n")
-
 # %% [markdown]
 # ## Load Argo Data When Rebuilding Cycle Models
 #
@@ -200,24 +192,6 @@ def write_cache_metadata(metadata_path: Path, metadata: dict[str, object]) -> No
 # Raw Argo data is loaded only when that bundle must be rebuilt.
 
 # %%
-def load_filtered_argo_data():
-    if argo_data_path.exists():
-        with argo_data_path.open("rb") as f:
-            ds = pickle.load(f)
-    else:
-        from argo_interp.data.get_data import get_data
-
-        ds = get_data(box, progress=True)
-        with argo_data_path.open("wb") as f:
-            pickle.dump(ds, f)
-
-    ds_filters = [
-        ds["PRES_QC"].isin([1, 2]),
-        ds["TEMP_QC"].isin([1, 2]),
-        ds["PSAL_QC"].isin([1, 2]),
-    ]
-    return data_filter(ds, ds_filters)
-
 # %% [markdown]
 # ## Build or Load Per-Cycle Models
 #
@@ -229,55 +203,13 @@ def load_filtered_argo_data():
 settings = ModelSettings(n_folds=5)
 
 
-def build_cycle_models(filtered_ds, model_settings):
-    models = {}
-    models_data = {}
-
-    cycles = len(
-        filtered_ds[["PLATFORM_NUMBER", "CYCLE_NUMBER", "DIRECTION"]]
-        .to_dataframe()
-        .drop_duplicates()
-    )
-    grouped = filtered_ds.groupby(["PLATFORM_NUMBER", "CYCLE_NUMBER", "DIRECTION"])
-
-    for (platform_number, cycle_number, direction), cycle_ds in tqdm(grouped, total=cycles):
-        pressure = cycle_ds["PRES"].values
-        temperature = cycle_ds["TEMP"].values
-        salinity = cycle_ds["PSAL"].values
-
-        if cycle_ds.sizes["N_POINTS"] < 3:
-            continue
-
-        model_data = ModelData(
-            pressure=pressure,
-            temperature=temperature,
-            salinity=salinity,
-        ).clean_duplicates("mean")
-
-        model_meta = ModelMeta(
-            platform_number=str(int(platform_number)),
-            cycle_number=str(int(cycle_number)),
-            direction=direction,
-            latitude=cycle_ds["LATITUDE"].values[0],
-            longitude=cycle_ds["LONGITUDE"].values[0],
-            timestamp=cycle_ds["TIME"].values[0],
-            profile_pressure=(pressure.min(), pressure.max()),
-        )
-
-        model = Model.build(model_meta, model_data, PchipAdapter, model_settings)
-        models[model_meta.cycle_id] = model
-        models_data[model_meta.cycle_id] = model_data
-
-    return CycleModels(models), models_data
-
-
 if cycle_model_cache_path.exists():
     with cycle_model_cache_path.open("rb") as f:
         cycle_model_bundle = pickle.load(f)
     cycle_models = cycle_model_bundle["cycle_models"]
     models_data = cycle_model_bundle["models_data"]
 else:
-    ds = load_filtered_argo_data()
+    ds = load_filtered_argo_data(argo_data_path, box)
     cycle_models, models_data = build_cycle_models(ds, settings)
     with cycle_model_cache_path.open("wb") as f:
         pickle.dump({"cycle_models": cycle_models, "models_data": models_data}, f)
@@ -295,6 +227,7 @@ len(all_metadata)
 # the residual primarily measures local-window interpolation rather than raw
 # vertical sampling noise.
 
+# %%
 spatial_variance_cache_valid = spatial_variance_path.exists() and cache_metadata_matches(
     spatial_variance_metadata_path,
     weighting_cache_metadata,
@@ -333,9 +266,6 @@ uncertainty_product_cache_valid = uncertainty_product_path.exists() and cache_me
     weighting_cache_metadata,
 )
 
-def ensure_cycle_target_terms() -> None:
-    uncertainty_product_builder.precompute_cycle_terms()
-
 # %% [markdown]
 # ## Query-Point Uncertainty Product
 #
@@ -345,24 +275,14 @@ def ensure_cycle_target_terms() -> None:
 # no cross term is included in the sound-speed variance.
 
 # %%
-def build_uncertainty_rows(
-    lat: float,
-    lon: float,
-    depth_indices: np.ndarray | None = None,
-) -> list[dict[str, float]]:
-    return uncertainty_product_builder.query(
-        latitude=lat,
-        longitude=lon,
-        depth_indices=depth_indices,
-    ).to_dict("records")
-
-
 if uncertainty_product_cache_valid:
     uncertainty_product = pd.read_pickle(uncertainty_product_path)
 else:
     records = []
     for lat, lon in tqdm(lat_lon_product):
-        records.extend(build_uncertainty_rows(lat, lon))
+        records.extend(
+            uncertainty_product_builder.query(latitude=lat, longitude=lon).to_dict("records")
+        )
 
     uncertainty_product = pd.DataFrame.from_records(records)
 
@@ -409,14 +329,6 @@ benchmark_cases = [
     {"case_id": "grid_0p1_depth4", "lat_resolution_deg": 0.1, "pressure_count": 4},
 ]
 
-
-def package_version(package_name: str) -> str:
-    try:
-        return importlib_metadata.version(package_name)
-    except importlib_metadata.PackageNotFoundError:
-        return "not-installed"
-
-
 benchmark_metadata = {
     "scope": "cached cycle models + cached spatial variance product-build benchmark",
     "anchor_time": str(anchor_time),
@@ -433,52 +345,6 @@ benchmark_metadata = {
 }
 
 
-def benchmark_grid_points(lat_resolution_deg: float) -> list[tuple[float, float]]:
-    benchmark_latitudes = np.arange(box[2], box[3] + lat_resolution_deg, lat_resolution_deg)
-    benchmark_longitudes = np.arange(box[0], box[1] + lat_resolution_deg, lat_resolution_deg)
-    return list(product(benchmark_latitudes, benchmark_longitudes))
-
-
-def run_benchmark_case(
-    case: dict[str, float | int | str],
-    *,
-    precompute_seconds: float,
-) -> dict[str, float | int | str]:
-    depth_indices = np.arange(int(case["pressure_count"]))
-    query_points = benchmark_grid_points(float(case["lat_resolution_deg"]))
-
-    tracemalloc.start()
-    start = time.perf_counter()
-    records = []
-    for lat, lon in tqdm(query_points, desc=str(case["case_id"]), leave=False):
-        records.extend(build_uncertainty_rows(lat, lon, depth_indices=depth_indices))
-    elapsed_seconds = time.perf_counter() - start
-    _current_memory, peak_memory = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-
-    case_product = pd.DataFrame.from_records(records)
-    finite_sigma_count = (
-        int(case_product["sigma_sound_speed_teos10"].notna().sum())
-        if not case_product.empty
-        else 0
-    )
-
-    return {
-        "case_id": str(case["case_id"]),
-        "lat_resolution_deg": float(case["lat_resolution_deg"]),
-        "pressure_count": int(case["pressure_count"]),
-        "pressure_dbar_values": "|".join(str(value) for value in target_pressure[depth_indices]),
-        "query_point_count": len(query_points),
-        "output_row_count": len(case_product),
-        "finite_sigma_count": finite_sigma_count,
-        "wall_time_seconds": elapsed_seconds,
-        "precompute_seconds": precompute_seconds,
-        "query_points_per_second": len(query_points) / elapsed_seconds if elapsed_seconds else np.nan,
-        "rows_per_second": len(case_product) / elapsed_seconds if elapsed_seconds else np.nan,
-        "peak_traced_memory_mb": peak_memory / (1024**2),
-    }
-
-
 benchmark_cache_valid = benchmark_path.exists() and cache_metadata_matches(
     benchmark_metadata_path,
     benchmark_metadata,
@@ -488,11 +354,17 @@ if benchmark_cache_valid:
     benchmark_results = pd.read_csv(benchmark_path)
 else:
     precompute_start = time.perf_counter()
-    ensure_cycle_target_terms()
+    uncertainty_product_builder.precompute_cycle_terms()
     precompute_seconds = time.perf_counter() - precompute_start
     benchmark_results = pd.DataFrame(
         [
-            run_benchmark_case(case, precompute_seconds=precompute_seconds)
+            run_benchmark_case(
+                case,
+                product_builder=uncertainty_product_builder,
+                box=box,
+                target_pressure=target_pressure,
+                precompute_seconds=precompute_seconds,
+            )
             for case in benchmark_cases
         ]
     )
@@ -551,377 +423,6 @@ figure_matrices_110m["sigma_sound_speed_teos10"].mean().mean()
 
 # %%
 heatmap_interpolation = "bilinear"
-
-
-def chart_title(title: str) -> str:
-    return f"{title}\nAnalysis date: {analysis_date_label}"
-
-
-def matrix_extent(matrix: pd.DataFrame) -> tuple[float, float, float, float]:
-    latitudes = matrix.index.to_numpy(dtype=float)
-    longitudes = matrix.columns.to_numpy(dtype=float)
-    lat_step = float(np.nanmedian(np.diff(latitudes)))
-    lon_step = float(np.nanmedian(np.diff(longitudes)))
-    return (
-        float(longitudes[0] - lon_step / 2),
-        float(longitudes[-1] + lon_step / 2),
-        float(latitudes[0] - lat_step / 2),
-        float(latitudes[-1] + lat_step / 2),
-    )
-
-
-def add_land_overlay(ax: plt.Axes, *, grid_alpha: float = 0.6) -> None:
-    ax.add_feature(cfeature.LAND, facecolor="0.78", edgecolor="none", zorder=3)
-    ax.add_feature(cfeature.COASTLINE, linewidth=0.55, edgecolor="0.15", zorder=4)
-    ax.set_extent((box[0], box[1], box[2], box[3]), crs=ccrs.PlateCarree())
-    gridliner = ax.gridlines(
-        draw_labels=True,
-        linewidth=0.25,
-        color="white",
-        alpha=grid_alpha,
-        linestyle="-",
-        zorder=5,
-    )
-    gridliner.top_labels = False
-    gridliner.right_labels = False
-
-
-def save_figure(fig: plt.Figure, stem: str) -> dict[str, Path]:
-    paths = {
-        "png": chart_path / f"{stem}.png",
-        "svg": chart_path / f"{stem}.svg",
-    }
-    for output_path in paths.values():
-        fig.savefig(output_path, dpi=300, bbox_inches="tight", facecolor=fig.get_facecolor())
-    return paths
-
-
-def plot_matrix(
-    matrix: pd.DataFrame,
-    *,
-    title: str,
-    cbar_label: str,
-    cmap: str | mcolors.Colormap,
-    vmin: float | None = None,
-    vmax: float | None = None,
-    fill_missing: float | None = None,
-    grid_alpha: float = 0.6,
-) -> tuple[plt.Figure, plt.Axes]:
-    fig, ax = plt.subplots(figsize=(9, 7), subplot_kw={"projection": ccrs.PlateCarree()})
-    fig.patch.set_facecolor("white")
-    ax.set_facecolor("0.94")
-    values = matrix.to_numpy(dtype=float)
-    image_values = (
-        np.nan_to_num(values, nan=fill_missing)
-        if fill_missing is not None
-        else np.ma.masked_invalid(values)
-    )
-
-    image = ax.imshow(
-        image_values,
-        origin="lower",
-        extent=matrix_extent(matrix),
-        aspect="auto",
-        interpolation=heatmap_interpolation,
-        cmap=cmap,
-        vmin=vmin,
-        vmax=vmax,
-        transform=ccrs.PlateCarree(),
-        zorder=1,
-    )
-    ax.set_title(title)
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    add_land_overlay(ax, grid_alpha=grid_alpha)
-
-    colorbar = fig.colorbar(image, ax=ax)
-    colorbar.set_label(cbar_label)
-    fig.tight_layout()
-    return fig, ax
-
-
-def add_support_contours(
-    ax: plt.Axes,
-    support: pd.DataFrame,
-    *,
-    contour_levels: list[float],
-    contour_labels: list[str] | None = None,
-    contour_value_label: str = "W",
-    contour_value_precision: int = 3,
-    legend_loc: str | None = None,
-) -> None:
-    support_values = np.ma.masked_invalid(support.to_numpy(dtype=float))
-    longitudes = support.columns.to_numpy(dtype=float)
-    latitudes = support.index.to_numpy(dtype=float)
-    contour_linestyles = ["--", "-", "-."]
-    contour_linewidths = [1.15, 1.45, 1.25]
-    legend_handles = []
-    for index, level in enumerate(contour_levels):
-        label = (
-            contour_labels[index]
-            if contour_labels is not None
-            else f"{contour_value_label}={level:.{contour_value_precision}f}"
-        )
-        linestyle = contour_linestyles[index % len(contour_linestyles)]
-        linewidth = contour_linewidths[index % len(contour_linewidths)]
-        contour = ax.contour(
-            longitudes,
-            latitudes,
-            support_values,
-            levels=[level],
-            colors="#111827",
-            linewidths=linewidth,
-            linestyles=linestyle,
-            transform=ccrs.PlateCarree(),
-            zorder=2,
-        )
-        contour.set_path_effects(
-            [
-                path_effects.Stroke(linewidth=linewidth + 1.7, foreground="white"),
-                path_effects.Normal(),
-            ]
-        )
-        legend_handles.append(
-            Line2D(
-                [0],
-                [0],
-                color="#111827",
-                linewidth=linewidth,
-                linestyle=linestyle,
-                path_effects=[
-                    path_effects.Stroke(linewidth=linewidth + 1.7, foreground="white"),
-                    path_effects.Normal(),
-                ],
-                label=label,
-            )
-        )
-    if legend_loc is not None:
-        ax.legend(
-            handles=legend_handles,
-            loc=legend_loc,
-            frameon=True,
-            framealpha=0.85,
-            facecolor="white",
-            edgecolor="0.35",
-            fontsize=8,
-        )
-
-
-def plot_matrix_with_support_contours(
-    matrix: pd.DataFrame,
-    support: pd.DataFrame,
-    *,
-    title: str,
-    cbar_label: str,
-    cmap: str | mcolors.Colormap,
-    vmin: float | None = None,
-    vmax: float | None = None,
-    contour_levels: list[float],
-    contour_labels: list[str] | None = None,
-    contour_value_label: str = "W",
-    contour_value_precision: int = 3,
-    legend_loc: str = "lower left",
-    grid_alpha: float = 0.6,
-) -> tuple[plt.Figure, plt.Axes]:
-    if not matrix.index.equals(support.index) or not matrix.columns.equals(support.columns):
-        raise ValueError("matrix and support must share identical index and columns")
-
-    values = matrix.to_numpy(dtype=float)
-    finite_values = values[np.isfinite(values)]
-    if finite_values.size == 0:
-        raise ValueError("matrix must contain at least one finite value")
-
-    if vmin is None:
-        vmin = float(finite_values.min())
-    if vmax is None:
-        vmax = float(finite_values.max())
-
-    norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
-    image_values = np.ma.masked_invalid(values)
-
-    fig, ax = plt.subplots(figsize=(9, 7), subplot_kw={"projection": ccrs.PlateCarree()})
-    fig.patch.set_facecolor("white")
-    ax.set_facecolor("0.94")
-
-    image = ax.imshow(
-        image_values,
-        origin="lower",
-        extent=matrix_extent(matrix),
-        aspect="auto",
-        interpolation=heatmap_interpolation,
-        cmap=cmap,
-        norm=norm,
-        transform=ccrs.PlateCarree(),
-        zorder=1,
-    )
-    add_support_contours(
-        ax,
-        support,
-        contour_levels=contour_levels,
-        contour_labels=contour_labels,
-        contour_value_label=contour_value_label,
-        contour_value_precision=contour_value_precision,
-        legend_loc=legend_loc,
-    )
-    ax.set_title(title)
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    add_land_overlay(ax, grid_alpha=grid_alpha)
-
-    colorbar = fig.colorbar(image, ax=ax)
-    colorbar.set_label(cbar_label)
-
-    fig.tight_layout()
-    return fig, ax
-
-
-def plot_support_matrix(
-    matrix: pd.DataFrame,
-    *,
-    title: str,
-    cbar_label: str,
-    cmap: mcolors.Colormap,
-    norm: mcolors.Normalize,
-    colorbar_ticks: list[float],
-    colorbar_scale: str = "linear",
-    cluster_labels: list[tuple[str, float]] | None = None,
-    contour_levels: list[float] | None = None,
-    contour_labels: list[str] | None = None,
-    contour_value_label: str = "W",
-    contour_value_precision: int = 3,
-    contour_legend_loc: str | None = None,
-    transparent_threshold: float = 0.0,
-    grid_alpha: float = 1.0,
-    interpolation: str = "nearest",
-) -> tuple[plt.Figure, plt.Axes]:
-    values = matrix.to_numpy(dtype=float)
-    rgba = cmap(norm(values))
-
-    missing_mask = ~np.isfinite(values)
-    zero_mask = np.isfinite(values) & (values <= transparent_threshold)
-    finite_nonzero_mask = np.isfinite(values) & (values > transparent_threshold)
-
-    rgba[missing_mask] = mcolors.to_rgba("white", alpha=1.0)
-    rgba[zero_mask, 3] = 0.0
-    rgba[finite_nonzero_mask, 3] = 1.0
-
-    fig, ax = plt.subplots(figsize=(9, 7), subplot_kw={"projection": ccrs.PlateCarree()})
-    fig.patch.set_facecolor("white")
-    ax.set_facecolor("white")
-
-    ax.imshow(
-        rgba,
-        origin="lower",
-        extent=matrix_extent(matrix),
-        aspect="auto",
-        interpolation=interpolation,
-        transform=ccrs.PlateCarree(),
-        zorder=1,
-    )
-    if contour_levels is not None:
-        add_support_contours(
-            ax,
-            matrix,
-            contour_levels=contour_levels,
-            contour_labels=contour_labels,
-            contour_value_label=contour_value_label,
-            contour_value_precision=contour_value_precision,
-            legend_loc=contour_legend_loc,
-        )
-    ax.set_title(title)
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    add_land_overlay(ax, grid_alpha=grid_alpha)
-
-    scalar_mappable = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-    scalar_mappable.set_array([])
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="3.4%", pad=0.55, axes_class=plt.Axes)
-    if colorbar_scale == "log":
-        colorbar_positive_ticks = [tick for tick in colorbar_ticks if tick > 0]
-        colorbar_vmin = min(colorbar_positive_ticks)
-        colorbar_vmax = max(colorbar_positive_ticks)
-        colorbar_edges = np.geomspace(colorbar_vmin, colorbar_vmax, 256)
-        colorbar_centers = np.sqrt(colorbar_edges[:-1] * colorbar_edges[1:])
-        cax.pcolormesh(
-            [0.0, 1.0],
-            colorbar_edges,
-            colorbar_centers[:, np.newaxis],
-            cmap=cmap,
-            norm=norm,
-            shading="flat",
-        )
-        cax.set_yscale("log")
-        cax.set_ylim(colorbar_vmin, colorbar_vmax)
-        cax.set_xlim(0.0, 1.0)
-        cax.set_xticks([])
-        cax.set_yticks(colorbar_ticks)
-        cax.set_ylabel(cbar_label)
-        colorbar_ax = cax
-    else:
-        colorbar = fig.colorbar(scalar_mappable, cax=cax, ticks=colorbar_ticks)
-        colorbar.set_label(cbar_label)
-        colorbar_ax = colorbar.ax
-    colorbar_ax.yaxis.set_major_formatter(mticker.FuncFormatter(format_raw_support_tick))
-    colorbar_ax.minorticks_off()
-    if cluster_labels:
-        colorbar_ax.set_ylabel("")
-        colorbar_ax.set_title(cbar_label, pad=8)
-        colorbar_ax.yaxis.set_ticks_position("left")
-        colorbar_ax.yaxis.set_label_position("left")
-        transform = colorbar_ax.get_yaxis_transform()
-        for label, value in cluster_labels:
-            colorbar_ax.text(
-                1.45,
-                value,
-                label,
-                transform=transform,
-                rotation=90,
-                ha="center",
-                va="center",
-                clip_on=False,
-            )
-    fig.tight_layout()
-    return fig, ax
-
-
-def format_raw_support_tick(value: float, _position: int | None = None) -> str:
-    if not np.isfinite(value):
-        return ""
-    if value >= 100:
-        return f"{value:.1f}"
-    if value >= 1:
-        return f"{value:.2g}"
-    return f"{value:.2g}"
-
-
-def support_region_cmap(
-    *,
-    low_anchor: float,
-    mid_anchor: float,
-    high_anchor: float,
-    missing: str = "white",
-) -> mcolors.Colormap:
-    cmap = mcolors.LinearSegmentedColormap.from_list(
-        "support_region",
-        [
-            (0.0, "#14081f"),
-            (low_anchor, "#2457d6"),
-            (mid_anchor, "#ff8b1a"),
-            (high_anchor, "#2fca62"),
-            (1.0, "#b7f45b"),
-        ],
-        N=256,
-    )
-    cmap = cmap.with_extremes(
-        bad=missing,
-        under="#14081f",
-        over="#b7f45b",
-    )
-    cmap.set_bad(color=missing, alpha=1.0)
-    return cmap
-
-
 # %%
 sound_speed_110m = figure_matrices_110m["sound_speed_teos10"]
 sigma_sound_speed_110m = figure_matrices_110m["sigma_sound_speed_teos10"]
@@ -968,27 +469,36 @@ chart_exports = {}
 
 fig, ax = plot_matrix(
     sound_speed_110m,
-    title=chart_title("Bay of Bengal TEOS-10 Sound Speed at 110 m"),
+    box=box,
+    title=chart_title("Bay of Bengal TEOS-10 Sound Speed at 110 m", analysis_date_label),
     cbar_label="Sound speed (m/s)",
     cmap=sound_speed_contour_cmap,
+    interpolation=heatmap_interpolation,
     vmin=sound_speed_limits[0],
     vmax=sound_speed_limits[1],
 )
-chart_exports["sound_speed_teos10_110m"] = save_figure(fig, "sound_speed_teos10_110m")
+chart_exports["sound_speed_teos10_110m"] = save_figure(
+    fig, chart_path=chart_path, stem="sound_speed_teos10_110m"
+)
 
 fig, ax = plot_matrix(
     sigma_sound_speed_110m,
-    title=chart_title("Bay of Bengal Sound-Speed Sigma at 110 m"),
+    box=box,
+    title=chart_title("Bay of Bengal Sound-Speed Sigma at 110 m", analysis_date_label),
     cbar_label="Sigma (m/s)",
     cmap="magma",
+    interpolation=heatmap_interpolation,
     vmin=sigma_limits[0],
     vmax=sigma_limits[1],
 )
-chart_exports["sigma_sound_speed_teos10_110m"] = save_figure(fig, "sigma_sound_speed_teos10_110m")
+chart_exports["sigma_sound_speed_teos10_110m"] = save_figure(
+    fig, chart_path=chart_path, stem="sigma_sound_speed_teos10_110m"
+)
 
 fig, ax = plot_support_matrix(
     support_raw_110m,
-    title=chart_title("Bay of Bengal Raw Support Weight at 110 m"),
+    box=box,
+    title=chart_title("Bay of Bengal Raw Support Weight at 110 m", analysis_date_label),
     cbar_label="W raw",
     cmap=support_cmap,
     norm=support_norm,
@@ -1004,14 +514,21 @@ fig, ax = plot_support_matrix(
     grid_alpha=1.0,
     interpolation="nearest",
 )
-chart_exports["w_raw_110m"] = save_figure(fig, "w_raw_110m")
+chart_exports["w_raw_110m"] = save_figure(
+    fig, chart_path=chart_path, stem="w_raw_110m"
+)
 
 fig, ax = plot_matrix_with_support_contours(
     sound_speed_110m,
     support_raw_110m,
-    title=chart_title("Bay of Bengal TEOS-10 Sound Speed at 110 m with Raw W Contours"),
+    box=box,
+    title=chart_title(
+        "Bay of Bengal TEOS-10 Sound Speed at 110 m with Raw W Contours",
+        analysis_date_label,
+    ),
     cbar_label="Sound speed (m/s)",
     cmap=sound_speed_contour_cmap,
+    interpolation=heatmap_interpolation,
     vmin=sound_speed_limits[0],
     vmax=sound_speed_limits[1],
     contour_levels=support_contour_levels,
@@ -1022,15 +539,21 @@ fig, ax = plot_matrix_with_support_contours(
 )
 chart_exports["sound_speed_teos10_w_contours_110m"] = save_figure(
     fig,
-    "sound_speed_teos10_w_contours_110m",
+    chart_path=chart_path,
+    stem="sound_speed_teos10_w_contours_110m",
 )
 
 fig, ax = plot_matrix_with_support_contours(
     sigma_sound_speed_110m,
     support_raw_110m,
-    title=chart_title("Bay of Bengal Sound-Speed Sigma at 110 m with Raw W Contours"),
+    box=box,
+    title=chart_title(
+        "Bay of Bengal Sound-Speed Sigma at 110 m with Raw W Contours",
+        analysis_date_label,
+    ),
     cbar_label="Sigma (m/s)",
     cmap="magma",
+    interpolation=heatmap_interpolation,
     vmin=sigma_limits[0],
     vmax=sigma_limits[1],
     contour_levels=support_contour_levels,
@@ -1041,7 +564,8 @@ fig, ax = plot_matrix_with_support_contours(
 )
 chart_exports["sigma_sound_speed_teos10_w_contours_110m"] = save_figure(
     fig,
-    "sigma_sound_speed_teos10_w_contours_110m",
+    chart_path=chart_path,
+    stem="sigma_sound_speed_teos10_w_contours_110m",
 )
 
 chart_exports

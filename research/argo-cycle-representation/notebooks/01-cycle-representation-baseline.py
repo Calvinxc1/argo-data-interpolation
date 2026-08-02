@@ -45,7 +45,6 @@
 
 # %%
 import numpy as np
-from argopy import DataFetcher as ArgoDataFetcher
 import pandas as pd
 from tqdm.auto import tqdm
 from matplotlib import pyplot as plt

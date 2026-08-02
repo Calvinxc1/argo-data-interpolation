@@ -103,6 +103,26 @@ def test_model_interpolate_returns_model_data() -> None:
     np.testing.assert_array_equal(result.salinity, np.array([11.0, 12.0]))
 
 
+def test_model_interpolate_normalizes_scalar_inputs() -> None:
+    model = Model(
+        meta=_meta(),
+        adapters=ModelAdapters(
+            temperature=StubAdapter(offset=1.0),
+            salinity=StubAdapter(offset=10.0),
+        ),
+        error=CycleError(
+            pressure=1.0,
+            temperature=MeasureError(sensor=0.2, model=0.1),
+            salinity=MeasureError(sensor=0.3, model=0.2),
+        ),
+        settings=ModelSettings(n_folds=2),
+    )
+
+    np.testing.assert_array_equal(model.interpolate(1).pressure, np.array([1.0]))
+    np.testing.assert_array_equal(model.interpolate(np.int64(1)).temperature, np.array([2.0]))
+    np.testing.assert_array_equal(model.interp_error(1).pressure, np.array([1.0]))
+
+
 def test_model_interp_error_uses_gradients_and_stored_error_values() -> None:
     model = Model(
         meta=_meta(),

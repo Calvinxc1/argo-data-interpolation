@@ -54,11 +54,15 @@ class Model:
         model = cls(meta=model_meta, adapters=adapters, error=error, settings=settings)
         return model
 
+    @staticmethod
+    def _normalize_pressure_input(pressure_data: ArrayLike | float) -> NDArray[np.float64]:
+        pressure_array = np.asarray(pressure_data, dtype=float)
+        if pressure_array.ndim == 0:
+            return pressure_array.reshape(1)
+        return pressure_array
+
     def interpolate(self, pressure_data: ArrayLike | float) -> ModelData:
-        if isinstance(pressure_data, float):
-            pressure_data = np.array([pressure_data])
-        else:
-            pressure_data = np.asarray(pressure_data, dtype=float)
+        pressure_data = self._normalize_pressure_input(pressure_data)
 
         temp_data = self.adapters.temperature.interpolate(pressure_data)
         sal_data = self.adapters.salinity.interpolate(pressure_data)
@@ -66,10 +70,7 @@ class Model:
         return interp_data
 
     def interp_error(self, pressure_data: ArrayLike | float) -> ModelData:
-        if isinstance(pressure_data, float):
-            pressure_data = np.array([pressure_data])
-        else:
-            pressure_data = np.asarray(pressure_data, dtype=float)
+        pressure_data = self._normalize_pressure_input(pressure_data)
 
         temp_error = self._measure_error(
             self.error.pressure,
@@ -85,10 +86,7 @@ class Model:
         return interp_error
 
     def interp_error_variance(self, pressure_data: ArrayLike | float) -> ModelErrorVariance:
-        if isinstance(pressure_data, float):
-            pressure_data = np.array([pressure_data])
-        else:
-            pressure_data = np.asarray(pressure_data, dtype=float)
+        pressure_data = self._normalize_pressure_input(pressure_data)
 
         temp_variance = self._measure_error_variance(
             self.error.pressure,

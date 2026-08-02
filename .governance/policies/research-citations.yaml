@@ -6,7 +6,8 @@ rules:
   - Verify source-backed claims against original articles when full text is available.
   - Prefer local research sources copies over web summaries for verification and page references.
   - When sources/ is provided locally through a symlinked or external synced library, access and reference those materials through the repo-relative sources/ path rather than machine-specific absolute paths.
-  - Count an article or book source as resolved full text only when the local copy is a PDF; do not treat HTML article-page captures as full-text substitutes.
+  - Count an article source as resolved full text only when the local copy is a PDF; do not treat HTML article-page captures as full-text substitutes.
+  - Count a book source as resolved full text when either a local PDF is present or a repo-local Markdown source-notes file records manual full-text notes with page provenance from a consulted physical or otherwise non-storable copy.
   - For non-English local full-text sources, keep an accompanying same-stem Markdown file in sources with the best available translation or translation notes, and use that translation aid as part of the verification record.
   - For non-article web-native resources such as datasets or documentation pages, a stable canonical landing page may count as resolved when no article-style full-text artifact exists.
   - Add page numbers only after full-text verification.

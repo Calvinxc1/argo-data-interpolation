@@ -442,8 +442,9 @@ def weighted_profile_mean(values: ArrayLike, weights: ArrayLike) -> NDArray[np.f
     weight_array = np.asarray(weights, dtype=float)
     if value_array.ndim != 2 or weight_array.ndim != 1 or value_array.shape[1] != weight_array.size:
         raise ValueError("values must be 2-D with one weight per column")
-    weight_sum = np.isfinite(value_array) @ weight_array
-    weighted_sum = np.nansum(value_array * weight_array, axis=1)
+    finite_mask = np.isfinite(value_array)
+    weight_sum = finite_mask @ weight_array
+    weighted_sum = np.where(finite_mask, value_array * weight_array, 0.0).sum(axis=1)
     return np.divide(
         weighted_sum,
         weight_sum,
@@ -849,15 +850,20 @@ class SoundSpeedUncertaintyProduct:
         if batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
         batch: list[pd.DataFrame] = []
+        metadata = self.metadata()
         for latitude, longitude in product(latitudes, longitudes):
             frame = self.query(latitude, longitude, depth_indices=depth_indices)
             if not frame.empty:
                 batch.append(frame)
             if len(batch) == batch_size:
-                yield self._combine_frames(batch)
+                combined = self._combine_frames(batch)
+                combined.attrs["argo_interp_uncertainty"] = metadata
+                yield combined
                 batch = []
         if batch:
-            yield self._combine_frames(batch)
+            combined = self._combine_frames(batch)
+            combined.attrs["argo_interp_uncertainty"] = metadata
+            yield combined
 
     def grid_result(
         self,

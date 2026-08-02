@@ -35,12 +35,17 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Moved Notebook 6's reusable uncertainty-product computation onto `argo_interp.uncertainty`, retaining its validated planar-degree configuration. The historical `depth_m` field remains a pressure-grid label equal to `pressure_dbar`; physical-depth conversion is deferred future work.
 - Moved Argopy/Xarray data access and notebook-only packages into explicit `data` and `research` extras, keeping the installed core focused on the public modeling and uncertainty APIs.
 - Updated package license metadata to the SPDX form required by current Python packaging tooling.
+- Streamlined the paired Notebook 6 research artifact by moving cache/model rebuild, benchmarking, and plotting mechanics into topic-local support modules; removed unused direct Argopy imports from the earlier cycle-representation notebooks.
+- Clarified that PyPI distribution is forthcoming and that the repository checkout remains the current installation path.
 
 ### Fixed
 
 - Fixed `SplineAdapter.fit` to apply `extrapolate` on the fitted `BSpline` object instead of passing it to `make_splrep`, preventing runtime `TypeError` and restoring configurable extrapolation behavior.
 - Fixed `Model.interpolate()` and `Model.interp_error()` to normalize scalar pressure inputs consistently, including integer scalars, while cleaning the remaining Ruff line-length violations in the runtime and test code.
 - Constrained Erddapy below 3.3 because Argopy 1.4.0 imports a symbol removed by Erddapy 3.3, which otherwise prevents Argo data fetching from importing.
+- Made the CI pytest step preserve test failures when its output is captured for PR summaries.
+- Preserved uncertainty provenance on frames yielded by `SoundSpeedUncertaintyProduct.iter_grid_batches()`.
+- Made weighted profile means exclude all non-finite input values, consistent with their finite-support contract.
 
 ### Removed
 

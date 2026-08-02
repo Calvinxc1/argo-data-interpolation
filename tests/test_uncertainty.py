@@ -18,6 +18,7 @@ from argo_interp.uncertainty import (
     estimate_depthwise_spatial_variance,
     great_circle_distance_km,
     seasonal_distance_seconds,
+    weighted_profile_mean,
 )
 
 
@@ -71,6 +72,9 @@ def test_product_grid_and_spatial_estimator_use_cycle_models() -> None:
 
     assert len(result) == 4
     assert [len(batch) for batch in batches] == [2, 2]
+    assert all(
+        batch.attrs["argo_interp_uncertainty"] == product.metadata() for batch in batches
+    )
     assert set(result["pressure_dbar"]) == {5.0, 110.0}
     assert (spatial_variance["spatial_validation_count"] == 3).all()
     assert (spatial_variance["var_temperature_spatial"] > 0).all()
@@ -94,6 +98,15 @@ def test_candidate_query_and_wrapped_season_distance_validate_inputs() -> None:
         np.datetime64("2020-01-01"), np.array([np.datetime64("2020-12-31")])
     )
     assert distance[0] < 2 * 24 * 60 * 60
+
+
+def test_weighted_profile_mean_ignores_nonfinite_values() -> None:
+    result = weighted_profile_mean(
+        np.array([[1.0, np.nan, np.inf], [1.0, 3.0, 5.0]]),
+        np.array([1.0, 1.0, 1.0]),
+    )
+
+    np.testing.assert_allclose(result, np.array([1.0, 3.0]))
 
 
 def test_great_circle_geometry_wraps_the_antimeridian() -> None:

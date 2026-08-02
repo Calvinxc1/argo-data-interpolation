@@ -18,22 +18,10 @@ The long-term goal is to turn irregular Argo float measurements into compact, re
 
 ## Installation
 
-The base package contains the cycle and sound-speed uncertainty APIs and installs
-only their runtime requirements:
-
-```bash
-uv pip install argo-data-interpolation
-```
-
-Install the `data` extra to use `argo_interp.data.get_data` and
-`argo_interp.data.data_filter` with Argopy and Xarray. The `research` extra
-adds the data-analysis and plotting libraries used by the repository's research
-work; it does not install a Jupyter runtime:
-
-```bash
-uv pip install "argo-data-interpolation[data]"
-uv pip install "argo-data-interpolation[research]"
-```
+PyPI distribution is forthcoming. Until it is published, install and run the
+package from a source checkout. The planned distribution will provide a small
+core package plus `data` and `research` extras for Argo access and
+research-specific analysis dependencies.
 
 For the complete notebook environment when working from this repository, run:
 

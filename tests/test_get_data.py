@@ -4,7 +4,7 @@ from types import ModuleType
 import pytest
 import xarray as xr
 
-from argo_interp.data import get_data
+from argo_kwsi.data import get_data
 
 
 class MockFetcher:
@@ -54,5 +54,5 @@ def test_get_data_explains_how_to_install_the_optional_dependency(
 ) -> None:
     monkeypatch.setitem(sys.modules, "argopy", None)
 
-    with pytest.raises(ImportError, match="argo-interp\\[data\\]"):
+    with pytest.raises(ImportError, match="argo-kwsi\\[data\\]"):
         get_data(box=[0.0, 1.0, 2.0, 3.0, 0.0, 10.0])

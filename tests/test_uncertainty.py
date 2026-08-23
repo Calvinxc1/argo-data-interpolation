@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
 
-from argo_interp.cycle.adapter import PchipAdapter
-from argo_interp.cycle.config import ModelSettings
-from argo_interp.cycle.domain import CycleError, MeasureError, ModelMeta
-from argo_interp.cycle.model import Model
-from argo_interp.cycle.model.ModelAdapters import ModelAdapters
-from argo_interp.model import CycleModels
-from argo_interp.uncertainty import (
+from argo_kwsi.cycle.adapter import PchipAdapter
+from argo_kwsi.cycle.config import ModelSettings
+from argo_kwsi.cycle.domain import CycleError, MeasureError, ModelMeta
+from argo_kwsi.cycle.model import Model
+from argo_kwsi.cycle.model.ModelAdapters import ModelAdapters
+from argo_kwsi.model import CycleModels
+from argo_kwsi.uncertainty import (
     GaussianScale,
     SoundSpeedUncertaintyConfig,
     SoundSpeedUncertaintyProduct,
@@ -34,7 +34,7 @@ def test_product_query_propagates_all_variance_components() -> None:
     result = product_result.data
 
     assert len(result) == 2
-    assert result.attrs["argo_interp_uncertainty"] == product_result.metadata
+    assert result.attrs["argo_kwsi_uncertainty"] == product_result.metadata
     assert product_result.metadata["schema_version"] == "1.0"
     assert "physical-depth conversion is future work" in product_result.metadata["depth_m"]
     assert np.isfinite(result["sound_speed_teos10"]).all()
@@ -72,7 +72,7 @@ def test_product_grid_and_spatial_estimator_use_cycle_models() -> None:
 
     assert len(result) == 4
     assert [len(batch) for batch in batches] == [2, 2]
-    assert all(batch.attrs["argo_interp_uncertainty"] == product.metadata() for batch in batches)
+    assert all(batch.attrs["argo_kwsi_uncertainty"] == product.metadata() for batch in batches)
     assert set(result["pressure_dbar"]) == {5.0, 110.0}
     assert (spatial_variance["spatial_validation_count"] == 3).all()
     assert (spatial_variance["var_temperature_spatial"] > 0).all()
@@ -210,7 +210,7 @@ def test_notebook6_factory_and_grid_result_expose_stable_provenance() -> None:
     assert config.target_pressure == (5.0, 35.0, 110.0, 500.0)
     assert config.to_metadata()["distance_metric"] == "planar_degrees"
     assert result.metadata["cycle_model_count"] == 3
-    assert result.data.attrs["argo_interp_uncertainty"] == result.metadata
+    assert result.data.attrs["argo_kwsi_uncertainty"] == result.metadata
     with np.testing.assert_raises(ValueError):
         list(product.iter_grid_batches([10.0], [80.0], batch_size=0))
 

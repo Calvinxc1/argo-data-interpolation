@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from argo_interp.model import CycleData
+from argo_kwsi.model import CycleData
 
 
 def weighted_profile_mean(values: np.ndarray, weights: np.ndarray) -> np.ndarray:

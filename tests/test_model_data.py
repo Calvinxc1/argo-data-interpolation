@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from argo_interp.cycle.domain.ModelData import ModelData
+from argo_kwsi.cycle.domain.ModelData import ModelData
 
 
 def test_model_data_rejects_non_1d_arrays() -> None:

@@ -43,13 +43,13 @@ from dataclasses import replace
 
 import numpy as np
 
-from argo_interp import (
+from argo_kwsi import (
     SoundSpeedUncertaintyConfig,
     SoundSpeedUncertaintyProduct,
     estimate_depthwise_spatial_variance,
 )
-from argo_interp.cycle.config import ModelSettings
-from argo_interp.data import data_filter, get_data
+from argo_kwsi.cycle.config import ModelSettings
+from argo_kwsi.data import data_filter, get_data
 from lib.product_support import build_cycle_models
 
 source_box = [
@@ -89,7 +89,7 @@ result = product.grid(latitudes, longitudes)
 
 `result` has 100 rows: 25 latitude/longitude query points times four target
 pressures. Its provenance is available at
-`result.attrs["argo_interp_uncertainty"]`.
+`result.attrs["argo_kwsi_uncertainty"]`.
 
 ## Recorded output
 

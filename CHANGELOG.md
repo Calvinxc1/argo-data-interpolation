@@ -17,8 +17,8 @@ _No staged changes._
 - Added automatic Ruff linting with PR-only reporting and PR-visible lint summaries alongside the test workflow.
 - Added a Bay of Bengal Jana et al. replication notebook under the underwater-acoustics research topic, along with companion notes documenting the settled replication pipeline, validation outputs, and subdomain figure workflow.
 - Added `cartopy` and `seawater` as runtime dependencies to support the research notebook mapping and UNESCO sound-speed replication workflow.
-- Added the reusable `argo_interp.uncertainty` API for the Notebook 6 TEOS-10 sound-speed uncertainty product, including explicit configuration, spatial-variance estimation, geometry selection, provenance metadata, and batched grid construction.
-- Added `PRODUCT_COLUMN_DTYPES` and `empty_product_frame()` to `argo_interp.uncertainty`, giving sound-speed product tables a single declared dtype schema that row-less results also carry.
+- Added the reusable `argo_kwsi.uncertainty` API for the Notebook 6 TEOS-10 sound-speed uncertainty product, including explicit configuration, spatial-variance estimation, geometry selection, provenance metadata, and batched grid construction.
+- Added `PRODUCT_COLUMN_DTYPES` and `empty_product_frame()` to `argo_kwsi.uncertainty`, giving sound-speed product tables a single declared dtype schema that row-less results also carry.
 
 ### Changed
 
@@ -35,14 +35,14 @@ _No staged changes._
 - Reduced `CycleModel` memory and serialization overhead substantially by replacing heavy metadata models with slotted dataclasses and using compact custom pickle state.
 - Split notebook and research dependencies into a dedicated `research` dependency group while keeping the core runtime dependency surface limited to `numpy`, `pandas`, and `scipy`.
 - Reworked cycle-model settings so validation and interpolation can use distinct temperature and salinity kwargs through a dedicated settings package and shared sensor-accuracy configuration.
-- Replaced the Argo QC helper with a more general `data_filter` utility, exposed that helper from `argo_interp.data`, and updated the research fetch path to accept an explicit `mode` plus larger default time chunks.
-- Split shared cycle classes into explicit `argo_interp.cycle.domain` and `argo_interp.cycle.config` public packages, removed duplicate legacy type modules under `cycle/model`, and updated model/validation wiring plus the Jana replication notebook to use the new API surface.
-- Moved Notebook 6's reusable uncertainty-product computation onto `argo_interp.uncertainty`, retaining its validated planar-degree configuration. The historical `depth_m` field remains a pressure-grid label equal to `pressure_dbar`; physical-depth conversion is deferred future work.
+- Replaced the Argo QC helper with a more general `data_filter` utility, exposed that helper from `argo_kwsi.data`, and updated the research fetch path to accept an explicit `mode` plus larger default time chunks.
+- Split shared cycle classes into explicit `argo_kwsi.cycle.domain` and `argo_kwsi.cycle.config` public packages, removed duplicate legacy type modules under `cycle/model`, and updated model/validation wiring plus the Jana replication notebook to use the new API surface.
+- Moved Notebook 6's reusable uncertainty-product computation onto `argo_kwsi.uncertainty`, retaining its validated planar-degree configuration. The historical `depth_m` field remains a pressure-grid label equal to `pressure_dbar`; physical-depth conversion is deferred future work.
 - Moved Argopy/Xarray data access and notebook-only packages into explicit `data` and `research` extras, keeping the installed core focused on the public modeling and uncertainty APIs.
 - Updated package license metadata to the SPDX form required by current Python packaging tooling.
 - Streamlined the paired Notebook 6 research artifact by moving cache/model rebuild, benchmarking, and plotting mechanics into topic-local support modules; removed unused direct Argopy imports from the earlier cycle-representation notebooks.
 - Clarified that PyPI distribution is forthcoming and that the repository checkout remains the current installation path.
-- Renamed the distributed package from `argo-data-interpolation` to `argo-interp`. The optional extras are now installed as `argo-interp[data]` and `argo-interp[research]`, and the import-error message raised by `argo_interp.data.get_data` names the new package.
+- Renamed the distributed package from `argo-data-interpolation` to `argo-kwsi`, and the import package from `argo_interp` to `argo_kwsi`, adopting the kernel-weighted spatiotemporal interpolation (KWSI) name the OCEANS 2026 Monterey paper gives the method. The optional extras are now installed as `argo-kwsi[data]` and `argo-kwsi[research]`, the import-error message raised by `argo_kwsi.data.get_data` names the new package, and the product provenance key in `DataFrame.attrs` is now `argo_kwsi_uncertainty`. The GitHub repository name is deliberately unchanged, because the accepted paper cites its current URL.
 - Rebuilt `CycleModels.interp_error_variance()` on preallocated arrays instead of column-by-column DataFrame assignment, matching the interpolation path and removing per-cycle frame fragmentation on large bundles.
 
 ### Fixed

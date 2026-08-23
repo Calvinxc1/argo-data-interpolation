@@ -1,7 +1,7 @@
 """Spatiotemporal Argo sound-speed uncertainty products.
 
 This module packages the computational path developed in the Notebook 6
-research product.  It accepts already-built :class:`~argo_interp.model.CycleModels`
+research product.  It accepts already-built :class:`~argo_kwsi.model.CycleModels`
 objects, so data acquisition, cache management, plotting, and paper-specific
 file paths remain outside the library API.
 
@@ -845,7 +845,7 @@ class SoundSpeedUncertaintyProduct:
 
         data = self._query_data(latitude, longitude, depth_indices=depth_indices)
         metadata = self.metadata()
-        data.attrs["argo_interp_uncertainty"] = metadata
+        data.attrs["argo_kwsi_uncertainty"] = metadata
         return UncertaintyProductResult(data=data, metadata=metadata)
 
     def query(
@@ -879,12 +879,12 @@ class SoundSpeedUncertaintyProduct:
                 batch.append(frame)
             if len(batch) == batch_size:
                 combined = self._combine_frames(batch)
-                combined.attrs["argo_interp_uncertainty"] = metadata
+                combined.attrs["argo_kwsi_uncertainty"] = metadata
                 yield combined
                 batch = []
         if batch:
             combined = self._combine_frames(batch)
-            combined.attrs["argo_interp_uncertainty"] = metadata
+            combined.attrs["argo_kwsi_uncertainty"] = metadata
             yield combined
 
     def grid_result(
@@ -911,7 +911,7 @@ class SoundSpeedUncertaintyProduct:
         )
         data = self._combine_frames(frames)
         metadata = self.metadata()
-        data.attrs["argo_interp_uncertainty"] = metadata
+        data.attrs["argo_kwsi_uncertainty"] = metadata
         return UncertaintyProductResult(data=data, metadata=metadata)
 
     def grid(

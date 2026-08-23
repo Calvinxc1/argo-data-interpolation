@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from argo_interp.model.CycleData import CycleData
+from argo_kwsi.model.CycleData import CycleData
 
 PREDICTION_PATH = (
     Path(__file__).parents[1]

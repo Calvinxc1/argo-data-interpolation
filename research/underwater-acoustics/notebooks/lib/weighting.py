@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
 
-from argo_interp.model import CycleMetadata
+from argo_kwsi.model import CycleMetadata
 
 
 AVERAGE_YEAR_SECONDS = 365.2425 * 24 * 60 * 60

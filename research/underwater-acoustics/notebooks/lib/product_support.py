@@ -9,12 +9,12 @@ from typing import Any
 
 from tqdm.auto import tqdm
 
-from argo_interp.cycle.adapter import PchipAdapter
-from argo_interp.cycle.config import ModelSettings
-from argo_interp.cycle.domain import ModelData, ModelMeta
-from argo_interp.cycle.model import Model
-from argo_interp.data.data_filter import data_filter
-from argo_interp.model import CycleModels
+from argo_kwsi.cycle.adapter import PchipAdapter
+from argo_kwsi.cycle.config import ModelSettings
+from argo_kwsi.cycle.domain import ModelData, ModelMeta
+from argo_kwsi.cycle.model import Model
+from argo_kwsi.data.data_filter import data_filter
+from argo_kwsi.model import CycleModels
 
 
 def cache_metadata_matches(
@@ -37,7 +37,7 @@ def load_filtered_argo_data(argo_data_path: Path, box: list[object]) -> Any:
         with argo_data_path.open("rb") as file:
             dataset = pickle.load(file)
     else:
-        from argo_interp.data.get_data import get_data
+        from argo_kwsi.data.get_data import get_data
 
         dataset = get_data(box, progress=True)
         with argo_data_path.open("wb") as file:

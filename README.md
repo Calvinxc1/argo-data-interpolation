@@ -1,4 +1,4 @@
-# argo-interp
+# argo-kwsi
 
 Research code and working materials for interpolation and representation of Argo float CTD data across both vertical-profile and broader spatio-temporal settings.
 
@@ -8,7 +8,7 @@ The long-term goal is to turn irregular Argo float measurements into compact, re
 
 ## At a Glance
 
-- Implemented now: cycle-level vertical representation code under [`src/argo_interp/cycle`](src/argo_interp/cycle/) and a reusable spatiotemporal TEOS-10 uncertainty-product API in [`argo_interp.uncertainty`](src/argo_interp/uncertainty.py).
+- Implemented now: cycle-level vertical representation code under [`src/argo_kwsi/cycle`](src/argo_kwsi/cycle/) and a reusable spatiotemporal TEOS-10 uncertainty-product API in [`argo_kwsi.uncertainty`](src/argo_kwsi/uncertainty.py).
 - Documented now: literature reviews, topic notes, and notebook-based diagnostics indexed in [`research/README.md`](research/README.md).
 - Planned next: broader spatio-temporal interpolation and prediction workflows across floats, with current research materials in [`research/spatio-temporal/README.md`](research/spatio-temporal/README.md).
 
@@ -47,7 +47,7 @@ and figures rather than duplicating repository-owned source material.
 This project is in exploratory/research mode.
 
 - Vertical cycle-representation pipeline:
-  implemented in code under [`src/argo_interp/cycle`](src/argo_interp/cycle/) and actively explored through the research notebook and supporting research documents.
+  implemented in code under [`src/argo_kwsi/cycle`](src/argo_kwsi/cycle/) and actively explored through the research notebook and supporting research documents.
 - Spatio-temporal work:
   the Notebook 6 TEOS-10 uncertainty-product computation is available as a library API; data acquisition, cached reproducibility artifacts, plotting, and broader validation remain research workflows.
 - Validation and benchmarking:
@@ -70,13 +70,13 @@ interpolation accuracy.
 
 ## Sound-Speed Uncertainty API
 
-`argo_interp.uncertainty` packages the computational core of the underwater
+`argo_kwsi.uncertainty` packages the computational core of the underwater
 acoustics Notebook 6 product. Create one explicit configuration and reuse it
 to estimate depthwise spatial variance and build query-point or gridded
 TEOS-10 sound-speed estimates with componentized uncertainty:
 
 ```python
-from argo_interp.uncertainty import (
+from argo_kwsi.uncertainty import (
     SoundSpeedUncertaintyConfig,
     SoundSpeedUncertaintyProduct,
     estimate_depthwise_spatial_variance,
@@ -99,7 +99,7 @@ degrees. For global work, set `distance_metric="great_circle_km"` and express
 both the candidate radius and distance-kernel sigma in kilometres.
 
 The result tables include provenance in
-`DataFrame.attrs["argo_interp_uncertainty"]`; use `query_result()` or
+`DataFrame.attrs["argo_kwsi_uncertainty"]`; use `query_result()` or
 `grid_result()` when you need the table and metadata as separate fields. Use
 `iter_grid_batches(...)` rather than `grid(...)` for a large grid that should
 be persisted in chunks.

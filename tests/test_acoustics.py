@@ -1,6 +1,6 @@
 import numpy as np
 
-from argo_interp.acoustics import (
+from argo_kwsi.acoustics import (
     SoundSpeedPartials,
     sound_speed_teos10,
     sound_speed_teos10_partials,

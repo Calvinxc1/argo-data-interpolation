@@ -313,7 +313,7 @@ jobs:
       - name: Smoke test installed core wheel
         run: |
           uv run --isolated --no-project --with dist/*.whl -- python -c \
-            "from argo_interp import SoundSpeedUncertaintyConfig; from argo_interp.data import get_data; assert SoundSpeedUncertaintyConfig.notebook6().distance_metric == 'planar_degrees'; assert callable(get_data)"
+            "from argo_kwsi import SoundSpeedUncertaintyConfig; from argo_kwsi.data import get_data; assert SoundSpeedUncertaintyConfig.notebook6().distance_metric == 'planar_degrees'; assert callable(get_data)"
 
   quality-summary:
     if: always()

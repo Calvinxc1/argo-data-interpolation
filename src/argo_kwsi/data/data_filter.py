@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 def data_filter(ds: xr.Dataset, filters: list[Any]) -> xr.Dataset:
     """Apply boolean masks to an xarray dataset.
 
-    Xarray is provided by the optional ``argo-interp[data]`` extra.
+    Xarray is provided by the optional ``argo-kwsi[data]`` extra.
     """
 
     mask = reduce(operator.and_, filters)

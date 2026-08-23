@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "argo-interp"
+name = "argo-kwsi"
 version = "0.1.0"
 description = "Interpolation tools for Argo float profile data."
 readme = "README.md"
@@ -69,11 +69,11 @@ research = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=argo_interp --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=argo_kwsi --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
 branch = true
-source = ["argo_interp"]
+source = ["argo_kwsi"]
 
 [tool.coverage.report]
 show_missing = true
@@ -91,4 +91,4 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["argo_interp*"]
+include = ["argo_kwsi*"]

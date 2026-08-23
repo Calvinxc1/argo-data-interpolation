@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from argo_interp.cycle.domain.ModelMeta import ModelMeta
+from argo_kwsi.cycle.domain.ModelMeta import ModelMeta
 
 
 def test_model_meta_exposes_structured_cycle_parts_and_derived_cycle_id() -> None:

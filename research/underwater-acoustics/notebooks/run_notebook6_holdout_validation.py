@@ -21,7 +21,7 @@ if str(notebook_dir) not in sys.path:
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from argo_interp.acoustics import (  # noqa: E402
+from argo_kwsi.acoustics import (  # noqa: E402
     sound_speed_teos10,
     sound_speed_teos10_partials,
     sound_speed_variance,

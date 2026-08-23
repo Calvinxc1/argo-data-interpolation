@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .ModelKwargs import ModelKwargs
 from .SensorAccuracy import SensorAccuracy
@@ -7,5 +7,5 @@ from .SensorAccuracy import SensorAccuracy
 @dataclass(frozen=True, slots=True)
 class ModelSettings:
     n_folds: int
-    model_kwargs: ModelKwargs = ModelKwargs()
-    sensor_accuracy: SensorAccuracy = SensorAccuracy()
+    model_kwargs: ModelKwargs = field(default_factory=ModelKwargs)
+    sensor_accuracy: SensorAccuracy = field(default_factory=SensorAccuracy)

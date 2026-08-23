@@ -240,3 +240,16 @@ def _meta() -> ModelMeta:
         timestamp=np.datetime64("2026-01-01"),
         profile_pressure=(0.0, 100.0),
     )
+
+
+def test_model_kwargs_defaults_are_not_shared_between_settings() -> None:
+    first = ModelSettings(n_folds=5)
+    second = ModelSettings(n_folds=3)
+
+    assert first.model_kwargs is not second.model_kwargs
+    assert first.model_kwargs.temperature is not second.model_kwargs.temperature
+
+    first.model_kwargs.temperature["s"] = 0.5
+
+    assert second.model_kwargs.temperature == {}
+    assert ModelSettings(n_folds=9).model_kwargs.temperature == {}

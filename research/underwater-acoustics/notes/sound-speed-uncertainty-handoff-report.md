@@ -18,7 +18,7 @@ Repository state to resume from:
 - Current branch: `feature/uncertainty-estimation`
 - Latest pushed commit: `1df8c98 feat: add out-of-sample calibration split`
 - Open PR: `#14`, `feature/uncertainty-estimation` into `dev`,
-  <https://github.com/Calvinxc1/argo-data-interpolation/pull/14>
+  <https://github.com/Calvinxc1/argo-kwsi/pull/14>
 - PR merge state: intentionally unmerged; Jason asked to table the work before
   merging.
 - Tracked worktree state after the pushed validation commit was clean. A local

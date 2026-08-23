@@ -19,6 +19,8 @@ _No staged changes._
 - Added `cartopy` and `seawater` as runtime dependencies to support the research notebook mapping and UNESCO sound-speed replication workflow.
 - Added the reusable `argo_kwsi.uncertainty` API for the Notebook 6 TEOS-10 sound-speed uncertainty product, including explicit configuration, spatial-variance estimation, geometry selection, provenance metadata, and batched grid construction.
 - Added `PRODUCT_COLUMN_DTYPES` and `empty_product_frame()` to `argo_kwsi.uncertainty`, giving sound-speed product tables a single declared dtype schema that row-less results also carry.
+- Added an automated release pipeline that reads the version from `pyproject.toml` on merge to `main`, re-verifies lint, tests and REUSE compliance, builds an sdist alongside the wheel, publishes to PyPI through Trusted Publishing rather than a stored token, then tags the commit and drafts a GitHub release from the matching changelog section.
+- Added a REUSE licensing compliance check to the quality workflow, and brought the repository into compliance by covering `lab-governance/` in `REUSE.toml` and adding the missing `LICENSES/GPL-3.0-or-later.txt` license text.
 
 ### Changed
 
@@ -44,6 +46,8 @@ _No staged changes._
 - Clarified that PyPI distribution is forthcoming and that the repository checkout remains the current installation path.
 - Renamed the distributed package from `argo-data-interpolation` to `argo-kwsi`, and the import package from `argo_interp` to `argo_kwsi`, adopting the kernel-weighted spatiotemporal interpolation (KWSI) name the OCEANS 2026 Monterey paper gives the method. The optional extras are now installed as `argo-kwsi[data]` and `argo-kwsi[research]`, the import-error message raised by `argo_kwsi.data.get_data` names the new package, and the product provenance key in `DataFrame.attrs` is now `argo_kwsi_uncertainty`. The GitHub repository was renamed to `argo-kwsi` to match. The accepted OCEANS 2026 Monterey paper cites the previous repository URL, which continues to resolve through GitHub's rename redirect.
 - Rebuilt `CycleModels.interp_error_variance()` on preallocated arrays instead of column-by-column DataFrame assignment, matching the interpolation path and removing per-cycle frame fragmentation on large bundles.
+- Extended the quality workflow to run the test suite on Python 3.11 and 3.13 rather than the supported floor alone, enabled uv caching across its jobs, and added a concurrency group so superseded runs on a pull request are cancelled.
+- Narrowed workflow permissions to `contents: read` by default, granting `pull-requests: write` only to the job that comments on the pull request.
 
 ### Fixed
 
@@ -56,6 +60,7 @@ _No staged changes._
 - Fixed `ModelSettings` sharing one default `ModelKwargs` instance across every default-constructed settings object, so mutating adapter kwargs on one settings object no longer leaks into all others in the same process.
 - Fixed sound-speed product queries that match no candidate cycles returning an all-object-dtype frame, which did not match the dtypes of a populated result.
 - Fixed `SoundSpeedUncertaintyProduct` serving stale position-indexed cycle terms after its `CycleModels` bundle was mutated, which silently misaligned cached values against live metadata.
+- Fixed the pull-request quality summary erroring out when an upstream job failed before producing artifacts. The download steps no longer fail the job, and the summary reports that results were unavailable instead of vanishing.
 
 ### Removed
 

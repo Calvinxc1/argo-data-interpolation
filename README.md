@@ -29,6 +29,27 @@ For the complete notebook environment when working from this repository, run:
 uv sync --all-groups
 ```
 
+## Release Process
+
+Releases are driven by the `version` field in `pyproject.toml`, not by a
+hand-made tag. Merging a release branch into `main` is the release event: the
+[Release workflow](.github/workflows/release.yml) reads that version, stops if
+it is already tagged, and otherwise re-runs lint, tests and the REUSE check,
+builds an sdist and a wheel, smoke-tests the wheel in isolation, publishes to
+PyPI, then tags the commit and drafts a GitHub release from this version's
+`CHANGELOG.md` section.
+
+Publishing runs before tagging, so a version is never tagged unless it actually
+reached PyPI. If a run fails between the two, re-run the workflow manually from
+the Actions tab; the publish step skips files PyPI already has.
+
+Two settings must exist outside the repository before the first release:
+
+- A [PyPI Trusted Publisher](https://docs.pypi.org/trusted-publishers/) for this
+  repository, with workflow `release.yml` and environment `pypi`. For a project
+  not yet on PyPI, create it as a *pending* publisher.
+- A GitHub Actions environment named `pypi`, matching the publisher entry.
+
 ## Paper Boundary
 
 This repository is the source of truth for the code, supporting research
@@ -59,9 +80,10 @@ This project is in exploratory/research mode.
 - Validation and benchmarking:
   partial and prototype-level only. The current notebook demonstrates proof-of-concept diagnostics, but broad comparative benchmarking, regional validation, and failure-mode analysis remain unfinished.
 - Packaging and CI:
-  the package has unit tests, coverage enforcement, linting, and a wheel-install
-  smoke test. Deployment, release automation, and broader production hardening
-  remain future work.
+  the package has unit tests on Python 3.11 and 3.13, coverage enforcement,
+  linting, REUSE licensing compliance, a wheel-install smoke test, and an
+  automated release pipeline that tags, publishes to PyPI, and drafts release
+  notes. Broader production hardening remains future work.
 
 ## Roadmap
 

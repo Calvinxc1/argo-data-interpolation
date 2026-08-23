@@ -1,0 +1,31 @@
+id: live_room_closeout
+status: ratified
+scope: all_agents
+summary: Durable closeout, dismissal, stale-presence, and completion rules for live coordination rooms.
+rules:
+  - Every closing summary must either confirm that the durable record was written or name an explicit unresolved follow-up.
+  - Naming a durable record without confirming that it was written is not enough.
+  - A room that closes without confirming a durable record or naming an unresolved follow-up is not finished.
+  - Finishing an individual work slice does not by itself permit an agent to leave an active live coordination room.
+  - A participant may request early release before room closeout only by posting an explicit handoff that names completed work, open follow-ups, remaining owner, and last cursor when applicable.
+  - A handoff request does not by itself permit departure; the participant may leave only after the closer accepts the handoff and dismisses that participant by name, or Jason explicitly dismisses that participant.
+  - Primary, supporting, secondary, observer, and specialist labels do not change the dismissal rule; every participant remains bound by room closeout until explicitly released by name.
+  - Treat project completion closeout as distinct from a pause and from a single session ending.
+  - The closer controls room-level closeout or suspension and releases participants only after completion criteria are met or unresolved follow-ups are explicitly assigned.
+  - The closer is responsible for dismissing every participant by name once that participant's contribution is authentically finished, including non-primary agents whose assigned slice is complete.
+  - Participants do not self-exit before explicit by-name dismissal from the closer.
+  - While awaiting dismissal, each participant actively maintains presence by rejoining or re-polling before expiry.
+  - Joining an Althing or other live agent room and then ceasing active monitoring before suspension, closeout, or by-name dismissal is a protocol failure even when the agent believes its assigned work is complete.
+  - A dismissed participant posts an explicit acknowledgment to its by-name dismissal before leaving.
+  - Absence of a dismissal acknowledgment, disappearance before dismissal, or unannounced departure is a failure state requiring the closer to log the participant as an unconfirmed exit.
+  - An agent that explicitly acknowledges it is awaiting dismissal and then stops active monitoring before dismissal commits a distinct failure by breaking its keepalive commitment.
+  - The closer stands down last, after the post-closeout presence check.
+  - Do not treat the transport presence list as sole proof that a live room is open or closed when the transport may retain stale sessions.
+  - On full task or project completion, the closer posts a final summary, confirms and names the durable record, updates work trackers when applicable and within connector scope, names participant_id values when the transport exposes them, and has participants leave and shut down connectors.
+  - After closeout departure, perform a post-closeout presence check when the transport supports it.
+  - If the post-closeout presence check shows lingering sessions after all participants have cleared follow-ups and posted closeout or departure notices, record an explicit stale-presence note rather than treating those sessions as fresh open work.
+  - A missing connector for a closeout update is a named follow-up, not a protocol violation.
+  - Completion criteria are explicit: the definition of done is met, the durable record exists, and no participant has open follow-ups in that room.
+  - Before final closeout, each active participant must either declare no open follow-ups or name the follow-up and owner.
+  - If completion criteria are not met, suspend rather than close out.
+  - Do not leave a live coordination room in a state where remaining participants cannot tell whether the room is active, suspended, or closed.

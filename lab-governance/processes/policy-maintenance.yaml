@@ -1,0 +1,37 @@
+id: policy_maintenance
+status: ratified
+when: [policy_edit]
+rules:
+  - When governance structure changes, update AGENTS.md, README.md, and affected governance files in the same change.
+  - Keep policy in policies, process rules in processes, and temporary exception records in overrides.
+  - Keep lab-wide governance policy, process, routing, and override files under lab-governance.
+  - Keep active repo-local governance policy, process, routing, and override files under .governance.
+  - Treat committed files under active governance policy and process directories as ratified and operative by placement.
+  - Keep draft policy and process proposals outside active policy and process directories until Jason ratifies them.
+  - Remove obsolete operative policy from active governance rather than carrying deprecated active files; Git history is the archive.
+  - Treat drift between .governance and lab-governance as allowed only when it is visible and intentional.
+  - Before adding, moving, or versioning a governance policy change, evaluate the narrowest existing scope that can correctly own the change.
+  - Prefer the narrowest existing applicable scope, including repo-local deviation, active local governance, kind branch, or trunk-general governance.
+  - Use trunk only when the rule is intended to apply across agent kinds or when Jason explicitly ratifies trunk scope.
+  - Policy-change reportback must state the selected scope, why narrower existing scopes were insufficient or sufficient, and whether the change affects trunk, a kind branch, repo-local governance, or generalized lab governance.
+  - Before editing governance files, identify the owning governance layer for the requested change as trunk-general, kind-specific, repo-local, registry/bookkeeping, or propagation-only.
+  - Before editing governance files, compare the owning layer against the current Git branch, `.governance/branch-descriptor.yaml`, and `lab-governance/branch-descriptor.yaml` when present.
+  - If the current branch does not match the owning layer, switch to the owning branch before editing rather than making the change on the current branch.
+  - General all-agent rules, live-room rules, governance initialization guides, generalized templates, registry-loop prompts, and lab-wide process changes belong on trunk first unless Jason explicitly scopes them to a kind branch or repo-local deviation.
+  - Kind-specific rules belong on that kind branch and must not be treated as trunk policy unless separately promoted through an explicit trunk change.
+  - Do not satisfy propagation by editing `lab-governance` on a child branch while the trunk-owned source remains stale.
+  - Before committing governance changes, state the owning layer, current branch, changed paths, canon-version target, and downstream branches that must receive propagation.
+  - Before pushing governance changes, confirm that the remote target branch is the owning branch for the change or a named propagation branch.
+  - If a governance change is discovered on the wrong branch, do not stack additional fixes on that branch; port the change to the owning branch, then propagate by merge or explicitly recorded branch-local replay.
+  - Prefer updating an existing domain file over creating a new one unless the policy surface is materially distinct.
+  - Keep file names stable and descriptive.
+  - Update path references in the same change when files move.
+  - Keep README.md, lab-governance/README.md, and .governance/README.md aligned with the actual structure.
+  - When changing operative wording, review nearby files for duplicated or conflicting rules.
+  - AGENTS.md remains the entrypoint and index, not the full policy body.
+  - Branch descriptors remain separate from AGENTS.md.
+  - A kind branch descriptor is not present on trunk.
+  - Agents do not push branches into this repository.
+  - When trunk governance policy changes, propagate the update into each governed child policy branch, including coding-agent and desktop-orchestrator, unless Jason explicitly scopes the change as trunk-local.
+  - Child policy propagation must include the changed governance files and any required branch descriptor or parent canon-version references.
+  - Generalizable changes travel upward as Gitea issues, not pull requests or upward merges.

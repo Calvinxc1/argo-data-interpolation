@@ -1,0 +1,22 @@
+type: agent_registry_attestation
+canonical_agent_name: Coding Agent
+agent_kind: coding_agent
+active_governance_branch: coding-agent
+source_repository: gitea.infra.newedenhomestead.net:ai-projects/ai-governance.git
+source_commit: e7312d8d33db228f89ce62af66f32b8e9b8ec7f5
+previous_active_canon_version: null
+current_active_canon_version: coding-agent/1.0.0
+previous_generalized_canon_version: null
+current_generalized_canon_version: trunk/2.7.0
+self_stamp_path: .governance/local/version-stamp.yaml
+self_stamp_updated: true
+registry_loop_transport: gitea_issue
+registry_loop_result: submitted_to_ai-projects/ai-governance#26_pending_central_registry_update
+updated_at: 2026-07-02T13:14:01Z
+result: locally_complete_registry_pending
+reconciliation:
+  - missing_previous_self_stamp: No local self-stamp was present before this update.
+  - previous_local_canon_unknown: Local active and generalized canon versions were unknown before this update.
+  - registry_self_stamp_path_null: The central registry row for Coding Agent has self_stamp_path null; local convention used .governance/local/version-stamp.yaml.
+  - local_only_governance_preserved: Local-only governance files were preserved because no explicit reconciliation instruction authorized removal.
+  - central_registry_pending: Gitea issue ai-projects/ai-governance#26 was submitted; direct mutation of agent-registry/agents.yaml was not authorized by the ratified process.

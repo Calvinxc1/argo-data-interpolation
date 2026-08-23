@@ -1,0 +1,13 @@
+# Pipeline Integration Notes: Argo Cycle Representation
+
+These notes track where the cycle-level vertical artifact may fit into the broader Argo processing and downstream analysis chain. Source-backed processing claims should trace to [../literature-review.md](../literature-review.md).
+
+## Understand the full Argo scientific analysis pipeline
+
+The raw profile preservation vs. interpolation distinction implies a chain of processing steps between a float surfacing and a researcher using a gridded climate product. Interpolation method choices enter that chain at specific, identifiable points.
+
+Understanding this in detail matters for two reasons. First, it determines where the topic's vertical-artifact outputs would slot into downstream products or analysis layers that consume vertically standardized Argo information. Second, knowing where QC flags, bias corrections, and delayed-mode processing enter the chain clarifies what state the data is in when it reaches the vertical representation step.
+
+Recommended reading from the current lit review: Wong et al. (2020) for the delayed-mode QC pipeline and distribution chain, and Yarger et al. (2022) Section 2.1 and 2.2 for a concise processing context overview from a statistical user's perspective. Specific downstream gridded products or external Argo documentation should be added here only after they are reviewed and summarized in the lit review.
+
+Follow-up item for a future version: account for measurement-time lag within Argo profiles. In the current vertical-artifact workflow, a profile is treated as effectively static over the interval between subsurface measurement and later surface or report time. This is a simplifying implementation assumption. A future version should evaluate whether the within-cycle temporal offset is large enough to affect interpolation quality or uncertainty, especially when combining the vertical artifact with downstream spatiotemporal modeling.

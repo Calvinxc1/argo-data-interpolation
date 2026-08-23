@@ -1,0 +1,87 @@
+id: task_map
+default_load:
+  - AGENTS.md
+  - .governance/policies/universal.yaml
+route_resolution:
+  - Load default_load first.
+  - Select every route that matches the task shape.
+  - For each selected route, load every file in the named groups plus every direct file listed under files.
+  - Do not infer policy loading from folder names; route_groups and routes are the explicit loading contract.
+route_groups:
+  execution.baseline:
+    - .governance/policies/execution-control.yaml
+    - .governance/policies/epistemic-acceptance.yaml
+  communication.durable_boundaries:
+    - .governance/policies/durable-communication-boundaries.yaml
+  communication.live_room:
+    - .governance/policies/agent-identity.yaml
+    - .governance/policies/durable-communication-boundaries.yaml
+    - .governance/policies/live-room-coordination.yaml
+    - .governance/policies/live-room-closeout.yaml
+  connector.boundaries:
+    - .governance/policies/boundaries.yaml
+    - .governance/policies/safety-transparency.yaml
+    - .governance/policies/durable-communication-boundaries.yaml
+  safety.validation:
+    - .governance/policies/risk-validation.yaml
+    - .governance/policies/safety-transparency.yaml
+  workflow.auditability:
+    - .governance/policies/workflow-auditability.yaml
+  governance.update:
+    - .governance/policies/execution-control.yaml
+    - .governance/policies/epistemic-acceptance.yaml
+    - .governance/policies/safety-transparency.yaml
+    - .governance/processes/agent-governance-update.yaml
+  governance.override:
+    - .governance/processes/override-governance.yaml
+    - .governance/overrides/policy-overrides-spec.yaml
+    - .governance/overrides/policy-overrides.yaml
+routes:
+  discussion_or_planning:
+    groups:
+      - execution.baseline
+      - communication.durable_boundaries
+    files: []
+  substantive_work:
+    groups:
+      - execution.baseline
+      - safety.validation
+      - workflow.auditability
+    files: []
+  connector_or_boundary_work:
+    groups:
+      - connector.boundaries
+    files: []
+  live_agent_coordination:
+    groups:
+      - communication.live_room
+    files: []
+  inter_agent_communication_index:
+    groups: []
+    files:
+      - .governance/policies/inter-agent-communication.yaml
+  knowledge_capture:
+    groups:
+      - workflow.auditability
+    files:
+      - .governance/policies/knowledge-model.yaml
+  style_sensitive_output:
+    groups: []
+    files:
+      - .governance/policies/style.yaml
+  wellbeing_or_pushback:
+    groups: []
+    files:
+      - .governance/policies/engagement-posture.yaml
+  policy_edit:
+    groups: []
+    files:
+      - .governance/processes/policy-maintenance.yaml
+  agent_governance_update:
+    groups:
+      - governance.update
+    files: []
+  override_execution:
+    groups:
+      - governance.override
+    files: []

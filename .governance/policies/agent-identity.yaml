@@ -1,0 +1,18 @@
+id: agent_identity
+status: ratified
+scope: all_agents
+summary: Canonical identity rules for governed agents and live coordination.
+rules:
+  - Before joining any live room, an agent must know its Jason-settled canonical name.
+  - If an agent does not have a Jason-settled canonical name, it must not join a live room under a guessed name.
+  - An agent without a settled canonical name asks Jason to settle one before connecting, may offer candidate names, records the settled name, and then joins only under that name.
+  - Join each live room under the agent's single canonical name.
+  - Do not join the same live room under an alias or alternate name.
+  - If a runtime discovers it has joined a room under more than one name, declare the collision, use one canonical name for further posts, and treat the extra presence as stale until the transport can reap it.
+  - A connector process may host multiple logical agents only when each logical agent uses its own settled canonical name and participant identity.
+  - Two logical agents that may need separate attribution, dismissal, or closeout must not share one visible sender name or participant identity.
+  - Reusing another logical agent's visible sender name is an identity collision and must be declared immediately.
+  - Treat lead and closer as per-task assignments, not agent identity.
+  - Use one canonical name per agent, stable across rooms and channels.
+  - The canonical name identifies the agent's standing role or function and encodes no hostname, model backend, or per-task role.
+  - Settle the canonical name collaboratively with Jason; the agent describes its role and proposes candidates, and Jason settles and audits the final choice.

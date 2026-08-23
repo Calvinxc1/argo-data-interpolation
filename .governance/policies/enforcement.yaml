@@ -1,0 +1,8 @@
+id: enforcement
+when: [enforcement, override]
+rules:
+  - Enforced repository controls are mandatory unless temporarily bypassed for a specific operation.
+  - Unenforced controls remain discretionary, but overrides still follow override-governance rules.
+  - Prefer documented defaults unless there is a clear reason to deviate.
+  - Overrides must be explicit, case-specific, reasoned, temporary, and recorded when material.
+  - Repeated materially similar overrides should trigger policy review.

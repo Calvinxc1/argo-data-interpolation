@@ -1,0 +1,7 @@
+id: notebooks
+when: [notebook]
+rules:
+  - For Jupytext-paired notebooks, if notebook work is requested, first sync the matching `.py` from the notebook state.
+  - After that sync, make edits in the `.py` file rather than editing the `.ipynb` directly.
+  - After the `.py` edits are complete, sync the updated `.py` back into the `.ipynb`.
+  - Before any commit that involves a Jupytext-paired notebook, ensure the notebook and its underlying paired `.py` are synced.

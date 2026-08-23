@@ -1,0 +1,25 @@
+# Underwater Acoustics Notes
+
+This folder contains the working notes for the `underwater-acoustics` topic. The notes are split between the concrete Jana replication path and the broader operational framing for industry-facing acoustic use cases.
+
+Source-backed claims in these notes should trace to [../literature-review.md](../literature-review.md). Broader tooling and market claims remain explicitly marked as pending source verification until the literature review is expanded.
+
+## Files
+
+- [error-propagation-architecture-notes.md](error-propagation-architecture-notes.md): working note on the additive uncertainty architecture for underwater-acoustics interpolation, including active error terms, negligible terms, and deferred positioning issues.
+- [jana-replication-notes.md](jana-replication-notes.md): working notes on why Jana et al. is the current demonstration target and how to extend it with uncertainty-aware interpolation.
+- [literature-review-project-framing-notes.md](literature-review-project-framing-notes.md): project-facing implications extracted from the literature review so the review can remain focused on source-backed synthesis.
+- [operational-framing-notes.md](operational-framing-notes.md): working notes on the underwater-acoustics positioning, candidate industry hooks, and pending-verification research questions.
+- [sound-speed-uncertainty-implementation-plan.md](sound-speed-uncertainty-implementation-plan.md): implementation recovery note for OCEANS 2026 sound-speed variance propagation, current variance inputs, target output schema, and validation targets.
+- [sound-speed-uncertainty-handoff-report.md](sound-speed-uncertainty-handoff-report.md): concise Coding Agent report-back against the Education handoff, including current outputs, completed/partial/deferred items, and rerun instructions.
+- [narrow-region-uncertainty-product-run.md](narrow-region-uncertainty-product-run.md): recorded BATS reference-region package run, including the Argo source window, explicit configuration choice, output summary, and interpretation boundaries.
+- [paper-figure-provenance.md](paper-figure-provenance.md): which repository-generated figures appear in the OCEANS 2026 Monterey paper, the direction the reuse runs, and how the CC-BY-4.0 subtree relates to the publisher's copyright.
+
+## License
+
+This folder is part of the [`research/`](../../README.md) subtree and is
+licensed under the Creative Commons Attribution 4.0 International
+license unless otherwise noted. See [`../../LICENSE`](../../LICENSE).
+The non-research parts of the repository remain under the GNU General
+Public License v3.0 or later as described in
+[`../../../README.md`](../../../README.md).

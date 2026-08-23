@@ -1,0 +1,71 @@
+id: local_deviations
+status: ratified
+scope: ai_governance_repo
+summary: Explicit local deviations from the generalized lab-governance rule set.
+deviations:
+  - id: governance-repo-dual-tree-maintenance
+    status: ratified
+    local_scope: this_repository
+    generalized_reference:
+      - lab-governance/README.md
+      - lab-governance/processes/policy-maintenance.yaml
+    local_files:
+      - .governance/README.md
+      - .governance/processes/policy-maintenance.yaml
+      - README.md
+    rationale: This repository maintains both its active local governance copy and the generalized governance rule set that may propagate to other repositories.
+    local_rule: Agents may edit both .governance and lab-governance in the same task when the task is explicitly about governance maintenance or alignment.
+    non_generalized_reason: Ordinary repositories should normally treat .governance as their active local governance source and should not maintain a separate generalized lab-governance tree.
+    review_requirement: When either tree changes, state whether the change is local-only, generalized-only, or intentionally duplicated.
+  - id: governance-repo-visible-drift
+    status: ratified
+    local_scope: this_repository
+    generalized_reference:
+      - lab-governance/processes/policy-maintenance.yaml
+    local_files:
+      - .governance/processes/policy-maintenance.yaml
+      - .governance/local/deviations.yaml
+      - .governance/records/
+    rationale: This repository is expected to compare local operating rules against candidate generalized rules and may intentionally hold differences during policy development.
+    local_rule: Drift between .governance and lab-governance is allowed only when the drift is visible, intentional, and recorded or summarized in local governance materials.
+    non_generalized_reason: Downstream repositories should not infer permission to diverge from their received governance without an explicit local deviation record.
+    review_requirement: During governance alignment work, compare the two trees and identify whether observed drift is path-only, documentation-only, local exception, or candidate general policy change.
+  - id: governance-repo-branch-distribution
+    status: ratified
+    local_scope: this_repository
+    generalized_reference:
+      - lab-governance/README.md
+      - lab-governance/processes/policy-maintenance.yaml
+    local_files:
+      - .governance/processes/policy-maintenance.yaml
+      - .governance/records/
+    rationale: This repository uses trunk and kind branches to maintain complete governance pictures for different agent kinds.
+    local_rule: After Jason ratifies a governance structure or rule change on trunk, agents must propagate the update into each governed child policy branch, including coding-agent and desktop-orchestrator, unless Jason explicitly scopes the change as trunk-local. When committing and pushing work on a branch that has governed downstream kind or sub-branches, agents must propagate the work to the appropriate downstream branches before calling the work complete unless Jason explicitly scopes the change as branch-local. Governance policy files that alter the ratified governance contract require a semantic-version-style canon_version bump in the same change; repo-local process, deviation, record, registry, and bookkeeping changes do not require a canon_version bump unless they alter the ratified governance contract consumed by agents.
+    non_generalized_reason: Ordinary repositories are not expected to maintain governance propagation branches.
+    review_requirement: Branch distribution must preserve each branch's local governance entrypoint and separately maintain any generalized lab-governance copy required by that branch. Report the source commit, propagated branch commits, validation for each branch, any canon_version bump or explicit no-bump reason, and any explicit branch-local reason when propagation is skipped.
+  - id: governance-repo-lab-governance-maintainer-authority
+    status: ratified
+    local_scope: this_repository
+    generalized_reference:
+      - README.md
+      - lab-governance/README.md
+      - lab-governance/processes/policy-maintenance.yaml
+    local_files:
+      - .governance/local/deviations.yaml
+      - .governance/processes/policy-maintenance.yaml
+    rationale: This repository is the maintainer of the generalized lab governance tree. Because committed active lab-governance policy and process files are ratified by placement, placement authority must be controlled locally.
+    local_rule: Only Jason or an explicitly authorized governance-maintenance agent may add, remove, or materially change active files under lab-governance/policies or lab-governance/processes. Before committing such a change, the agent must state the intended scope, ratification basis, affected active files, canon-version impact, child-branch propagation plan, and validation plan.
+    non_generalized_reason: Ordinary downstream repositories do not maintain lab-governance and should not inherit this repository's maintainer-authority workflow.
+    review_requirement: Report the ratification basis, source branch commit, propagated child branch commits when applicable, validation results, and any unresolved registry or propagation follow-up.
+  - id: governance-repo-validation-reporting
+    status: ratified
+    local_scope: this_repository
+    generalized_reference:
+      - lab-governance/processes/policy-maintenance.yaml
+    local_files:
+      - .governance/local/deviations.yaml
+      - .governance/processes/policy-maintenance.yaml
+    rationale: This repository performs lab-governance maintenance and branch propagation. Detailed validation reporting is a local maintainer obligation for this repository, not a general obligation imposed on downstream governance consumers.
+    local_rule: Before calling governance maintenance complete, the authorized governance-maintenance agent must validate YAML syntax, scan for conflict markers, verify task-map and kind-route references, verify active policy route coverage, verify branch descriptors, verify canon-version-log entries, verify affected registry targets, verify ratified placement status, and report source and propagated branch commits with branch status.
+    non_generalized_reason: Ordinary downstream repositories consume lab governance and should not inherit this repository's validation and propagation workflow unless they also maintain a lab-governance tree.
+    review_requirement: Report each validation check performed, any skipped check with reason, the source branch commit, propagated child branch commits when applicable, and unresolved follow-ups.

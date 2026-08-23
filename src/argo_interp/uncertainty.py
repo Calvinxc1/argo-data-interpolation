@@ -12,11 +12,11 @@ covariance term and the intrinsic TEOS-10 formula uncertainty.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from datetime import timedelta
 from itertools import product
-from typing import Any, Iterable, Literal
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -75,6 +75,20 @@ PRODUCT_COLUMNS = (
     "var_sound_speed_teos10_sensor_bucket",
     "var_sound_speed_teos10_model_bucket",
 )
+PRODUCT_COLUMN_DTYPES: dict[str, Any] = {column: "float64" for column in PRODUCT_COLUMNS}
+# Infer rather than hard-code: pandas 3 stores the anchor-time label as ``str``
+# where pandas 2 used ``object``, and this must match the populated frame.
+PRODUCT_COLUMN_DTYPES["timestamp_or_anchor_time"] = pd.Series([""]).dtype
+PRODUCT_COLUMN_DTYPES["candidate_cycle_count"] = "int64"
+
+
+def empty_product_frame() -> pd.DataFrame:
+    """Return a row-less product table carrying the full product dtype schema."""
+
+    return pd.DataFrame(
+        {column: pd.Series(dtype=dtype) for column, dtype in PRODUCT_COLUMN_DTYPES.items()},
+        columns=list(PRODUCT_COLUMNS),
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -635,9 +649,14 @@ class SoundSpeedUncertaintyProduct:
         self.target_pressure = pressures
         self.spatial_variance = selected_spatial_variance
         self._cycle_terms: dict[str, NDArray[np.float64]] | None = None
+        self._cycle_id_snapshot: NDArray[Any] | None = None
 
     def _ensure_cycle_terms(self) -> dict[str, NDArray[np.float64]]:
-        if self._cycle_terms is not None:
+        # Cached terms are indexed by cycle position, so a mutated bundle would
+        # silently misalign them. CycleModels rebuilds its metadata arrays from
+        # scratch on mutation, making array identity a cheap staleness check.
+        cycle_ids = self.cycle_models.metadata().cycle_id
+        if self._cycle_terms is not None and self._cycle_id_snapshot is cycle_ids:
             return self._cycle_terms
         interpolates = self.cycle_models.interpolate(self.target_pressure)
         components = self.cycle_models.interp_error_variance(self.target_pressure)
@@ -651,6 +670,7 @@ class SoundSpeedUncertaintyProduct:
             "salinity_pressure": components.salinity.pressure_gradient.to_numpy(copy=False),
             "salinity_vertical": components.salinity.vertical_model.to_numpy(copy=False),
         }
+        self._cycle_id_snapshot = cycle_ids
         return self._cycle_terms
 
     def precompute_cycle_terms(self) -> None:
@@ -702,7 +722,7 @@ class SoundSpeedUncertaintyProduct:
             distance_metric=self.config.distance_metric,
         )
         if not candidate_mask.any():
-            return pd.DataFrame(columns=PRODUCT_COLUMNS)
+            return empty_product_frame()
         weights = self.config.weight_config.joint_weight(
             compute_weight_deltas(
                 target_latitude=latitude,
@@ -786,7 +806,9 @@ class SoundSpeedUncertaintyProduct:
                 "W_display": 1 - np.exp(-raw_support / self.config.sensor_support_tau),
                 "candidate_cycle_count": int(candidate_mask.sum()),
                 "effective_cycle_count": effective_count,
-                "spatial_validation_count": spatial["spatial_validation_count"].to_numpy(),
+                "spatial_validation_count": spatial["spatial_validation_count"].to_numpy(
+                    dtype=float
+                ),
             }
         )
         temp_factor = np.square(partials.temperature)
@@ -915,7 +937,7 @@ class SoundSpeedUncertaintyProduct:
         return (
             pd.concat(nonempty, ignore_index=True).reindex(columns=PRODUCT_COLUMNS)
             if nonempty
-            else pd.DataFrame(columns=PRODUCT_COLUMNS)
+            else empty_product_frame()
         )
 
 
@@ -958,6 +980,7 @@ __all__ = [
     "DistanceMetric",
     "GaussianScale",
     "PRODUCT_COLUMNS",
+    "PRODUCT_COLUMN_DTYPES",
     "PRODUCT_SCHEMA_VERSION",
     "SPATIAL_VARIANCE_COLUMNS",
     "SoundSpeedUncertaintyConfig",
@@ -971,6 +994,7 @@ __all__ = [
     "compute_weight_deltas",
     "depth_summary",
     "effective_cycle_count",
+    "empty_product_frame",
     "estimate_depthwise_spatial_variance",
     "great_circle_distance_km",
     "season_fraction",

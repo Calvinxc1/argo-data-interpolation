@@ -72,9 +72,7 @@ def test_product_grid_and_spatial_estimator_use_cycle_models() -> None:
 
     assert len(result) == 4
     assert [len(batch) for batch in batches] == [2, 2]
-    assert all(
-        batch.attrs["argo_interp_uncertainty"] == product.metadata() for batch in batches
-    )
+    assert all(batch.attrs["argo_interp_uncertainty"] == product.metadata() for batch in batches)
     assert set(result["pressure_dbar"]) == {5.0, 110.0}
     assert (spatial_variance["spatial_validation_count"] == 3).all()
     assert (spatial_variance["var_temperature_spatial"] > 0).all()
@@ -169,9 +167,33 @@ def test_empty_query_has_a_stable_schema_and_depth_summary_is_documented() -> No
     empty = product.query(latitude=50.0, longitude=50.0)
     summary = depth_summary(product.query(latitude=10.1, longitude=80.1))
 
-    assert list(empty.columns) == list(product.query(latitude=10.1, longitude=80.1).columns)
+    populated = product.query(latitude=10.1, longitude=80.1)
+    assert list(empty.columns) == list(populated.columns)
+    assert empty.dtypes.to_dict() == populated.dtypes.to_dict()
     assert empty.empty
     assert set(summary["depth_m"]) == {5.0, 110.0}
+
+
+def test_cached_cycle_terms_are_invalidated_when_the_bundle_is_mutated() -> None:
+    """A mutated bundle must not be served stale, position-indexed cached terms."""
+
+    cycle_models = _cycle_models()
+    product = SoundSpeedUncertaintyProduct(cycle_models, _spatial_variance(), _config())
+
+    warmed = product.query(latitude=10.1, longitude=80.1)
+    assert (warmed["candidate_cycle_count"] == 3).all()
+
+    cycle_models.pop(cycle_models.metadata().cycle_id[0])
+    after_mutation = product.query(latitude=10.1, longitude=80.1)
+
+    # Ground truth: a product that never saw the pre-mutation bundle at all.
+    reference = SoundSpeedUncertaintyProduct(cycle_models, _spatial_variance(), _config()).query(
+        latitude=10.1, longitude=80.1
+    )
+
+    assert (after_mutation["candidate_cycle_count"] == 2).all()
+    pd.testing.assert_frame_equal(after_mutation, reference)
+    assert not np.allclose(warmed["temperature"], reference["temperature"])
 
 
 def test_notebook6_factory_and_grid_result_expose_stable_provenance() -> None:

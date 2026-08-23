@@ -12,6 +12,7 @@ Source-backed claims in these notes should trace to [../literature-review.md](..
 - [operational-framing-notes.md](operational-framing-notes.md): working notes on the underwater-acoustics positioning, candidate industry hooks, and pending-verification research questions.
 - [sound-speed-uncertainty-implementation-plan.md](sound-speed-uncertainty-implementation-plan.md): implementation recovery note for OCEANS 2026 sound-speed variance propagation, current variance inputs, target output schema, and validation targets.
 - [sound-speed-uncertainty-handoff-report.md](sound-speed-uncertainty-handoff-report.md): concise Coding Agent report-back against the Education handoff, including current outputs, completed/partial/deferred items, and rerun instructions.
+- [narrow-region-uncertainty-product-run.md](narrow-region-uncertainty-product-run.md): recorded BATS reference-region package run, including the Argo source window, explicit configuration choice, output summary, and interpretation boundaries.
 
 ## License
 

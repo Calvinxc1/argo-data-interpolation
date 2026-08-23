@@ -1,4 +1,4 @@
-# Argo Data Interpolation
+# argo-interp
 
 Research code and working materials for interpolation and representation of Argo float CTD data across both vertical-profile and broader spatio-temporal settings.
 

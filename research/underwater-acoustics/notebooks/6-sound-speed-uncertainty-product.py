@@ -10,9 +10,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: argo-data-interpolation (.venv)
+#     display_name: argo-interp (.venv)
 #     language: python
-#     name: argo-data-interpolation
+#     name: argo-interp
 #   language_info:
 #     codemirror_mode:
 #       name: ipython

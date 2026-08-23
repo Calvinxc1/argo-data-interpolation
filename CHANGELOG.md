@@ -6,6 +6,10 @@ All notable user-visible, operator-visible, and release-relevant changes in this
 
 Changes merged to `dev` and staged for a future release belong in this section until they are promoted into a versioned release entry.
 
+_No staged changes._
+
+## 0.1.0 - 2026-08-23
+
 ### Added
 
 - Added `scipy-stubs` to the development dependency set to improve local type-checking support for SciPy usage during development.
@@ -14,6 +18,7 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Added a Bay of Bengal Jana et al. replication notebook under the underwater-acoustics research topic, along with companion notes documenting the settled replication pipeline, validation outputs, and subdomain figure workflow.
 - Added `cartopy` and `seawater` as runtime dependencies to support the research notebook mapping and UNESCO sound-speed replication workflow.
 - Added the reusable `argo_interp.uncertainty` API for the Notebook 6 TEOS-10 sound-speed uncertainty product, including explicit configuration, spatial-variance estimation, geometry selection, provenance metadata, and batched grid construction.
+- Added `PRODUCT_COLUMN_DTYPES` and `empty_product_frame()` to `argo_interp.uncertainty`, giving sound-speed product tables a single declared dtype schema that row-less results also carry.
 
 ### Changed
 
@@ -37,6 +42,8 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Updated package license metadata to the SPDX form required by current Python packaging tooling.
 - Streamlined the paired Notebook 6 research artifact by moving cache/model rebuild, benchmarking, and plotting mechanics into topic-local support modules; removed unused direct Argopy imports from the earlier cycle-representation notebooks.
 - Clarified that PyPI distribution is forthcoming and that the repository checkout remains the current installation path.
+- Renamed the distributed package from `argo-data-interpolation` to `argo-interp`. The optional extras are now installed as `argo-interp[data]` and `argo-interp[research]`, and the import-error message raised by `argo_interp.data.get_data` names the new package.
+- Rebuilt `CycleModels.interp_error_variance()` on preallocated arrays instead of column-by-column DataFrame assignment, matching the interpolation path and removing per-cycle frame fragmentation on large bundles.
 
 ### Fixed
 
@@ -46,6 +53,9 @@ Changes merged to `dev` and staged for a future release belong in this section u
 - Made the CI pytest step preserve test failures when its output is captured for PR summaries.
 - Preserved uncertainty provenance on frames yielded by `SoundSpeedUncertaintyProduct.iter_grid_batches()`.
 - Made weighted profile means exclude all non-finite input values, consistent with their finite-support contract.
+- Fixed `ModelSettings` sharing one default `ModelKwargs` instance across every default-constructed settings object, so mutating adapter kwargs on one settings object no longer leaks into all others in the same process.
+- Fixed sound-speed product queries that match no candidate cycles returning an all-object-dtype frame, which did not match the dtypes of a populated result.
+- Fixed `SoundSpeedUncertaintyProduct` serving stale position-indexed cycle terms after its `CycleModels` bundle was mutated, which silently misaligned cached values against live metadata.
 
 ### Removed
 
@@ -54,4 +64,4 @@ Changes merged to `dev` and staged for a future release belong in this section u
 
 ### Security
 
-- None yet.
+- None.

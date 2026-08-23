@@ -1,6 +1,6 @@
 import numpy as np
 
-from argo_interp.cycle.adapter import LinearAdapter, PchipAdapter, SplineAdapter
+from argo_kwsi.cycle.adapter import LinearAdapter, PchipAdapter, SplineAdapter
 
 
 def test_linear_adapter_reproduces_linear_data_and_gradient() -> None:

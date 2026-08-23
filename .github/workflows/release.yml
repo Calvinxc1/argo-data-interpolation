@@ -1,0 +1,231 @@
+name: Release
+
+# The release is driven by the version in pyproject.toml, not by a hand-made
+# tag. Merging a release branch into main is the release event: this workflow
+# reads the version, stops if that version is already tagged, and otherwise
+# verifies, tags, publishes and announces it.
+#
+# Publishing happens before tagging, so a version is never tagged unless it
+# actually reached PyPI. workflow_dispatch re-runs a release that failed
+# between those two steps; the publish job skips files PyPI already has.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Decide whether this version needs releasing
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      should_release: ${{ steps.version.outputs.should_release }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version and look for an existing tag
+        id: version
+        run: |
+          version="$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)"
+          if [ -z "$version" ]; then
+            echo "Could not read version from pyproject.toml" >&2
+            exit 1
+          fi
+          tag="v${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::${tag} already exists; nothing to release."
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${tag} is new; proceeding with release."
+          fi
+
+  verify:
+    name: Verify before publishing
+    needs: check
+    if: needs.check.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run ruff
+        run: uv run --group dev -- python -m ruff check src tests
+
+      - name: Run tests with coverage
+        run: uv run --group dev -- python -m pytest
+
+      - name: Check REUSE licensing compliance
+        run: uvx reuse lint
+
+  build:
+    name: Build sdist and wheel
+    needs:
+      - check
+      - verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Build distributions
+        run: uv build --sdist --wheel --out-dir dist
+
+      - name: Confirm both artifact kinds are present
+        run: |
+          ls -l dist
+          test -n "$(find dist -name '*.whl' -print -quit)" || {
+            echo "No wheel was produced" >&2; exit 1; }
+          test -n "$(find dist -name '*.tar.gz' -print -quit)" || {
+            echo "No sdist was produced" >&2; exit 1; }
+
+      - name: Smoke test the built wheel in isolation
+        run: |
+          uv run --isolated --no-project --with dist/*.whl -- python -c \
+            "from argo_kwsi import SoundSpeedUncertaintyConfig; from argo_kwsi.data import get_data; assert SoundSpeedUncertaintyConfig.notebook6().distance_metric == 'planar_degrees'; assert callable(get_data)"
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs:
+      - check
+      - build
+    runs-on: ubuntu-latest
+
+    # Trusted Publishing: PyPI verifies this workflow's OIDC identity, so no
+    # long-lived API token is stored. The environment name must match the one
+    # configured on the PyPI publisher.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/argo-kwsi
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Tagging happens after this job. If it failed, a dispatch re-run
+          # must not die here on files PyPI already has.
+          skip-existing: true
+
+  tag-and-announce:
+    name: Tag the release and publish release notes
+    needs:
+      - check
+      - publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Extract this version's changelog section
+        id: notes
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["VERSION"]
+          text = Path("CHANGELOG.md").read_text()
+
+          # Sections look like "## 0.1.0 - 2026-08-23"; capture through the next
+          # "## " heading or end of file.
+          pattern = rf"^## {re.escape(version)}\b.*?$\n(.*?)(?=^## |\Z)"
+          match = re.search(pattern, text, re.M | re.S)
+          body = match.group(1).strip() if match else ""
+          if not body:
+              body = f"See CHANGELOG.md for the {version} entry."
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as handle:
+              handle.write("body<<RELEASE_NOTES\n")
+              handle.write(body + "\n")
+              handle.write("RELEASE_NOTES\n")
+          PY
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+
+      - name: Create the tag
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.check.outputs.tag }}
+          NOTES: ${{ steps.notes.outputs.body }}
+        run: |
+          printf '%s\n' "$NOTES" > release-notes.md
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes-file release-notes.md \
+            dist/*

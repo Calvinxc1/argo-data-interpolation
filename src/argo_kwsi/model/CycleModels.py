@@ -23,8 +23,8 @@ class CycleModels:
     _metadata: CycleMetadata = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        duplicate_ids = [k for k, v in self.models.items() if k != v.meta.cycle_id]
-        if duplicate_ids:
+        mismatched_ids = [k for k, v in self.models.items() if k != v.meta.cycle_id]
+        if mismatched_ids:
             raise ValueError("dict keys must match model.meta.cycle_id")
         self._rebuild_metadata()
 
@@ -216,32 +216,35 @@ class CycleModels:
         metadata = self._metadata if mask is None else self.metadata(mask)
         cycle_ids = metadata.cycle_id
 
-        empty_frame = pd.DataFrame(index=pressure_index, columns=cycle_ids, dtype=float)
-        temp_sensor = empty_frame.copy()
-        temp_pressure = empty_frame.copy()
-        temp_model = empty_frame.copy()
-        sal_sensor = empty_frame.copy()
-        sal_pressure = empty_frame.copy()
-        sal_model = empty_frame.copy()
+        shape = (len(pressure_values), len(cycle_ids))
+        temp_sensor = np.empty(shape, dtype=float)
+        temp_pressure = np.empty(shape, dtype=float)
+        temp_model = np.empty(shape, dtype=float)
+        sal_sensor = np.empty(shape, dtype=float)
+        sal_pressure = np.empty(shape, dtype=float)
+        sal_model = np.empty(shape, dtype=float)
 
-        for cycle_id in cycle_ids:
+        for position, cycle_id in enumerate(cycle_ids):
             model_variance = self.models[cycle_id].interp_error_variance(pressure_values)
-            temp_sensor[cycle_id] = model_variance.temperature.sensor_precision
-            temp_pressure[cycle_id] = model_variance.temperature.pressure_gradient
-            temp_model[cycle_id] = model_variance.temperature.vertical_model
-            sal_sensor[cycle_id] = model_variance.salinity.sensor_precision
-            sal_pressure[cycle_id] = model_variance.salinity.pressure_gradient
-            sal_model[cycle_id] = model_variance.salinity.vertical_model
+            temp_sensor[:, position] = model_variance.temperature.sensor_precision
+            temp_pressure[:, position] = model_variance.temperature.pressure_gradient
+            temp_model[:, position] = model_variance.temperature.vertical_model
+            sal_sensor[:, position] = model_variance.salinity.sensor_precision
+            sal_pressure[:, position] = model_variance.salinity.pressure_gradient
+            sal_model[:, position] = model_variance.salinity.vertical_model
+
+        def to_frame(values: np.ndarray) -> pd.DataFrame:
+            return pd.DataFrame(values, index=pressure_index, columns=cycle_ids)
 
         return CycleVarianceData(
             temperature=MeasureVarianceData(
-                sensor_precision=temp_sensor,
-                pressure_gradient=temp_pressure,
-                vertical_model=temp_model,
+                sensor_precision=to_frame(temp_sensor),
+                pressure_gradient=to_frame(temp_pressure),
+                vertical_model=to_frame(temp_model),
             ),
             salinity=MeasureVarianceData(
-                sensor_precision=sal_sensor,
-                pressure_gradient=sal_pressure,
-                vertical_model=sal_model,
+                sensor_precision=to_frame(sal_sensor),
+                pressure_gradient=to_frame(sal_pressure),
+                vertical_model=to_frame(sal_model),
             ),
         )

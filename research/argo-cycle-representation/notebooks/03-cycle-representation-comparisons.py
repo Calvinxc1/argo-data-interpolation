@@ -57,12 +57,12 @@ from pympler import asizeof
 from tqdm.auto import tqdm
 
 # %%
-from argo_interp.data import get_data
+from argo_kwsi.data import get_data
 
-from argo_interp.cycle.adapter import LinearAdapter, PchipAdapter, SplineAdapter
-from argo_interp.cycle.config import ModelKwargs, ModelSettings, SensorAccuracy
-from argo_interp.cycle.domain import ModelData, ModelMeta
-from argo_interp.cycle.model import Model
+from argo_kwsi.cycle.adapter import LinearAdapter, PchipAdapter, SplineAdapter
+from argo_kwsi.cycle.config import ModelKwargs, ModelSettings, SensorAccuracy
+from argo_kwsi.cycle.domain import ModelData, ModelMeta
+from argo_kwsi.cycle.model import Model
 
 # %% [markdown]
 # ## Local Assumptions

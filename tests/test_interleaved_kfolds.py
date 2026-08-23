@@ -1,6 +1,6 @@
 import numpy as np
 
-from argo_interp.cycle.validation.InterleavedKFolds import InterleavedKFolds
+from argo_kwsi.cycle.validation.InterleavedKFolds import InterleavedKFolds
 
 
 def test_interleaved_kfolds_reserves_endpoints_by_default() -> None:

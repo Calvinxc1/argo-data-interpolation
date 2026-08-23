@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from argo_interp.uncertainty import SoundSpeedUncertaintyProduct
+from argo_kwsi.uncertainty import SoundSpeedUncertaintyProduct
 
 
 def package_version(package_name: str) -> str:

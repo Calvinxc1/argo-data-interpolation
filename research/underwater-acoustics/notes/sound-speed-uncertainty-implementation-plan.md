@@ -37,7 +37,7 @@ any variance term into a combined reliability metric.
 
 ### Per-cycle vertical model and sensor terms
 
-The per-cycle model lives in `src/argo_interp/cycle/model/Model.py`.
+The per-cycle model lives in `src/argo_kwsi/cycle/model/Model.py`.
 
 `Model.build()` computes one scalar vertical model RMSE for temperature and one
 for salinity using `calc_fold_error()`, then stores those values in
@@ -52,7 +52,7 @@ CycleError.salinity.sensor
 ```
 
 Default sensor accuracies are in
-`src/argo_interp/cycle/config/SensorAccuracy.py`:
+`src/argo_kwsi/cycle/config/SensorAccuracy.py`:
 
 ```text
 pressure = 2.4
@@ -247,7 +247,7 @@ model bucket = vertical model error + spatial interpolation error
   underwater-acoustics notebook support library. These helpers aggregate
   weighted-mean variance as `sum(alpha_i^2 var_i)` with finite-value support
   handling.
-- Added `argo_interp.acoustics` helpers for GSW / TEOS-10 sound-speed point
+- Added `argo_kwsi.acoustics` helpers for GSW / TEOS-10 sound-speed point
   estimates, finite-difference partial derivatives with respect to temperature
   and practical salinity, and no-cross-term variance propagation.
 - Added notebook `6-sound-speed-uncertainty-product` as the dedicated
@@ -272,8 +272,8 @@ Focused validation run:
 - Changed the notebook flow so cached `pchip_cycle_models.pkl` runs do not load
   or unpickle the raw Argopy-backed Argo data cache. Raw data is loaded only
   when the cycle-model bundle must be rebuilt.
-- Made `argo_interp.data.get_data` lazy at package import time so
-  `argo_interp.data` and `argo_interp.data.data_filter` can be imported without
+- Made `argo_kwsi.data.get_data` lazy at package import time so
+  `argo_kwsi.data` and `argo_kwsi.data.data_filter` can be imported without
   initializing Argopy or touching its user cache.
 - Updated `weighted_profile_mean()` to return `NaN` for zero-supported rows
   without emitting divide-by-zero runtime warnings.

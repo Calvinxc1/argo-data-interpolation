@@ -53,7 +53,7 @@ from lib import ModelError, SensorError, CycleError, CycleModel, CycleSettings
 from lib import build_model, calc_fold_error
 from lib.calc_rmse import calc_rmse
 
-from argo_interp.data import get_data
+from argo_kwsi.data import get_data
 
 # %% [markdown]
 # ## Benchmark Setup

@@ -78,12 +78,12 @@ from itertools import product
 from datetime import datetime as dt
 
 # %%
-from argo_interp.data import data_filter, get_data
-from argo_interp.cycle.adapter import PchipAdapter
-from argo_interp.cycle.config import ModelKwargs, ModelSettings
-from argo_interp.cycle.domain import ModelData, ModelMeta
-from argo_interp.cycle.model import Model
-from argo_interp.model import CycleModels, CycleData
+from argo_kwsi.data import data_filter, get_data
+from argo_kwsi.cycle.adapter import PchipAdapter
+from argo_kwsi.cycle.config import ModelKwargs, ModelSettings
+from argo_kwsi.cycle.domain import ModelData, ModelMeta
+from argo_kwsi.cycle.model import Model
+from argo_kwsi.model import CycleModels, CycleData
 from lib import (
     GaussianScale,
     WeightConfig,

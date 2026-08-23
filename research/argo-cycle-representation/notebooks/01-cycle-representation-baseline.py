@@ -56,7 +56,7 @@ import pickle
 from lib import ModelError, SensorError, CycleError, CycleModel, CycleSettings
 from lib import build_model, calc_fold_error
 
-from argo_interp.data import get_data
+from argo_kwsi.data import get_data
 
 # %% [markdown]
 # ## 2. Data Acquisition

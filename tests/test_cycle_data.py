@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from argo_interp.model.CycleData import CycleData
+from argo_kwsi.model.CycleData import CycleData
 
 
 def test_cycle_data_rejects_mismatched_pressure_index() -> None:

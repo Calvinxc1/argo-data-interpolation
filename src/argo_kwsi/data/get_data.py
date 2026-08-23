@@ -14,14 +14,14 @@ def get_data(
 ) -> xr.Dataset:
     """Fetch Argo observations for a region.
 
-    Requires the optional ``argo-data-interpolation[data]`` extra.
+    Requires the optional ``argo-kwsi[data]`` extra.
     """
 
     try:
         from argopy import DataFetcher
     except ModuleNotFoundError as error:
         raise ImportError(
-            "Argo data fetching requires the 'data' extra: install argo-data-interpolation[data]."
+            "Argo data fetching requires the 'data' extra: install argo-kwsi[data]."
         ) from error
 
     fetcher = DataFetcher(

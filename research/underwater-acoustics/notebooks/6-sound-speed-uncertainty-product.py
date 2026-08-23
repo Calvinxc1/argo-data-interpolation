@@ -10,9 +10,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: argo-data-interpolation (.venv)
+#     display_name: argo-kwsi (.venv)
 #     language: python
-#     name: argo-data-interpolation
+#     name: argo-kwsi
 #   language_info:
 #     codemirror_mode:
 #       name: ipython
@@ -53,7 +53,7 @@ import pandas as pd
 import cartopy
 from tqdm.auto import tqdm
 
-from argo_interp.uncertainty import (
+from argo_kwsi.uncertainty import (
     GaussianScale,
     SoundSpeedUncertaintyProduct,
     SoundSpeedUncertaintyConfig,
@@ -61,7 +61,7 @@ from argo_interp.uncertainty import (
     depth_summary,
     estimate_depthwise_spatial_variance as estimate_depthwise_spatial_variance_package,
 )
-from argo_interp.cycle.config import ModelSettings
+from argo_kwsi.cycle.config import ModelSettings
 
 # %% [markdown]
 # ## Configuration

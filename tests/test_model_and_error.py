@@ -2,17 +2,17 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from argo_interp.cycle.config.ModelKwargs import ModelKwargs
-from argo_interp.cycle.config.ModelSettings import ModelSettings
-from argo_interp.cycle.config.SensorAccuracy import SensorAccuracy
-from argo_interp.cycle.domain.CycleError import CycleError
-from argo_interp.cycle.domain.MeasureError import MeasureError
-from argo_interp.cycle.domain.ModelData import ModelData
-from argo_interp.cycle.domain.ModelMeta import ModelMeta
-from argo_interp.cycle.model.Model import Model
-from argo_interp.cycle.model.ModelAdapters import ModelAdapters
-from argo_interp.cycle.validation.calc_measure_error import calc_measure_error
-from argo_interp.model.CycleModels import CycleModels
+from argo_kwsi.cycle.config.ModelKwargs import ModelKwargs
+from argo_kwsi.cycle.config.ModelSettings import ModelSettings
+from argo_kwsi.cycle.config.SensorAccuracy import SensorAccuracy
+from argo_kwsi.cycle.domain.CycleError import CycleError
+from argo_kwsi.cycle.domain.MeasureError import MeasureError
+from argo_kwsi.cycle.domain.ModelData import ModelData
+from argo_kwsi.cycle.domain.ModelMeta import ModelMeta
+from argo_kwsi.cycle.model.Model import Model
+from argo_kwsi.cycle.model.ModelAdapters import ModelAdapters
+from argo_kwsi.cycle.validation.calc_measure_error import calc_measure_error
+from argo_kwsi.model.CycleModels import CycleModels
 
 
 @dataclass
@@ -240,3 +240,16 @@ def _meta() -> ModelMeta:
         timestamp=np.datetime64("2026-01-01"),
         profile_pressure=(0.0, 100.0),
     )
+
+
+def test_model_kwargs_defaults_are_not_shared_between_settings() -> None:
+    first = ModelSettings(n_folds=5)
+    second = ModelSettings(n_folds=3)
+
+    assert first.model_kwargs is not second.model_kwargs
+    assert first.model_kwargs.temperature is not second.model_kwargs.temperature
+
+    first.model_kwargs.temperature["s"] = 0.5
+
+    assert second.model_kwargs.temperature == {}
+    assert ModelSettings(n_folds=9).model_kwargs.temperature == {}

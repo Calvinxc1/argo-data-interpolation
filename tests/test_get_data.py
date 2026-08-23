@@ -1,10 +1,10 @@
 import sys
+from types import ModuleType
 
-import argopy
 import pytest
 import xarray as xr
 
-from argo_interp.data import get_data
+from argo_kwsi.data import get_data
 
 
 class MockFetcher:
@@ -31,7 +31,9 @@ def test_get_data_builds_fetcher_with_expected_arguments(monkeypatch: pytest.Mon
         calls.update(kwargs)
         return fetcher
 
-    monkeypatch.setattr(argopy, "DataFetcher", fake_data_fetcher)
+    mock_argopy = ModuleType("argopy")
+    mock_argopy.DataFetcher = fake_data_fetcher  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "argopy", mock_argopy)
 
     box = [0.0, 1.0, 2.0, 3.0, 0.0, 10.0]
     result = get_data(box=box, progress=True, max_workers=7, mode="expert")
@@ -52,5 +54,5 @@ def test_get_data_explains_how_to_install_the_optional_dependency(
 ) -> None:
     monkeypatch.setitem(sys.modules, "argopy", None)
 
-    with pytest.raises(ImportError, match="argo-data-interpolation\\[data\\]"):
+    with pytest.raises(ImportError, match="argo-kwsi\\[data\\]"):
         get_data(box=[0.0, 1.0, 2.0, 3.0, 0.0, 10.0])

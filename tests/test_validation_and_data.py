@@ -3,11 +3,11 @@ from dataclasses import dataclass
 import numpy as np
 import xarray as xr
 
-from argo_interp.cycle.config.ModelKwargs import ModelKwargs
-from argo_interp.cycle.config.ModelSettings import ModelSettings
-from argo_interp.cycle.domain.ModelData import ModelData
-from argo_interp.cycle.validation.calc_fold_error import calc_fold_error
-from argo_interp.data.data_filter import data_filter
+from argo_kwsi.cycle.config.ModelKwargs import ModelKwargs
+from argo_kwsi.cycle.config.ModelSettings import ModelSettings
+from argo_kwsi.cycle.domain.ModelData import ModelData
+from argo_kwsi.cycle.validation.calc_fold_error import calc_fold_error
+from argo_kwsi.data.data_filter import data_filter
 
 
 @dataclass

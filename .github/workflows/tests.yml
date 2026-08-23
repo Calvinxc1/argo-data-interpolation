@@ -6,9 +6,13 @@ on:
       - dev
       - main
 
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default; only the summary job needs to write to the PR.
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   lint:
@@ -25,6 +29,8 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: |
@@ -99,6 +105,16 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the supported floor from requires-python; 3.13 is what the
+        # project is developed on locally.
+        python-version: ["3.11", "3.13"]
+
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -106,10 +122,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: |
@@ -125,7 +143,7 @@ jobs:
             | tee test-results/pytest-output.txt
 
       - name: Build PR summary
-        if: always()
+        if: always() && matrix.python-version == '3.11'
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -286,7 +304,7 @@ jobs:
           PY
 
       - name: Upload test artifacts
-        if: always()
+        if: always() && matrix.python-version == '3.11'
         uses: actions/upload-artifact@v4
         with:
           name: pytest-results
@@ -306,6 +324,8 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
       - name: Build wheel
         run: uv build --wheel --out-dir dist
@@ -313,7 +333,22 @@ jobs:
       - name: Smoke test installed core wheel
         run: |
           uv run --isolated --no-project --with dist/*.whl -- python -c \
-            "from argo_interp import SoundSpeedUncertaintyConfig; from argo_interp.data import get_data; assert SoundSpeedUncertaintyConfig.notebook6().distance_metric == 'planar_degrees'; assert callable(get_data)"
+            "from argo_kwsi import SoundSpeedUncertaintyConfig; from argo_kwsi.data import get_data; assert SoundSpeedUncertaintyConfig.notebook6().distance_metric == 'planar_degrees'; assert callable(get_data)"
+
+  reuse:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Check REUSE licensing compliance
+        run: uvx reuse lint
 
   quality-summary:
     if: always()
@@ -321,17 +356,27 @@ jobs:
       - lint
       - pytest
       - package
+      - reuse
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      pull-requests: write
+
     steps:
+      # A job that fails before writing its results uploads no artifact, and a
+      # hard download failure here would suppress the summary exactly when it
+      # is most useful. The builder below degrades to a pointer instead.
       - name: Download lint artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: lint-results
           path: lint-results/
 
       - name: Download pytest artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: pytest-results
           path: test-results/
@@ -354,6 +399,27 @@ jobs:
           if lint_summary.exists():
               sections.append(lint_summary.read_text().strip())
               sections.append("")
+
+          if not test_summary.exists() and not lint_summary.exists():
+              sections.extend(
+                  [
+                      "No lint or test results were produced. A job most likely failed "
+                      "during setup, before it could write any output.",
+                      "",
+                      "See the workflow run for the failing step.",
+                      "",
+                  ]
+              )
+
+          sections.extend(
+              [
+                  "## Environment",
+                  "",
+                  "- Tests run on Python 3.11 and 3.13; the table above is the 3.11 run.",
+                  "- REUSE licensing compliance is checked in a separate job.",
+                  "",
+              ]
+          )
 
           summary = "\n".join(sections).strip() + "\n"
           summary_path.write_text(summary)

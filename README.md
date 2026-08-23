@@ -38,6 +38,12 @@ maintained outside this repository under Education ownership. Paper drafts and
 bibliography should point back here for implementation, methodology support,
 and figures rather than duplicating repository-owned source material.
 
+Three figures generated here appear as Fig. 1 of that paper, whose published
+form is © 2026 IEEE. The repository copies are the author's own originals
+under the `research/` CC-BY-4.0 license rather than reproductions of the
+published article; see
+[`research/underwater-acoustics/notes/paper-figure-provenance.md`](research/underwater-acoustics/notes/paper-figure-provenance.md).
+
 ## Argo Background
 
 - [How Argo floats work](https://youtu.be/YI_qhwMB9ME?si=kp0Rc3PNzKyzwS2l): a concise external explainer on Argo float operation and the observing system context behind this repository's data source.

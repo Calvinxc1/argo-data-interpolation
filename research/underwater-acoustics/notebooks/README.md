@@ -6,6 +6,8 @@ Committed notebooks in this folder are paired with Jupytext `.py` files in perce
 
 Each notebook is intended to run independently. They share a conceptual sequence, but they no longer depend on cached archives or saved validation outputs from earlier notebooks in the folder.
 
+These notebooks are a record of runs rather than a maintained example suite; see [../../notebook-currency.md](../../notebook-currency.md) for which parts have fallen behind the current package.
+
 The local `lib/` package holds notebook-support code used only for this topic's reproducibility and diagnostics, including weighting helpers, validation-query helpers, prediction utilities, and plotting helpers.
 
 ## Sequence

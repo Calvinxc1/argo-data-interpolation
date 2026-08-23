@@ -2,6 +2,8 @@
 
 This folder contains prototype and experiment notebooks for the `argo-cycle-representation` topic. These notebooks are implementation and diagnostic artifacts, not canonical source-backed summaries. Source-backed claims made in notebook commentary should trace to sources already covered in [../literature-review.md](../literature-review.md).
 
+These notebooks are a record of runs rather than a maintained example suite; see [../../notebook-currency.md](../../notebook-currency.md) for which parts have fallen behind the current package.
+
 The notebooks are meant to be read as a sequence rather than as interchangeable artifacts:
 
 1. notebook 01 confirms that the custom curvature-adaptive spline method works coherently on its own terms,

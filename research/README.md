@@ -14,6 +14,15 @@ bibliography, is maintained outside this repository under Education ownership
 and should point back to this repo for code, methodology support, and
 visualizations.
 
+## Notebook Currency
+
+The notebooks in this directory are a record of experiments as they were run,
+not a maintained example suite. Their imports track the current package, but
+their stored cell outputs come from earlier runs, and some of their support
+code predates the packaged API. Read
+[notebook-currency.md](notebook-currency.md) before treating a notebook's
+stored output or its `lib/` helpers as current behavior.
+
 ## Current Research Topics
 
 - [argo-cycle-representation](argo-cycle-representation/README.md): research on cycle-level vertical profile representation, interpolation, uncertainty modeling, and compression for individual Argo float profiles.

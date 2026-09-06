@@ -6,7 +6,13 @@ All notable user-visible, operator-visible, and release-relevant changes in this
 
 Changes merged to `dev` and staged for a future release belong in this section until they are promoted into a versioned release entry.
 
-_No staged changes._
+### Added
+
+- Added an OCEANS 2026 poster figure export notebook under the underwater-acoustics research topic, re-exporting three of the notebook `6` 110 m sound-speed charts at 600 dpi in the poster's layout, individually and as one three-across row, alongside poster layout helpers in the topic's notebook plotting module.
+
+### Changed
+
+- Extended the underwater-acoustics notebook `save_figure` helper with configurable output DPI and format selection, keeping the previous 300 dpi PNG/SVG behavior as the default.
 
 ## 0.1.0 - 2026-08-23
 

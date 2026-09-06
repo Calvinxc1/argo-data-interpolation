@@ -11,7 +11,7 @@ For this topic, [literature-review.md](literature-review.md) is the canonical li
 - [literature-review.md](literature-review.md): canonical topic literature review, now centered on the methodological gap that profile-level interpolation choices are under-documented and weakly validated in Argo-to-sound-speed workflows.
 - [source-acquisition-tracker.md](source-acquisition-tracker.md): tracker for the remaining unresolved bibliography items and acquisition blockers.
 - [notes/README.md](notes/README.md): index of topic working notes, including the Jana replication rationale, project-framing implications, and broader operational framing.
-- [notebooks/README.md](notebooks/README.md): index of the five-step notebook sequence from calibrated Jana replication through held-out baseline, weighted-extension validation, and deterministic model-build handoff for later uncertainty work.
+- [notebooks/README.md](notebooks/README.md): index of the seven-step notebook sequence from calibrated Jana replication through held-out baseline, weighted-extension validation, deterministic model-build handoff, the sound-speed uncertainty product, and the OCEANS 2026 poster figure exports.
 
 ## Current Maturity
 

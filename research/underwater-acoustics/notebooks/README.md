@@ -12,7 +12,7 @@ The local `lib/` package holds notebook-support code used only for this topic's 
 
 ## Sequence
 
-These notebooks are intended to be read as a six-step progression. The sequence is not just chronological; each notebook answers one narrower question and then hands the result to the next:
+These notebooks are intended to be read as a seven-step progression. The sequence is not just chronological; each notebook answers one narrower question and then hands the result to the next:
 
 1. establish a calibrated replication baseline
 2. turn that baseline into an explicit held-out benchmark
@@ -20,8 +20,9 @@ These notebooks are intended to be read as a six-step progression. The sequence 
 4. test whether relaxing the archive improves the same weighted predictor
 5. repackage the preferred deterministic path as a reusable local model surface
 6. build the separate TEOS-10 sound-speed uncertainty product from that deterministic surface
+7. re-export three of that product's 110 m charts in the OCEANS 2026 poster layout
 
-Read together, the story moves from descriptive replication, to predictive validation, to controlled method changes, to a deterministic model-build handoff, and then to the paper-support uncertainty product.
+Read together, the story moves from descriptive replication, to predictive validation, to controlled method changes, to a deterministic model-build handoff, to the paper-support uncertainty product, and finally to the poster presentation layer.
 
 That progression maps onto the current notebook set as follows:
 
@@ -31,6 +32,7 @@ That progression maps onto the current notebook set as follows:
 4. [4-uncertainty-extension-all-cycles.ipynb](4-uncertainty-extension-all-cycles.ipynb) and [4-uncertainty-extension-all-cycles.py](4-uncertainty-extension-all-cycles.py): keep the weighted local-window idea from notebook `3`, but relax the archive-pruning rules so partially sampled cycles can contribute where they have real depth support. This notebook changes the archive while keeping the weighted predictor idea.
 5. [5-uncertainty-model-build.ipynb](5-uncertainty-model-build.ipynb) and [5-uncertainty-model-build.py](5-uncertainty-model-build.py): rebuild the relaxed weighted local-window model as the current deterministic backbone when needed, cache it under `data/uncertainty_model_build.pkl`, and export passthrough-ready model tables without yet attaching uncertainty propagation. This notebook is the handoff from the experimental sequence into reusable model-build work.
 6. [6-sound-speed-uncertainty-product.ipynb](6-sound-speed-uncertainty-product.ipynb) and [6-sound-speed-uncertainty-product.py](6-sound-speed-uncertainty-product.py): build the OCEANS 2026 paper-support uncertainty product as a separate table-producing pipeline, including componentized temperature/salinity variance, a depthwise spatial variance bucket, GSW/TEOS-10 sound-speed propagation, support diagnostics, and 110 m figure-ready exports. Three of this notebook's 110 m exports also appear as Fig. 1 of the OCEANS 2026 Monterey paper; see [../notes/paper-figure-provenance.md](../notes/paper-figure-provenance.md).
+7. [7-poster-figure-exports.ipynb](7-poster-figure-exports.ipynb) and [7-poster-figure-exports.py](7-poster-figure-exports.py): re-export the same three 110 m charts in the OCEANS 2026 Monterey poster layout at 600 dpi, individually and as one three-across row. This notebook changes placement only - caption, horizontal colorbar, inline contour labels - and reuses the notebook `6` colormaps, value limits, and contour levels unchanged, so the poster panels and the paper figures are the same charts.
 
 ## License
 

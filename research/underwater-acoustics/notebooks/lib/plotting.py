@@ -253,7 +253,7 @@ def matrix_extent(matrix: pd.DataFrame) -> tuple[float, float, float, float]:
 
 def _add_land_overlay(
     ax: Axes, *, box: Sequence[float | str], grid_alpha: float = 0.6
-) -> None:
+) -> object:
     try:
         import cartopy.crs as ccrs
         import cartopy.feature as cfeature
@@ -276,15 +276,20 @@ def _add_land_overlay(
     )
     gridliner.top_labels = False
     gridliner.right_labels = False
+    return gridliner
 
 
-def save_figure(fig: Figure, *, chart_path: Path, stem: str) -> dict[str, Path]:
-    paths = {
-        "png": chart_path / f"{stem}.png",
-        "svg": chart_path / f"{stem}.svg",
-    }
+def save_figure(
+    fig: Figure,
+    *,
+    chart_path: Path,
+    stem: str,
+    dpi: int = 300,
+    formats: Sequence[str] = ("png", "svg"),
+) -> dict[str, Path]:
+    paths = {suffix: chart_path / f"{stem}.{suffix}" for suffix in formats}
     for output_path in paths.values():
-        fig.savefig(output_path, dpi=300, bbox_inches="tight", facecolor=fig.get_facecolor())
+        fig.savefig(output_path, dpi=dpi, bbox_inches="tight", facecolor=fig.get_facecolor())
     return paths
 
 
@@ -636,3 +641,274 @@ def support_region_cmap(
     )
     cmap.set_bad(color=missing, alpha=1.0)
     return cmap
+
+
+# ---------------------------------------------------------------------------
+# Poster layout
+#
+# The functions below reuse the notebook `6` chart grammar - same colormaps,
+# same value limits, same land overlay, same support contours - but rearrange
+# the surrounding furniture for the OCEANS 2026 poster: no in-figure title, a
+# horizontal colorbar beneath each map, a lettered caption above it, and inline
+# contour labels instead of a legend box. Only placement changes; nothing here
+# alters how a value is colored.
+# ---------------------------------------------------------------------------
+
+POSTER_CAPTION_FONTSIZE = 13.0
+POSTER_TICK_FONTSIZE = 10.0
+POSTER_CBAR_LABEL_FONTSIZE = 11.0
+
+
+def poster_panel_grid(
+    panel_count: int,
+    *,
+    panel_width: float = 5.2,
+    panel_height: float = 5.6,
+    map_to_cbar_ratio: float = 14.0,
+    wspace: float = 0.28,
+    hspace: float = 0.14,
+) -> tuple[Figure, list[Axes], list[Axes]]:
+    """Build a one-row poster figure with a map axes and colorbar axes per panel."""
+    try:
+        import cartopy.crs as ccrs
+    except ImportError as exc:
+        raise ImportError("map plotting requires cartopy to be installed") from exc
+
+    if panel_count < 1:
+        raise ValueError("panel_count must be at least 1")
+
+    fig = plt.figure(figsize=(panel_width * panel_count, panel_height))
+    fig.patch.set_facecolor("white")
+    grid = fig.add_gridspec(
+        2,
+        panel_count,
+        height_ratios=[map_to_cbar_ratio, 1.0],
+        wspace=wspace,
+        hspace=hspace,
+    )
+    map_axes = [
+        fig.add_subplot(grid[0, index], projection=ccrs.PlateCarree())
+        for index in range(panel_count)
+    ]
+    cbar_axes = [fig.add_subplot(grid[1, index]) for index in range(panel_count)]
+    return fig, map_axes, cbar_axes
+
+
+def set_poster_caption(ax: Axes, caption: str) -> None:
+    ax.set_title(caption, fontsize=POSTER_CAPTION_FONTSIZE, pad=10)
+
+
+def poster_tick_locations(lower: float, upper: float, step: float) -> list[float]:
+    """Tick values on a fixed step, covering the axis range inclusively."""
+    start = np.ceil(lower / step) * step
+    stop = np.floor(upper / step) * step
+    if stop < start:
+        return [float(lower), float(upper)]
+    count = int(round((stop - start) / step)) + 1
+    return [float(value) for value in np.linspace(start, stop, count)]
+
+
+def _style_poster_gridlines(
+    ax: Axes,
+    *,
+    box: Sequence[float | str],
+    grid_alpha: float,
+    tick_step: float = 5.0,
+) -> None:
+    gridliner = _add_land_overlay(ax, box=box, grid_alpha=grid_alpha)
+    gridliner.xlabel_style = {"size": POSTER_TICK_FONTSIZE}
+    gridliner.ylabel_style = {"size": POSTER_TICK_FONTSIZE}
+    gridliner.xlocator = mticker.FixedLocator(
+        poster_tick_locations(float(box[0]), float(box[1]), tick_step)
+    )
+    gridliner.ylocator = mticker.FixedLocator(
+        poster_tick_locations(float(box[2]), float(box[3]), tick_step)
+    )
+
+
+def draw_poster_matrix(
+    ax: Axes,
+    matrix: pd.DataFrame,
+    *,
+    box: Sequence[float | str],
+    cmap: str | mcolors.Colormap,
+    interpolation: str,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    grid_alpha: float = 0.6,
+    tick_step: float = 5.0,
+) -> AxesImage:
+    """Draw the notebook `6` value heatmap into an existing poster panel axes."""
+    try:
+        import cartopy.crs as ccrs
+    except ImportError as exc:
+        raise ImportError("map plotting requires cartopy to be installed") from exc
+
+    ax.set_facecolor("0.94")
+    image = ax.imshow(
+        np.ma.masked_invalid(matrix.to_numpy(dtype=float)),
+        origin="lower",
+        extent=matrix_extent(matrix),
+        aspect="auto",
+        interpolation=interpolation,
+        cmap=cmap,
+        vmin=vmin,
+        vmax=vmax,
+        transform=ccrs.PlateCarree(),
+        zorder=1,
+    )
+    _style_poster_gridlines(ax, box=box, grid_alpha=grid_alpha, tick_step=tick_step)
+    return image
+
+
+def draw_poster_support_matrix(
+    ax: Axes,
+    matrix: pd.DataFrame,
+    *,
+    box: Sequence[float | str],
+    cmap: mcolors.Colormap,
+    norm: mcolors.Normalize,
+    transparent_threshold: float = 0.0,
+    interpolation: str = "nearest",
+    grid_alpha: float = 1.0,
+    tick_step: float = 5.0,
+) -> ScalarMappable:
+    """Draw the notebook `6` raw-support heatmap into an existing poster panel axes."""
+    try:
+        import cartopy.crs as ccrs
+    except ImportError as exc:
+        raise ImportError("map plotting requires cartopy to be installed") from exc
+
+    values = matrix.to_numpy(dtype=float)
+    rgba = cmap(norm(values))
+    missing_mask = ~np.isfinite(values)
+    zero_mask = np.isfinite(values) & (values <= transparent_threshold)
+    finite_nonzero_mask = np.isfinite(values) & (values > transparent_threshold)
+    rgba[missing_mask] = mcolors.to_rgba("white", alpha=1.0)
+    rgba[zero_mask, 3] = 0.0
+    rgba[finite_nonzero_mask, 3] = 1.0
+
+    ax.set_facecolor("white")
+    ax.imshow(
+        rgba,
+        origin="lower",
+        extent=matrix_extent(matrix),
+        aspect="auto",
+        interpolation=interpolation,
+        transform=ccrs.PlateCarree(),
+        zorder=1,
+    )
+    _style_poster_gridlines(ax, box=box, grid_alpha=grid_alpha, tick_step=tick_step)
+
+    scalar_mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+    scalar_mappable.set_array([])
+    return scalar_mappable
+
+
+def add_poster_contours(
+    ax: Axes,
+    support: pd.DataFrame,
+    *,
+    contour_levels: list[float],
+    contour_labels: list[str] | None = None,
+    contour_value_label: str = "W",
+    contour_value_precision: int = 3,
+    inline_labels: bool = True,
+    inline_label_fontsize: float = 9.0,
+    legend_loc: str | None = None,
+) -> None:
+    """Overlay the notebook `6` support contours, labeled inline for poster use."""
+    try:
+        import cartopy.crs as ccrs
+    except ImportError as exc:
+        raise ImportError("map plotting requires cartopy to be installed") from exc
+
+    _add_support_contours(
+        ax,
+        support,
+        contour_levels=contour_levels,
+        contour_labels=contour_labels,
+        contour_value_label=contour_value_label,
+        contour_value_precision=contour_value_precision,
+        legend_loc=legend_loc,
+    )
+    if not inline_labels:
+        return
+
+    support_values = np.ma.masked_invalid(support.to_numpy(dtype=float))
+    longitudes = support.columns.to_numpy(dtype=float)
+    latitudes = support.index.to_numpy(dtype=float)
+    label_contours = ax.contour(
+        longitudes,
+        latitudes,
+        support_values,
+        levels=sorted(contour_levels),
+        colors="none",
+        transform=ccrs.PlateCarree(),
+        zorder=2,
+    )
+    texts = ax.clabel(
+        label_contours,
+        inline=True,
+        fontsize=inline_label_fontsize,
+        fmt=lambda level: f"{level:g}",
+    )
+    for text in texts:
+        text.set_color("#111827")
+        text.set_path_effects(
+            [path_effects.Stroke(linewidth=2.4, foreground="white"), path_effects.Normal()]
+        )
+
+
+def add_poster_colorbar(
+    fig: Figure,
+    cax: Axes,
+    mappable: ScalarMappable | AxesImage,
+    *,
+    label: str,
+    ticks: list[float] | None = None,
+    scale: str = "linear",
+    tick_formatter: mticker.Formatter | None = None,
+) -> Axes:
+    """Attach a horizontal colorbar beneath a poster panel."""
+    if scale == "log":
+        cmap = mappable.get_cmap()
+        norm = mappable.norm
+        positive_ticks = [tick for tick in (ticks or []) if tick > 0]
+        if not positive_ticks:
+            raise ValueError("log colorbars require positive ticks")
+        cbar_vmin = min(positive_ticks)
+        cbar_vmax = max(positive_ticks)
+        edges = np.geomspace(cbar_vmin, cbar_vmax, 256)
+        centers = np.sqrt(edges[:-1] * edges[1:])
+        cax.pcolormesh(
+            edges,
+            [0.0, 1.0],
+            centers[np.newaxis, :],
+            cmap=cmap,
+            norm=norm,
+            shading="flat",
+        )
+        cax.set_xscale("log")
+        cax.set_xlim(cbar_vmin, cbar_vmax)
+        cax.set_ylim(0.0, 1.0)
+        cax.set_yticks([])
+        cax.set_xticks(ticks)
+        cax.set_xlabel(label, fontsize=POSTER_CBAR_LABEL_FONTSIZE)
+        colorbar_ax = cax
+    else:
+        colorbar = fig.colorbar(mappable, cax=cax, orientation="horizontal", ticks=ticks)
+        colorbar.set_label(label, fontsize=POSTER_CBAR_LABEL_FONTSIZE)
+        colorbar_ax = colorbar.ax
+
+    colorbar_ax.xaxis.set_major_formatter(
+        tick_formatter if tick_formatter is not None else colorbar_ax.xaxis.get_major_formatter()
+    )
+    colorbar_ax.minorticks_off()
+    colorbar_ax.tick_params(labelsize=POSTER_TICK_FONTSIZE)
+    return colorbar_ax
+
+
+def poster_raw_support_tick_formatter() -> mticker.Formatter:
+    """Reuse the notebook `6` raw-support tick formatting on a poster colorbar."""
+    return mticker.FuncFormatter(_format_raw_support_tick)
